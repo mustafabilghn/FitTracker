@@ -7,8 +7,9 @@ namespace FitTrackr.API.Models.DTO
         [Required]
         public string ExerciseName { get; set; }//bench press
 
-        public int Sets { get; set; }   
+        public int Sets { get; set; }
 
+        [Required]
         public string Reps { get; set; }
 
         public double WeightInKg { get; set; }

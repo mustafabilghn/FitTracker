@@ -15,11 +15,11 @@ namespace FitTrackr.API.Repositories
 
         public async Task<Exercise> CreateAsync(Exercise exercise)
         {
-            var intensity = await dbContext.Intensities.FirstOrDefaultAsync(i => i.Id == exercise.IntensityId);
+            var intensity = await dbContext.Intensities.FindAsync(exercise.IntensityId);
 
             if (intensity is null)
             {
-                throw new Exception("Invalid IntensityId provided");
+                return null;
             }
 
             exercise.Intensity = intensity;
@@ -40,15 +40,6 @@ namespace FitTrackr.API.Repositories
                 return null;
             }
 
-            var intensity = await dbContext.Intensities.FirstOrDefaultAsync(i => i.Id == exercise.IntensityId);
-
-            if (intensity is null)
-            {
-                throw new Exception("Invalid IntensityId provided");
-            }
-
-            exercise.Intensity = intensity;
-
             dbContext.Remove(exercise);
 
             await dbContext.SaveChangesAsync();
@@ -58,17 +49,17 @@ namespace FitTrackr.API.Repositories
 
         public async Task<List<Exercise>> GetAllAsync()
         {
-            return await dbContext.Exercises.Include("Intensity").Include("Workout").ToListAsync();
+            return await dbContext.Exercises.Include(e => e.Intensity).Include(e => e.Workout).ToListAsync();
         }
 
         public async Task<Exercise?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Exercises.Include("Intensity").Include("Workout").FirstOrDefaultAsync(x => x.Id == id);
+            return await dbContext.Exercises.Include(e => e.Intensity).Include(e => e.Workout).FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Exercise?> UpdateAsync(Guid id, Exercise exercise)
         {
-            var existingExercise = await dbContext.Exercises.Include(i => i.Intensity).FirstOrDefaultAsync(x => x.Id == id);
+            var existingExercise = await dbContext.Exercises.Include(i => i.Intensity).Include(w => w.Workout).FirstOrDefaultAsync(x => x.Id == id);
 
             if (existingExercise == null)
             {
@@ -79,11 +70,18 @@ namespace FitTrackr.API.Repositories
 
             if (intensity is null)
             {
-                throw new Exception("Invalid IntensityId provided");
+                return null;
             }
 
-            existingExercise.Intensity = intensity;
+            var workout = await dbContext.Workouts.FirstOrDefaultAsync(w => w.Id == exercise.WorkoutId);
 
+            if (workout is null)
+            {
+                return null;
+            }
+
+            existingExercise.Workout = workout;
+            existingExercise.Intensity = intensity;
             existingExercise.ExerciseName = exercise.ExerciseName;
             existingExercise.Sets = exercise.Sets;
             existingExercise.Reps = exercise.Reps;

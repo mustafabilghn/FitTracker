@@ -2,7 +2,9 @@
 using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace FitTrackr.API.Controllers
 {
@@ -47,8 +49,15 @@ namespace FitTrackr.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ExerciseRequestDto requestDto)
+        public async Task<IActionResult> Create([FromBody] ExerciseRequestDto requestDto, IValidator<ExerciseRequestDto> validator)
         {
+            var validationError = await ValidateAsync(validator, requestDto);
+
+            if (validationError is not null)
+            {
+                return validationError;
+            }
+
             var exercise = mapper.Map<Exercise>(requestDto);
 
             var createdExercise = await exerciseRepository.CreateAsync(exercise);
@@ -60,8 +69,15 @@ namespace FitTrackr.API.Controllers
 
         [HttpPut]
         [Route("{id:Guid}")]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateExerciseRequestDto exerciseRequestDto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateExerciseRequestDto exerciseRequestDto, [FromServices] IValidator<UpdateExerciseRequestDto> validator)
         {
+            var validationError = await ValidateAsync(validator, exerciseRequestDto);
+
+            if (validationError is not null)
+            {
+                return validationError;
+            }
+
             var exercise = mapper.Map<Exercise>(exerciseRequestDto);
 
             var updatedExercise = await exerciseRepository.UpdateAsync(id, exercise);
@@ -87,6 +103,22 @@ namespace FitTrackr.API.Controllers
             }
 
             return Ok(mapper.Map<ExerciseDto>(exercise));
+        }
+
+        private async Task<IActionResult> ValidateAsync<T>(IValidator<T> validator, T model)
+        {
+            var validationResult = await validator.ValidateAsync(model);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors.Select(e => new
+                {
+                    field = e.PropertyName,
+                    error = e.ErrorMessage
+                }));
+            }
+
+            return null;
         }
     }
 }
