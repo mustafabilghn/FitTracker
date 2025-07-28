@@ -1,6 +1,8 @@
 using FitTrackr.API.Data;
 using FitTrackr.API.Mappings;
 using FitTrackr.API.Repositories;
+using FitTrackr.API.Validations;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -18,6 +20,8 @@ builder.Services.AddDbContext<FitTrackrDbContext>(options => options.UseSqlServe
 
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 

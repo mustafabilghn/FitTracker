@@ -19,7 +19,7 @@ namespace FitTrackr.API.Repositories
 
             if (location is null)
             {
-                throw new Exception("Invalid LocationId provided");
+                return null;
             }
 
             workout.Location = location;
@@ -70,11 +70,10 @@ namespace FitTrackr.API.Repositories
 
             if (location is null)
             {
-                throw new Exception("Invalid LocationId provided");
+                return null;
             }
 
             existingWorkout.Location = location;
-
             existingWorkout.WorkoutName = workout.WorkoutName;
             existingWorkout.WorkoutDate = workout.WorkoutDate;
             existingWorkout.DurationMinutes = workout.DurationMinutes;
