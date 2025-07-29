@@ -47,9 +47,40 @@ namespace FitTrackr.API.Repositories
             return exercise;
         }
 
-        public async Task<List<Exercise>> GetAllAsync()
+        public async Task<List<Exercise>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, int pageNumber = 1, int pageSize = 1000)
         {
-            return await dbContext.Exercises.Include(e => e.Intensity).Include(e => e.Workout).ToListAsync();
+            var exercise = dbContext.Exercises.Include(e => e.Intensity).Include(e => e.Workout).AsQueryable();
+
+            //Filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
+            {
+                if (filterOn.Equals("ExerciseName", StringComparison.OrdinalIgnoreCase) ||
+                    filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase) ||
+                    filterOn.Equals("Exercise", StringComparison.OrdinalIgnoreCase))
+                {
+                    exercise = exercise.Where(e => e.ExerciseName.Contains(filterQuery));
+                }
+            }
+
+            //Sorting
+            if (string.IsNullOrWhiteSpace(sortBy) == false)
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    exercise = isAscending ? exercise.OrderBy(e => e.ExerciseName) : exercise.OrderByDescending(e => e.ExerciseName);
+                }
+
+                else if (sortBy.Equals("Weight", StringComparison.OrdinalIgnoreCase) ||
+                    sortBy.Equals("Kg", StringComparison.OrdinalIgnoreCase))
+                {
+                    exercise = isAscending ? exercise.OrderBy(e => e.WeightInKg) : exercise.OrderByDescending(e => e.WeightInKg);
+                }
+            }
+
+            //Pagination
+            var skipResults = (pageNumber - 1) * pageSize;
+
+            return await exercise.Skip(skipResults).Take(pageSize).ToListAsync();
         }
 
         public async Task<Exercise?> GetByIdAsync(Guid id)
