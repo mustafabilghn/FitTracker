@@ -31,9 +31,7 @@ namespace FitTrackr.API.Validations
 
             RuleFor(w => w.WeightInKg)
                 .NotEmpty()
-                .WithMessage("Weight in kg is required.")
-                .GreaterThan(0)
-                .WithMessage("Weight in kg must be greater than 0.");
+                .WithMessage("Weight in kg is required.");
 
             RuleFor(i => i.IntensityId)
                .NotEmpty()
