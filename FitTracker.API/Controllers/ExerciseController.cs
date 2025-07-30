@@ -3,8 +3,8 @@ using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace FitTrackr.API.Controllers
 {
@@ -23,6 +23,7 @@ namespace FitTrackr.API.Controllers
 
         [HttpGet]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             var exercise = await exerciseRepository.GetByIdAsync(id);
@@ -36,6 +37,7 @@ namespace FitTrackr.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, int pageNumber = 1, int pageSize = 1000)
         {
             var exercises = await exerciseRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
@@ -49,6 +51,7 @@ namespace FitTrackr.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Create([FromBody] ExerciseRequestDto requestDto, IValidator<ExerciseRequestDto> validator)
         {
             var validationError = await ValidateAsync(validator, requestDto);
@@ -69,6 +72,7 @@ namespace FitTrackr.API.Controllers
 
         [HttpPut]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateExerciseRequestDto exerciseRequestDto, [FromServices] IValidator<UpdateExerciseRequestDto> validator)
         {
             var validationError = await ValidateAsync(validator, exerciseRequestDto);
@@ -93,6 +97,7 @@ namespace FitTrackr.API.Controllers
 
         [HttpDelete]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var exercise = await exerciseRepository.DeleteAsync(id);
