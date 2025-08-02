@@ -1,0 +1,49 @@
+﻿@model FitTrackr.UI.Models.AddExerciseViewModel
+@{
+    ViewData["Title"] = "Add";
+}
+
+<h1>Add Exercise</h1>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Add" method="post">
+            <div class="form-group">
+                <label asp-for="ExerciseName" class="control-label">Exercise Name</label>
+                <input asp-for="ExerciseName" type="text" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Sets" class="control-label">Sets</label>
+                <input asp-for="Sets" type="number" class="form-control" step="1" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Reps" class="control-label">Reps</label>
+                <input asp-for="Reps" type="text" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="WeightInKg" class="control-label">Weight (kg)</label>
+                <input asp-for="WeightInKg" type="number" class="form-control" step="0.1" />
+            </div>
+            <div class="form-group">
+                <label asp-for="IntensityId" class="control-label">Intensity</label>
+                <select asp-for="IntensityId" class="form-select" asp-items="ViewBag.Intensities">
+                    <option value="">Select Intensity</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="WorkoutId" class="control-label">Workout</label>
+                <select asp-for="WorkoutId" class="form-select" asp-items="ViewBag.Workouts">
+                    <option value="">Select Workout</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" asp-controller="Exercises" class="btn btn-secondary">Back To List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

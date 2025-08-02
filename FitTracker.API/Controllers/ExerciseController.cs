@@ -5,6 +5,9 @@ using FitTrackr.API.Repositories;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using System.Net;
+using System.Text.Json;
 
 namespace FitTrackr.API.Controllers
 {
@@ -14,16 +17,18 @@ namespace FitTrackr.API.Controllers
     {
         private readonly IExerciseRepository exerciseRepository;
         private readonly IMapper mapper;
+        private readonly ILogger<ExerciseController> logger;
 
-        public ExerciseController(IExerciseRepository exerciseRepository, IMapper mapper)
+        public ExerciseController(IExerciseRepository exerciseRepository, IMapper mapper, ILogger<ExerciseController> logger)
         {
             this.exerciseRepository = exerciseRepository;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         [HttpGet]
         [Route("{id:Guid}")]
-        [Authorize(Roles = "Reader")]
+        //[Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             var exercise = await exerciseRepository.GetByIdAsync(id);
@@ -37,22 +42,17 @@ namespace FitTrackr.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Reader")]
+        //[Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery, [FromQuery] string? sortBy, [FromQuery] bool? isAscending, int pageNumber = 1, int pageSize = 1000)
         {
             var exercises = await exerciseRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
-
-            if (exercises == null)
-            {
-                return NotFound();
-            }
 
             return Ok(mapper.Map<List<ExerciseDto>>(exercises));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Writer")]
-        public async Task<IActionResult> Create([FromBody] ExerciseRequestDto requestDto, IValidator<ExerciseRequestDto> validator)
+        //[Authorize(Roles = "Writer")]
+        public async Task<IActionResult> Create([FromBody] ExerciseRequestDto requestDto, [FromServices] IValidator<ExerciseRequestDto> validator)
         {
             var validationError = await ValidateAsync(validator, requestDto);
 
@@ -72,7 +72,7 @@ namespace FitTrackr.API.Controllers
 
         [HttpPut]
         [Route("{id:Guid}")]
-        [Authorize(Roles = "Writer")]
+        //[Authorize(Roles = "Writer")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateExerciseRequestDto exerciseRequestDto, [FromServices] IValidator<UpdateExerciseRequestDto> validator)
         {
             var validationError = await ValidateAsync(validator, exerciseRequestDto);
@@ -86,7 +86,7 @@ namespace FitTrackr.API.Controllers
 
             var updatedExercise = await exerciseRepository.UpdateAsync(id, exercise);
 
-            if (exercise == null)
+            if (updatedExercise == null)
             {
                 return NotFound();
             }
@@ -97,7 +97,7 @@ namespace FitTrackr.API.Controllers
 
         [HttpDelete]
         [Route("{id:Guid}")]
-        [Authorize(Roles = "Writer")]
+        //[Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var exercise = await exerciseRepository.DeleteAsync(id);
