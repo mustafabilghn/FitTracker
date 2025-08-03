@@ -1,6 +1,6 @@
 # FitTrackr
 
-[![.NET](https://img.shields.io/badge/.NET-8-blue)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-9-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 ## 🚀 Overview
