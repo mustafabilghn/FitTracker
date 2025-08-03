@@ -1,0 +1,39 @@
+﻿@model FitTrackr.UI.Models.DTO.WorkoutRequestDto
+@{
+    ViewData["Title"] = "Add";
+}
+
+<h1>Add Workout</h1>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Add" method="post">
+            <div class="form-group">
+                <label asp-for="WorkoutName" class="control-label">Workout Name</label>
+                <input asp-for="WorkoutName" type="text" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="WorkoutDate" class="control-label">Workout Date</label>
+                <input asp-for="WorkoutDate" type="text" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="DurationMinutes" class="control-label">Duration</label>
+                <input asp-for="DurationMinutes" type="number" class="form-control" step="1" />
+            </div>
+            <div class="form-group">
+                <label asp-for="LocationId" class="control-label">Location</label>
+                <select asp-for="LocationId" class="form-select" asp-items="ViewBag.Locations">
+                    <option value="">Select Location</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" asp-controller="Workouts" class="btn btn-secondary">Back To List</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
