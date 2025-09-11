@@ -64,3 +64,4 @@ It allows users to manage workout programs, exercises, intensity levels, and wor
 - Postman
 - LINQ
 - GitHub for version control
+- Docker
