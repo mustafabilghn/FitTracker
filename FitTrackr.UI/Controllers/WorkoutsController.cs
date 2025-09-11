@@ -22,9 +22,9 @@ namespace FitTrackr.UI.Controllers
             List<WorkoutSummaryDto> workouts = new List<WorkoutSummaryDto>();
             try
             {
-                var client = httpClient.CreateClient();
+                var client = httpClient.CreateClient("FitTrackrApi");
 
-                var httpResponseMessage = await client.GetAsync("https://localhost:7100/api/workout");
+                var httpResponseMessage = await client.GetAsync("api/workout");
 
                 httpResponseMessage.EnsureSuccessStatusCode();
 
@@ -41,9 +41,9 @@ namespace FitTrackr.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> Add()
         {
-            var client = httpClient.CreateClient();
+            var client = httpClient.CreateClient("FitTrackrApi");
 
-            var locations = await client.GetFromJsonAsync<IEnumerable<LocationDto>>("https://localhost:7100/api/location");
+            var locations = await client.GetFromJsonAsync<IEnumerable<LocationDto>>("api/location");
 
             ViewBag.Locations = new SelectList(locations, "Id", "LocationName");
 
@@ -53,12 +53,12 @@ namespace FitTrackr.UI.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(WorkoutRequestDto request)
         {
-            var client = httpClient.CreateClient();
+            var client = httpClient.CreateClient("FitTrackrApi");
 
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"https://localhost:7100/api/workout"),
+                RequestUri = new Uri("api/workout", UriKind.Relative),
                 Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json"),
             };
 
@@ -79,13 +79,13 @@ namespace FitTrackr.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var client = httpClient.CreateClient();
+            var client = httpClient.CreateClient("FitTrackrApi");
 
-            var locations = await client.GetFromJsonAsync<IEnumerable<LocationDto>>("https://localhost:7100/api/location");
+            var locations = await client.GetFromJsonAsync<IEnumerable<LocationDto>>("api/location");
 
             ViewBag.Locations = new SelectList(locations, "Id", "LocationName");
 
-            var response = await client.GetFromJsonAsync<WorkoutRequestDto>($"https://localhost:7100/api/workout/{id.ToString()}");
+            var response = await client.GetFromJsonAsync<WorkoutRequestDto>($"api/workout/{id.ToString()}");
 
             if (response is not null)
             {
@@ -98,12 +98,12 @@ namespace FitTrackr.UI.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(WorkoutRequestDto request, Guid id)
         {
-            var client = httpClient.CreateClient();
+            var client = httpClient.CreateClient("FitTrackrApi");
 
             var httpRequestMessage = new HttpRequestMessage()
             {
                 Method = HttpMethod.Put,
-                RequestUri = new Uri($"https://localhost:7100/api/workout/{id}"),
+                RequestUri = new Uri($"api/workout/{id}", UriKind.Relative),
                 Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json")
             };
 
@@ -124,9 +124,9 @@ namespace FitTrackr.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var client = httpClient.CreateClient();
+            var client = httpClient.CreateClient("FitTrackrApi");
 
-            var response = await client.GetFromJsonAsync<WorkoutSummaryDto>($"https://localhost:7100/api/workout/{id}");
+            var response = await client.GetFromJsonAsync<WorkoutSummaryDto>($"api/workout/{id}");
 
             if (response is not null)
             {
@@ -141,9 +141,9 @@ namespace FitTrackr.UI.Controllers
         {
             try
             {
-                var client = httpClient.CreateClient();
+                var client = httpClient.CreateClient("FitTrackrApi");
 
-                var httpRequestMessage = await client.DeleteAsync($"https://localhost:7100/api/workout/{request.Id}");
+                var httpRequestMessage = await client.DeleteAsync($"api/workout/{request.Id}");
 
                 httpRequestMessage.EnsureSuccessStatusCode();
 

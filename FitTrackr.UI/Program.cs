@@ -6,7 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("FitTrackrApi", client =>
+{
+    var apiUrl = Environment.GetEnvironmentVariable("ApiBaseUrl") ?? "http://localhost:5000";
+    client.BaseAddress = new Uri(apiUrl);
+});
 
 var app = builder.Build();
 
