@@ -45,7 +45,7 @@ It allows users to manage workout programs, exercises, intensity levels, and wor
  
 - **Cross-Platform Mobile App (MAUI)**
   - Native mobile client consuming the API
-  - Workout list $ details view
+  - Workout list & details view
   - Real-time API integration with HttpClient
   - Designed for both Android and IOS
 
