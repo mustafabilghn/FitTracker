@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.MainPage">
+
+    <VerticalStackLayout Padding="20">
+        <Label 
+            Text="Welcome to FitTrackr!"
+            FontSize="32"
+            HorizontalOptions="Center" 
+            Margin="0,20"/>
+        <Button 
+            Text="View Workouts" 
+            FontSize="20"
+            Padding="10"
+            BackgroundColor="Blue"
+            TextColor="White"
+            CornerRadius="10"
+            Clicked="OnViewWorkoutsClicked"/>
+        <Button 
+            Text="Add New Workout" 
+            FontSize="20"
+            Padding="10"
+            BackgroundColor="Red"
+            TextColor="White"
+            CornerRadius="10"
+            Margin="0,20,0,0"
+            Clicked="OnAddWorkoutClicked"/>
+        <CollectionView x:Name="WorkoutsList" Margin="0,20,0,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="10" Margin="0,5">
+                        <StackLayout>
+                            <Label Text="{Binding WorkoutName}" FontSize="18" FontAttributes="Bold"/>
+                            <Label Text="{Binding WorkoutDate}" FontSize="14" TextColor="Gray"/>
+                            <Label Text="{Binding DurationMinutes}" FontSize="14" TextColor="Gray"/>
+                            <Label Text="{Binding Location.LocationName}" FontSize="14" TextColor="Gray"/>
+                        </StackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>
