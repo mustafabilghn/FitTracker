@@ -5,7 +5,7 @@
 
 ## 🚀 Overview
 
-**FitTrackr** is a fitness tracking system built with **.NET 9**, consisting of a **RESTful Web API** and an **ASP.NET Core MVC** client application.  
+**FitTrackr** is a fitness tracking system built with **.NET 9**, consisting of a **RESTful Web API**, an **ASP.NET Core MVC** client application, and a **.NET MAUI** mobile app. 
 It allows users to manage workout programs, exercises, intensity levels, and workout locations — while following clean coding principles and modern ASP.NET Core best practices.  
 
 ---
@@ -42,6 +42,12 @@ It allows users to manage workout programs, exercises, intensity levels, and wor
   - Global error handling with ProblemDetails
   - Swagger documentation
   - Postman testing support
+ 
+- **Cross-Platform Mobile App (MAUI)**
+  - Native mobile client consuming the API
+  - Workout list $ details view
+  - Real-time API integration with HttpClient
+  - Designed for both Android and IOS
 
 ---
 
@@ -54,10 +60,16 @@ It allows users to manage workout programs, exercises, intensity levels, and wor
 - AutoMapper
 - SQL Server
 
-**Frontend (Client):**
+**Frontend (Web):**
 - ASP.NET Core MVC
 - HttpClient-based API consumption
 - Razor views with server-side rendering
+
+**Frontend(Mobile):**
+- NET MAUI (Android & iOS)
+- MVVM pattern
+- CollectionView-based UI
+- Dependency Injection + HttpClient
 
 **Tools:**
 - Swagger / Swashbuckle
