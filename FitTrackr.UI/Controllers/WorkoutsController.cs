@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace FitTrackr.UI.Controllers
 {
