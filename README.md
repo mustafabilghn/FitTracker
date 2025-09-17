@@ -84,9 +84,8 @@ It allows users to manage workout programs, exercises, intensity levels, and wor
 
 - **API Hosting:** Deployed on [Render](https://render.com) for public availability.  
 - **Database:** Connected to an **Azure SQL Database**, with credentials managed through Render environment variables.  
-- **Mobile App Integration:** The .NET MAUI client consumes the live API endpoint hosted on Render using `HttpClient`.  
-- **Cloud Experience:** Gained hands-on experience with deploying applications to the cloud and integrating cloud-hosted databases into production environments.  
-
+- **Mobile App Integration:** The .NET MAUI client consumes the live API endpoint hosted on Render using `HttpClient`.
+  
 ---
 
 ## 🔗 Live Demo
