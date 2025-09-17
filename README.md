@@ -1,11 +1,11 @@
-# FitTrackr
+# FitTracker
 
 [![.NET](https://img.shields.io/badge/.NET-9-blue)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 ## 🚀 Overview
 
-**FitTrackr** is a fitness tracking system built with **.NET 9**, consisting of a **RESTful Web API**, an **ASP.NET Core MVC** client application, and a **.NET MAUI** mobile app. 
+**FitTracker** is a fitness tracking system built with **.NET 9**, consisting of a **RESTful Web API**, an **ASP.NET Core MVC** client application, and a **.NET MAUI** mobile app. 
 It allows users to manage workout programs, exercises, intensity levels, and workout locations — while following clean coding principles and modern ASP.NET Core best practices.  
 
 ---
