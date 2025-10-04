@@ -21,7 +21,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>FitTrackr.MAUI</ApplicationTitle>
+		<ApplicationTitle>Fit Tracker</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.fittrackr.maui</ApplicationId>

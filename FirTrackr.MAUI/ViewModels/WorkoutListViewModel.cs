@@ -18,6 +18,9 @@ namespace FitTrackr.MAUI.ViewModels
 
         public async Task LoadWorkoutsAsync()
         {
+            if(Workouts.Any())
+                return;
+
             var workouts = await _workoutService.GetWorkoutsAsync();
 
             foreach (var workout in workouts)

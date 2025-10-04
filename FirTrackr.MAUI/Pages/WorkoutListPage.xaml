@@ -1,28 +1,85 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:FitTrackr.MAUI.Models.DTO"
              x:Class="FitTrackr.MAUI.Pages.WorkoutListPage"
-             Title="WorkoutListPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Workout List"
-            FontSize="24"
-            HorizontalOptions="Center" />
+             BackgroundColor="#121212">
 
-        <CollectionView ItemsSource="{Binding Workouts}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:WorkoutSummaryDto">
-                    <Border BackgroundColor="gray" Padding="10" Margin="5">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding WorkoutName}" FontSize="18" FontAttributes="Bold"/>
-                            <Label Text="{Binding WorkoutDate}" FontSize="14"/>
-                            <Label Text="{Binding DurationMinutes}" FontSize="14"/>
-                            <Label Text="{Binding Location.LocationName}" FontSize="14"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </VerticalStackLayout>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- Başlık -->
+            <Label 
+                Text="Antrenmanlarım"
+                FontSize="32"
+                FontAttributes="Bold"
+                TextColor="White"
+                HorizontalOptions="Center"
+                Margin="0,10"/>
+
+            <!-- Liste -->
+            <CollectionView ItemsSource="{Binding Workouts}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame 
+                            Margin="0,8"
+                            CornerRadius="16"
+                            Padding="18"
+                            BackgroundColor="#1E1E1E"
+                            HasShadow="True"
+                            BorderColor="#333">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <!-- Antrenman Adı -->
+                                <Label Text="{Binding WorkoutName}"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="White"/>
+
+                                <!-- Tarih -->
+                                <Label Text="{Binding WorkoutDateText}"
+                                       FontSize="14"
+                                       TextColor="#AAAAAA"/>
+
+                                <!-- Bilgiler -->
+                                <HorizontalStackLayout Spacing="15">
+                                    <Border Stroke="#4CAF50"
+                                            StrokeThickness="1"
+                                            Padding="6,2"
+                                            StrokeShape="RoundRectangle 10">
+                                        <Label Text="{Binding DurationMinutes,StringFormat='⏱ {0} dk'}"
+                                               FontSize="14"
+                                               TextColor="#4CAF50"/>
+                                    </Border>
+
+                                    <Border Stroke="#FF7043"
+                                            StrokeThickness="1"
+                                            Padding="6,2"
+                                            StrokeShape="RoundRectangle 10">
+                                        <Label Text="{Binding Location.LocationName,StringFormat='📍 {0}'}"
+                                               FontSize="14"
+                                               TextColor="#FF7043"/>
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Yükleniyor Göstergesi -->
+            <ActivityIndicator x:Name="LoadingIndicator"
+                               IsRunning="False"
+                               IsVisible="False"
+                               Color="#FF7043"
+                               HeightRequest="60"
+                               WidthRequest="60"
+                               HorizontalOptions="Center"
+                               Margin="0,20"/>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
