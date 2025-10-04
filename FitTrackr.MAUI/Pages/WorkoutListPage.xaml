@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:FitTrackr.MAUI.Models.DTO"
+    x:Class="FitTrackr.MAUI.Pages.WorkoutListPage">
+
+    <Grid>
+        <ScrollView>
+            <CollectionView ItemsSource="{Binding Workouts}"
+                            Margin="20">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                                       ItemSpacing="15"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:WorkoutSummaryDto">
+                        <Frame HasShadow="True"
+                               CornerRadius="16"
+                               Padding="18"
+                               BackgroundColor="White"
+                               BorderColor="#E0E0E0">
+                            <VerticalStackLayout Spacing="8">
+                                <!-- Başlık -->
+                                <Label Text="{Binding WorkoutName}" 
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="#2C3E50"/>
+
+                                <!-- Tarih -->
+                                <Label Text="{Binding WorkoutDateText}" 
+                                       FontSize="14"
+                                       TextColor="#7F8C8D"/>
+
+                                <!-- Bilgiler -->
+                                <HorizontalStackLayout Spacing="18">
+                                    <Border Stroke="#4CAF50" 
+                                            StrokeThickness="1"
+                                            Padding="6,2"
+                                            StrokeShape="RoundRectangle 10">
+                                        <Label Text="{Binding DurationMinutes, StringFormat='⏱ {0} dk'}"
+                                               FontSize="14"
+                                               TextColor="#4CAF50"/>
+                                    </Border>
+
+                                    <Border Stroke="#FF7043"
+                                            StrokeThickness="1"
+                                            Padding="6,2"
+                                            StrokeShape="RoundRectangle 10">
+                                        <Label Text="{Binding Location.LocationName, StringFormat='📍 {0}'}"
+                                               FontSize="14"
+                                               TextColor="#FF7043"/>
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsVisible="{Binding IsLoading}"
+                           IsRunning="{Binding IsLoading}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           Color="#4CAF50"/>
+    </Grid>
+</ContentPage>

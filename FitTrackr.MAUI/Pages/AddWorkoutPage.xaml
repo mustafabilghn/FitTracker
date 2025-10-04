@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.AddWorkoutPage"
+             Title="Yeni Antrenman Ekle"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColor}, Dark={StaticResource PageBackgroundColor}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="25" Spacing="20">
+
+            <!-- Başlık -->
+            <Label Text="Yeni Antrenman" 
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource SecondaryTextColor}}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Form Alanları -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundColor}, Dark={StaticResource CardBackgroundColor}}"
+                   CornerRadius="16"
+                   Padding="20"
+                   HasShadow="True">
+
+                <VerticalStackLayout Spacing="15">
+
+                    <Entry x:Name="WorkoutNameEntry"
+                           Placeholder="Antrenman Adı"
+                           BackgroundColor="{StaticResource EntryBackgroundColor}"
+                           TextColor="{StaticResource PrimaryTextColor}"
+                           PlaceholderColor="#999"
+                           FontSize="16"/>
+
+                    <Entry x:Name="DayEntry"
+                           Placeholder="Gün"
+                           BackgroundColor="{StaticResource EntryBackgroundColor}"
+                           TextColor="{StaticResource PrimaryTextColor}"
+                           PlaceholderColor="#999"
+                           FontSize="16"/>
+
+                    <Entry x:Name="DurationEntry"
+                           Placeholder="Süre (dk)"
+                           Keyboard="Numeric"
+                           BackgroundColor="{StaticResource EntryBackgroundColor}"
+                           TextColor="{StaticResource PrimaryTextColor}"
+                           PlaceholderColor="#999"
+                           FontSize="16"/>
+
+                    <Picker x:Name="LocationPicker"
+                            Title="Yer"
+                            ItemsSource="{Binding Locations}"
+                            ItemDisplayBinding="{Binding LocationName}"
+                            BackgroundColor="{StaticResource EntryBackgroundColor}"
+                            TextColor="{StaticResource PrimaryTextColor}"
+                            TitleColor="#999"
+                            FontSize="16"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Kaydet Butonu -->
+            <Button Text="Kaydet"
+                    FontSize="18"
+                    Padding="14"
+                    BackgroundColor="{StaticResource PrimaryColor}"
+                    TextColor="White"
+                    CornerRadius="20"
+                    Clicked="OnSaveClicked"/>
+
+            <!-- Loading -->
+            <ActivityIndicator x:Name="LoadingIndicator"
+                               IsRunning="False"
+                               IsVisible="False"
+                               Color="{StaticResource AccentColor}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
