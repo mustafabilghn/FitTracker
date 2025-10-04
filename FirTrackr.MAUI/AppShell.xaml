@@ -7,7 +7,17 @@
     xmlns:pages="clr-namespace:FitTrackr.MAUI.Pages"
     Title="FitTrackr.MAUI">
 
-    <ShellContent
-        Title="Workouts"
-        ContentTemplate="{DataTemplate pages:WorkoutListPage}"/>
+    <TabBar>
+        <ShellContent Title="Ana Sayfa"
+                      Shell.NavBarIsVisible="False"
+                      Icon="home.png"
+                      Route="MainPage"
+                      ContentTemplate="{DataTemplate local:MainPage}"/>
+
+        <ShellContent Title="Antrenmanlar"
+                      Shell.NavBarIsVisible="False"
+                      Icon="workouts.png"
+                      Route="WorkoutListPage"
+                      ContentTemplate="{DataTemplate pages:WorkoutListPage}"/>
+    </TabBar>
 </Shell>

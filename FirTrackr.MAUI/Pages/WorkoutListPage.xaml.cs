@@ -16,6 +16,22 @@ public partial class WorkoutListPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadWorkoutsAsync();
+
+        try
+        {
+            LoadingIndicator.IsVisible = true;
+            LoadingIndicator.IsRunning = true;
+
+            await _viewModel.LoadWorkoutsAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Hata", $"Antrenmanlar yüklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
+        }
+        finally
+        {
+            LoadingIndicator.IsVisible = false;
+            LoadingIndicator.IsRunning = false;
+        }
     }
 }

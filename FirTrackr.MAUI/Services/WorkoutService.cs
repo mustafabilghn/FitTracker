@@ -16,20 +16,11 @@ namespace FitTrackr.MAUI.Services
 
         public async Task<List<WorkoutSummaryDto>> GetWorkoutsAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/workout");
-                response.EnsureSuccessStatusCode();
+            var response = await _httpClient.GetAsync("api/workout");
+            response.EnsureSuccessStatusCode();
 
-                var json = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("API Yanıtı: " + json);
-                return JsonSerializer.Deserialize<List<WorkoutSummaryDto>>(json, _jsonOptions) ?? new List<WorkoutSummaryDto>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"API Hatası: {ex.Message}");
-                return new List<WorkoutSummaryDto>();
-            }
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<List<WorkoutSummaryDto>>(json,_jsonOptions) ?? new List<WorkoutSummaryDto>();
         }
     }
 }
