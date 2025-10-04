@@ -12,22 +12,32 @@ namespace FitTrackr.MAUI
             _workoutService = workoutService;
         }
 
-        public async void OnViewWorkoutsClicked(object sender, EventArgs e)
+        protected override async void OnAppearing()
         {
+            base.OnAppearing();
+
+            if (WorkoutsList.ItemsSource != null)
+                return;
+
             try
             {
+                LoadingIndicator.IsVisible = true;
+                LoadingIndicator.IsRunning = true;
+
                 var workouts = await _workoutService.GetWorkoutsAsync();
+
                 WorkoutsList.ItemsSource = workouts;
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to load workouts: {ex.Message}", "OK");
+                await DisplayAlert("Hata", $"Veriler alınırken bir hata oluştu: {ex.Message}", "Tamam");
             }
-        }
+            finally
+            {
+                LoadingIndicator.IsVisible = false;
+                LoadingIndicator.IsRunning = false;
+            }
 
-        private void OnAddWorkoutClicked(object sender, EventArgs e)
-        {
-            // Navigate to Add Workout Page (to be implemented)
         }
     }
 }
