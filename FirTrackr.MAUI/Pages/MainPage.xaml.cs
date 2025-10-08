@@ -1,15 +1,25 @@
-﻿using FitTrackr.MAUI.Services;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
+using FitTrackr.MAUI.Models.DTO;
+using FitTrackr.MAUI.Services;
 
 namespace FitTrackr.MAUI
 {
     public partial class MainPage : ContentPage
     {
         private readonly WorkoutService _workoutService;
+        private List<WorkoutSummaryDto> workout = new();
 
         public MainPage(WorkoutService workoutService)
         {
             InitializeComponent();
             _workoutService = workoutService;
+
+            WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
+            {
+                workout.Add(m.Value);
+                WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
+            });
         }
 
         protected override async void OnAppearing()
@@ -26,7 +36,7 @@ namespace FitTrackr.MAUI
 
                 var workouts = await _workoutService.GetWorkoutsAsync();
 
-                WorkoutsList.ItemsSource = workouts;
+                WorkoutsList.ItemsSource = workouts.TakeLast(1).ToList();
             }
             catch (Exception ex)
             {

@@ -18,7 +18,7 @@
 
             <!-- Son Antrenmanlar Başlığı -->
             <Label 
-                Text="Son Antrenmanlar"
+                Text="Son Eklenen Antrenman"
                 FontSize="22"
                 FontAttributes="Bold"
                 TextColor="White"

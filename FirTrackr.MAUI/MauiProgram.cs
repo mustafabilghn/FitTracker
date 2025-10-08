@@ -1,4 +1,5 @@
-﻿using FitTrackr.MAUI.Services;
+﻿using FitTrackr.MAUI.Pages;
+using FitTrackr.MAUI.Services;
 using FitTrackr.MAUI.ViewModels;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -33,7 +34,11 @@ namespace FitTrackr.MAUI
             builder.Services.AddSingleton<WorkoutService>();
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<AppShell>();
-            builder.Services.AddSingleton<WorkoutListViewModel>();
+
+            builder.Services.AddTransient<WorkoutListPage>();
+            builder.Services.AddTransient<WorkoutListViewModel>();
+            builder.Services.AddTransient<AddWorkoutPage>();
+            builder.Services.AddTransient<AddWorkoutViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();

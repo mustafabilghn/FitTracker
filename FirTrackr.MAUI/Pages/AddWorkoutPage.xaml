@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.AddWorkoutPage"
+             BackgroundColor="#121212"
+             Title="Antrenman Ekle">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="25">
+
+            <!-- Başlık -->
+            <Label Text="Yeni Antrenman"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   Margin="0,10" />
+
+            <!-- Antrenman Adı -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Entry x:Name="WorkoutNameEntry"
+                       Placeholder="Antrenman Adı"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Keyboard="Text"/>
+            </Frame>
+
+            <!-- Gün Picker -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Picker x:Name="DayPicker"
+                        Title="Gün Seç"
+                        TitleColor="#AAAAAA"
+                        TextColor="White">
+                    <Picker.Items>
+                        <x:String>Pazartesi</x:String>
+                        <x:String>Salı</x:String>
+                        <x:String>Çarşamba</x:String>
+                        <x:String>Perşembe</x:String>
+                        <x:String>Cuma</x:String>
+                        <x:String>Cumartesi</x:String>
+                        <x:String>Pazar</x:String>
+                    </Picker.Items>
+                </Picker>
+            </Frame>
+
+            <!-- Süre -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Entry x:Name="DurationMinutes"
+                       Placeholder="Süre (dk)"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Keyboard="Numeric"/>
+            </Frame>
+
+            <!-- Yer Picker -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Picker Title="Yer Seç"
+                        x:Name="LocationPicker"
+                        TitleColor="#AAAAAA"
+                        ItemsSource="{Binding Locations}"
+                        ItemDisplayBinding="{Binding LocationName}"
+                        TextColor="White"/>
+            </Frame>
+
+            <!-- Kaydet Butonu -->
+            <Button Text="Kaydet"
+                    FontSize="20"
+                    TextColor="White"
+                    BackgroundColor="Green"
+                    CornerRadius="10"
+                    HeightRequest="55"
+                    Clicked="OnSaveClicked"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

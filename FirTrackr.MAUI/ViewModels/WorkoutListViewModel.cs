@@ -1,4 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
 using System.Collections.ObjectModel;
@@ -14,11 +16,16 @@ namespace FitTrackr.MAUI.ViewModels
         public WorkoutListViewModel(WorkoutService service)
         {
             _workoutService = service;
+
+            WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
+            {
+                Workouts.Add(m.Value);
+            });
         }
 
         public async Task LoadWorkoutsAsync()
         {
-            if(Workouts.Any())
+            if (Workouts.Any())
                 return;
 
             var workouts = await _workoutService.GetWorkoutsAsync();

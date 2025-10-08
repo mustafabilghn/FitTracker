@@ -1,18 +1,21 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace FitTrackr.MAUI.Models.DTO
 {
-    public class WorkoutSummaryDto
+    public class WorkoutRequestDto
     {
-        public Guid Id { get; set; }
-
+        [Required]
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
+        [Required]
         public DayOfWeek WorkoutDate { get; set; }
 
+        [Required]
         public double DurationMinutes { get; set; }
 
-        public LocationDto Location { get; set; }
+        [Required]
+        public Guid LocationId { get; set; }
 
         public string WorkoutDateText => CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.GetDayName(WorkoutDate);
     }
