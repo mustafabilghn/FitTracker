@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="FitTrackr.MAUI.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:FitTrackr.MAUI.Pages"
+    xmlns:local="clr-namespace:FitTrackr.MAUI"
+    Title="FitTrackr.MAUI">
+
+    <TabBar>
+        <ShellContent
+            Title="Ana Sayfa"
+            Icon="home.png"
+            ContentTemplate="{DataTemplate pages:MainPage}"
+            Shell.NavBarIsVisible="False"/>
+        <ShellContent
+            Title="Antrenmanlar"
+            Icon="Workout.png"
+            ContentTemplate="{DataTemplate pages:WorkoutListPage}"
+            Shell.NavBarIsVisible="False"/>
+    </TabBar>
+
+    <ShellContent Route="AddWorkoutPage"
+                  ContentTemplate="{DataTemplate pages:AddWorkoutPage}"/>
+    
+</Shell>

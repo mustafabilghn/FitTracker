@@ -7,6 +7,8 @@
             InitializeComponent();
 
             MainPage = shell;
+
+            Current.UserAppTheme = AppTheme.Dark;
         }
     }
 }

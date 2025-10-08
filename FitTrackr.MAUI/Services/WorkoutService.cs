@@ -20,13 +20,12 @@ namespace FitTrackr.MAUI.Services
             var response = await _httpClient.GetAsync("api/workout");
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<WorkoutSummaryDto>>(json, _jsonOptions) ?? new List<WorkoutSummaryDto>();
+            return await response.Content.ReadFromJsonAsync<List<WorkoutSummaryDto>>(_jsonOptions) ?? new List<WorkoutSummaryDto>();
         }
 
-        public async Task<WorkoutSummaryDto> AddWorkoutAsync(WorkoutRequestDto workout)
+        public async Task<WorkoutSummaryDto> AddWorkoutAsync(WorkoutRequestDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/workout", workout);
+            var response = await _httpClient.PostAsJsonAsync("api/workout", request);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<WorkoutSummaryDto>(_jsonOptions) ?? new WorkoutSummaryDto();
@@ -37,8 +36,7 @@ namespace FitTrackr.MAUI.Services
             var response = await _httpClient.GetAsync("api/location");
             response.EnsureSuccessStatusCode();
 
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<List<LocationDto>>(json, _jsonOptions) ?? new List<LocationDto>();
+            return await response.Content.ReadFromJsonAsync<List<LocationDto>>(_jsonOptions) ?? new List<LocationDto>();
         }
     }
 }
