@@ -40,5 +40,13 @@ namespace FitTrackr.MAUI.Services
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<List<LocationDto>>(json, _jsonOptions) ?? new List<LocationDto>();
         }
+
+        public async Task<WorkoutDto> DeleteWorkoutAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/workout/{id}");
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<WorkoutDto>(_jsonOptions) ?? new WorkoutDto();
+        }
     }
 }
