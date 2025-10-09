@@ -20,6 +20,13 @@ namespace FitTrackr.MAUI
                 workout.Add(m.Value);
                 WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
             });
+
+            WeakReferenceMessenger.Default.Register<WorkoutDeletedMessage>(this, async (r, m) =>
+            {
+                var workouts = await _workoutService.GetWorkoutsAsync();
+                workout = workouts;
+                WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
+            });
         }
 
         protected override async void OnAppearing()
