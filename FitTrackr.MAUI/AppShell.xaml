@@ -3,24 +3,19 @@
     x:Class="FitTrackr.MAUI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:pages="clr-namespace:FitTrackr.MAUI.Pages"
     xmlns:local="clr-namespace:FitTrackr.MAUI"
+    xmlns:pages="clr-namespace:FitTrackr.MAUI.Pages"
     Title="FitTrackr.MAUI">
 
     <TabBar>
-        <ShellContent
-            Title="Ana Sayfa"
-            Icon="home.png"
-            ContentTemplate="{DataTemplate pages:MainPage}"
-            Shell.NavBarIsVisible="False"/>
-        <ShellContent
-            Title="Antrenmanlar"
-            Icon="Workout.png"
-            ContentTemplate="{DataTemplate pages:WorkoutListPage}"
-            Shell.NavBarIsVisible="False"/>
-    </TabBar>
+        <ShellContent Title="Ana Sayfa"
+                      Shell.NavBarIsVisible="False"
+                      Icon="home.png"
+                      ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage"/>
 
-    <ShellContent Route="AddWorkoutPage"
-                  ContentTemplate="{DataTemplate pages:AddWorkoutPage}"/>
-    
+        <ShellContent Title="Antrenmanlar"
+                      Shell.NavBarIsVisible="False"
+                      Icon="workouts.png"
+                      ContentTemplate="{DataTemplate pages:WorkoutListPage}" Route="WorkoutListPage"/>
+    </TabBar>
 </Shell>

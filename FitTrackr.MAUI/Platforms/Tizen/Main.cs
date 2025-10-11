@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using System;
 
-namespace FitTrackr.MAUI
+namespace FirTrackr.MAUI
 {
     internal class Program : MauiApplication
     {

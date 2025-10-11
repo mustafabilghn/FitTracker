@@ -1,27 +1,30 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace FitTrackr.MAUI.ViewModels
 {
     public class WorkoutListViewModel : ObservableObject
     {
         private readonly WorkoutService _workoutService;
+        public ObservableCollection<WorkoutSummaryDto> Workouts { get; set; } = new();
+        public ICommand DeleteCommand { get; }
 
-        public ObservableCollection<WorkoutSummaryDto> Workouts { get; } = new();
-        public ObservableCollection<LocationDto> Locations { get; } = new();
-
-        private bool _isLoading;
-        public bool IsLoading
+        public WorkoutListViewModel(WorkoutService service)
         {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
+            _workoutService = service;
 
-        public WorkoutListViewModel(WorkoutService workoutService)
-        {
-            _workoutService = workoutService;
+            DeleteCommand = new AsyncRelayCommand<Guid>(DeleteWorkoutAsync);
+
+            WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
+            {
+                Workouts.Add(m.Value);
+            });
         }
 
         public async Task LoadWorkoutsAsync()
@@ -29,52 +32,32 @@ namespace FitTrackr.MAUI.ViewModels
             if (Workouts.Any())
                 return;
 
+            var workouts = await _workoutService.GetWorkoutsAsync();
+
+            foreach (var workout in workouts)
+            {
+                Workouts.Add(workout);
+            }
+        }
+
+        public async Task DeleteWorkoutAsync(Guid id)
+        {
             try
             {
-                IsLoading = true;
-                var workouts = await _workoutService.GetWorkoutsAsync();
+                var deletedWorkout = await _workoutService.DeleteWorkoutAsync(id);
 
-                Workouts.Clear();
+                var workoutToRemove = Workouts.FirstOrDefault(w => w.Id == id);
 
-                foreach (var workout in workouts)
+                if (workoutToRemove != null)
                 {
-                    Workouts.Add(workout);
+                    Workouts.Remove(workoutToRemove);
+
+                    WeakReferenceMessenger.Default.Send(new WorkoutDeletedMessage(id));
                 }
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        public async Task AddWorkoutAsync(WorkoutRequestDto workout)
-        {
-            IsLoading = true;
-
-            try
-            {
-                var addedWorkout = await _workoutService.AddWorkoutAsync(workout);
-
-                Workouts.Add(addedWorkout);
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        public async Task LoadLocationsAsync()
-        {
-            try
-            {
-                var locs = await _workoutService.GetLocationsAsync();
-                Locations.Clear();
-
-                foreach (var l in locs) Locations.Add(l);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                await Shell.Current.DisplayAlert("Hata", $"Silme işlemi başarısız: {ex.Message}", "Tamam");
             }
         }
     }

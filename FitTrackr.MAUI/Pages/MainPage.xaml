@@ -1,75 +1,59 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="FitTrackr.MAUI.Pages.MainPage">
+             x:Class="FitTrackr.MAUI.MainPage"
+             BackgroundColor="#121212">
 
     <ScrollView>
-        <VerticalStackLayout Padding="25" Spacing="25">
+        <VerticalStackLayout Padding="20" Spacing="20">
 
             <!-- Başlık -->
-            <Label Text="Fit Tracker" 
-                   FontSize="34" 
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Dark={StaticResource SecondaryTextColor}}"
-                   HorizontalOptions="Center"
-                   Margin="0,10,0,20"/>
-
-            <!-- Hızlı Aksiyon Butonları -->
-            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                <Button Text="Antrenmanlar"
-                        FontSize="16"
-                        Padding="12,10"
-                        WidthRequest="150"
-                        BackgroundColor="#4CAF50"
-                        TextColor="White"
-                        CornerRadius="18"
-                        Clicked="OnViewWorkoutsClicked" />
-
-                <Button Text="Yeni Ekle"
-                        FontSize="16"
-                        Padding="12,10"
-                        WidthRequest="150"
-                        BackgroundColor="#FF7043"
-                        TextColor="White"
-                        CornerRadius="18"
-                        Clicked="OnAddWorkoutClicked" />
-            </HorizontalStackLayout>
+            <Label 
+                Text="Fit Tracker"
+                FontSize="36"
+                FontAttributes="Bold"
+                TextColor="White"
+                HorizontalOptions="Center"
+                Margin="0,10"/>
 
             <!-- Son Antrenmanlar Başlığı -->
-            <Label Text="Son Antrenmanlar"
-                   FontSize="22"
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Dark={StaticResource SecondaryTextColor}}"
-                   Margin="0,20,0,0"/>
+            <Label 
+                Text="Son Eklenen Antrenman"
+                FontSize="22"
+                FontAttributes="Bold"
+                TextColor="White"
+                Margin="0,20,0,0"/>
 
             <!-- Antrenman Listesi -->
-            <CollectionView ItemsSource="{Binding Workouts}">
+            <CollectionView x:Name="WorkoutsList" Margin="0,10,0,0">
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical"
-                                       ItemSpacing="15"/>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
                 </CollectionView.ItemsLayout>
+
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Frame Margin="0,8"
-                               CornerRadius="16"
-                               Padding="18"
-                               BackgroundColor="White"
-                               HasShadow="True"
-                               BorderColor="#E0E0E0">
+                        <Frame 
+                            Margin="0,8"
+                            CornerRadius="16"
+                            Padding="18"
+                            BackgroundColor="#1E1E1E"
+                            HasShadow="True"
+                            BorderColor="#333">
 
                             <VerticalStackLayout Spacing="6">
-                                <!-- Workout Name -->
-                                <Label Text="{Binding WorkoutName}"
-                                       FontSize="18"
-                                       FontAttributes="Bold"
-                                       TextColor="#2C3E50"/>
 
-                                <!-- Date -->
+                                <!-- Antrenman Adı -->
+                                <Label Text="{Binding WorkoutName}"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="White"/>
+
+                                <!-- Tarih -->
                                 <Label Text="{Binding WorkoutDateText}"
                                        FontSize="14"
-                                       TextColor="#7F8C8D"/>
+                                       TextColor="#AAAAAA"/>
 
-                                <!-- Info Row -->
+                                <!-- Bilgiler -->
                                 <HorizontalStackLayout Spacing="15">
                                     <Border Stroke="#4CAF50"
                                             StrokeThickness="1"
@@ -94,16 +78,13 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <!-- Loading -->
-            <ActivityIndicator x:Name="LoadingIndicator" 
-                               IsVisible="{Binding IsLoading}" 
-                               IsRunning="{Binding IsLoading}" 
-                               HorizontalOptions="Center" 
-                               VerticalOptions="Center"
-                               Color="#4CAF50"
-                               HeightRequest="50"
-                               WidthRequest="50"/>
+            <ActivityIndicator x:Name="LoadingIndicator"
+                               IsRunning="False"
+                               IsVisible="False"
+                               Color="#FF7043"
+                               HeightRequest="60"
+                               WidthRequest="60"
+                               HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

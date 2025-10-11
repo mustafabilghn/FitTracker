@@ -5,40 +5,10 @@
              x:Class="FitTrackr.MAUI.App">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Ana Renkler -->
-            <Color x:Key="PrimaryColor">#4CAF50</Color>
-            <Color x:Key="AccentColor">#FF7043</Color>
-
-            <!-- Metin -->
-            <Color x:Key="PrimaryTextColor">#2C3E50</Color>
-            <Color x:Key="SecondaryTextColor">#7F8C8D</Color>
-
-            <!-- Light Mode ve Dark Mode Renkleri -->
-            <Color x:Key="LightPageBackgroundColor">#F2F4F7</Color>
-            <Color x:Key="DarkPageBackgroundColor">#121212</Color>
-
-            <Color x:Key="LightCardBackgroundColor">White</Color>
-            <Color x:Key="DarkCardBackgroundColor">#1E1E1E</Color>
-
-            <Color x:Key="LightEntryBackgroundColor">#FFFFFF</Color>
-            <Color x:Key="DarkEntryBackgroundColor">#2A2A2A</Color>
-
-            <Color x:Key="LightEntryTextColor">#2C3E50</Color>
-            <Color x:Key="DarkEntryTextColor">#ECF0F3</Color>
-
-            <AppThemeBinding x:Key="PageBackgroundColor" 
-                         Light="{StaticResource LightPageBackgroundColor}" 
-                         Dark="{StaticResource DarkPageBackgroundColor}" />
-
-            <AppThemeBinding x:Key="CardBackgroundColor" 
-                         Light="{StaticResource LightCardBackgroundColor}" 
-                         Dark="{StaticResource DarkCardBackgroundColor}" />
-
-            <AppThemeBinding x:Key="EntryBackgroundColor" 
-                         Light="{StaticResource LightEntryBackgroundColor}" 
-                         Dark="{StaticResource DarkEntryBackgroundColor}" />
-
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
-
 </Application>

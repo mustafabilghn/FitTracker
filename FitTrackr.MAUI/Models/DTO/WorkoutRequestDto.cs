@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace FitTrackr.MAUI.Models.DTO
 {
@@ -15,5 +16,7 @@ namespace FitTrackr.MAUI.Models.DTO
 
         [Required]
         public Guid LocationId { get; set; }
+
+        public string WorkoutDateText => CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.GetDayName(WorkoutDate);
     }
 }

@@ -1,18 +1,14 @@
-﻿using FitTrackr.MAUI.ViewModels;
-
-namespace FitTrackr.MAUI
+﻿namespace FitTrackr.MAUI
 {
     public partial class App : Application
     {
-        public static IServiceProvider ServiceProvider { get; private set; }
-
-        public App()
+        public App(AppShell shell)
         {
             InitializeComponent();
 
-            ServiceProvider = MauiProgram.CreateMauiApp().Services;
+            MainPage = shell;
 
-            MainPage = ServiceProvider.GetService<AppShell>();
+            Current.UserAppTheme = AppTheme.Dark;
         }
     }
 }

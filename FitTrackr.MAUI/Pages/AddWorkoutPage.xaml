@@ -2,77 +2,92 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FitTrackr.MAUI.Pages.AddWorkoutPage"
-             Title="Yeni Antrenman Ekle"
-             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColor}, Dark={StaticResource PageBackgroundColor}}">
+             BackgroundColor="#121212"
+             Title="Antrenman Ekle">
 
     <ScrollView>
-        <VerticalStackLayout Padding="25" Spacing="20">
+        <VerticalStackLayout Padding="20" Spacing="25">
 
             <!-- Başlık -->
-            <Label Text="Yeni Antrenman" 
+            <Label Text="Yeni Antrenman"
                    FontSize="28"
                    FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Light={StaticResource PrimaryTextColor}, Dark={StaticResource SecondaryTextColor}}"
-                   HorizontalOptions="Center"/>
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   Margin="0,10" />
 
-            <!-- Form Alanları -->
-            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundColor}, Dark={StaticResource CardBackgroundColor}}"
-                   CornerRadius="16"
-                   Padding="20"
-                   HasShadow="True">
+            <!-- Antrenman Adı -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Entry x:Name="WorkoutNameEntry"
+                       Placeholder="Antrenman Adı"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Keyboard="Text"/>
+            </Frame>
 
-                <VerticalStackLayout Spacing="15">
+            <!-- Gün Picker -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Picker x:Name="DayPicker"
+                        Title="Gün Seç"
+                        TitleColor="#AAAAAA"
+                        TextColor="White">
+                    <Picker.Items>
+                        <x:String>Pazartesi</x:String>
+                        <x:String>Salı</x:String>
+                        <x:String>Çarşamba</x:String>
+                        <x:String>Perşembe</x:String>
+                        <x:String>Cuma</x:String>
+                        <x:String>Cumartesi</x:String>
+                        <x:String>Pazar</x:String>
+                    </Picker.Items>
+                </Picker>
+            </Frame>
 
-                    <Entry x:Name="WorkoutNameEntry"
-                           Placeholder="Antrenman Adı"
-                           BackgroundColor="{StaticResource EntryBackgroundColor}"
-                           TextColor="{StaticResource PrimaryTextColor}"
-                           PlaceholderColor="#999"
-                           FontSize="16"/>
+            <!-- Süre -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Entry x:Name="DurationMinutes"
+                       Placeholder="Süre (dk)"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Keyboard="Numeric"/>
+            </Frame>
 
-                    <Entry x:Name="DayEntry"
-                           Placeholder="Gün"
-                           BackgroundColor="{StaticResource EntryBackgroundColor}"
-                           TextColor="{StaticResource PrimaryTextColor}"
-                           PlaceholderColor="#999"
-                           FontSize="16"/>
-
-                    <Entry x:Name="DurationEntry"
-                           Placeholder="Süre (dk)"
-                           Keyboard="Numeric"
-                           BackgroundColor="{StaticResource EntryBackgroundColor}"
-                           TextColor="{StaticResource PrimaryTextColor}"
-                           PlaceholderColor="#999"
-                           FontSize="16"/>
-
-                    <Picker x:Name="LocationPicker"
-                            Title="Yer"
-                            ItemsSource="{Binding Locations}"
-                            ItemDisplayBinding="{Binding LocationName}"
-                            BackgroundColor="{StaticResource EntryBackgroundColor}"
-                            TextColor="{StaticResource PrimaryTextColor}"
-                            TitleColor="#999"
-                            FontSize="16"/>
-                </VerticalStackLayout>
+            <!-- Yer Picker -->
+            <Frame CornerRadius="12"
+                   BackgroundColor="#1E1E1E"
+                   Padding="10"
+                   HasShadow="True"
+                   BorderColor="#333">
+                <Picker Title="Yer Seç"
+                        x:Name="LocationPicker"
+                        TitleColor="#AAAAAA"
+                        ItemsSource="{Binding Locations}"
+                        ItemDisplayBinding="{Binding LocationName}"
+                        TextColor="White"/>
             </Frame>
 
             <!-- Kaydet Butonu -->
             <Button Text="Kaydet"
-                    FontSize="18"
-                    Padding="14"
-                    BackgroundColor="{StaticResource PrimaryColor}"
+                    FontSize="20"
                     TextColor="White"
-                    CornerRadius="20"
+                    BackgroundColor="Green"
+                    CornerRadius="10"
+                    HeightRequest="55"
                     Clicked="OnSaveClicked"/>
-
-            <!-- Loading -->
-            <ActivityIndicator x:Name="LoadingIndicator"
-                               IsRunning="False"
-                               IsVisible="False"
-                               Color="{StaticResource AccentColor}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"/>
-
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

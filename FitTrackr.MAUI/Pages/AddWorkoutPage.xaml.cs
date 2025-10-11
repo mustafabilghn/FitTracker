@@ -1,76 +1,68 @@
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Validations;
 using FitTrackr.MAUI.ViewModels;
-using System.Globalization;
+
 
 namespace FitTrackr.MAUI.Pages;
 
 public partial class AddWorkoutPage : ContentPage
 {
-    private readonly WorkoutListViewModel _viewModel;
+    private readonly AddWorkoutViewModel _viewModel;
 
-    public AddWorkoutPage()
+    public AddWorkoutPage(AddWorkoutViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = _viewModel = viewModel;
+    }
 
-        _viewModel = App.ServiceProvider.GetService<WorkoutListViewModel>()!;
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
 
-        BindingContext = _viewModel;
+        await _viewModel.LoadLocationsAsync();
     }
 
     private async void OnSaveClicked(object sender, EventArgs e)
     {
-        try
+        var workoutName = WorkoutNameEntry.Text;
+        var selectedDay = DayPicker.SelectedItem?.ToString();
+        DayOfWeek? workoutDate = ConvertDayToDayOfWeek(selectedDay);
+        var duration = DurationMinutes.Text;
+        var location = LocationPicker.SelectedItem as LocationDto;
+
+        var workout = new WorkoutRequestDto
         {
-            LoadingIndicator.IsVisible = true;
-            LoadingIndicator.IsRunning = true;
+            WorkoutName = workoutName,
+            WorkoutDate = workoutDate ?? DayOfWeek.Sunday,
+            DurationMinutes = double.TryParse(duration,out var result) ? result : 0,
+            LocationId = location?.Id ?? Guid.Empty,
+        };
 
-            string workoutName = WorkoutNameEntry.Text?.Trim() ?? string.Empty;
-            string dayInput = DayEntry.Text?.Trim() ?? string.Empty;
-            string duration = DurationEntry.Text?.Trim() ?? string.Empty;
-            var location = LocationPicker.SelectedItem;
+        var error = WorkoutValidator.Validate(workoutName, workout.DurationMinutes, workout.LocationId, workoutDate);
 
-            var validationError = WorkoutRequestValidator.Validate(workoutName, dayInput, duration, location);
-
-            if (validationError != null)
-            {
-                await DisplayAlert("Hata", validationError, "Tamam");
-                return;
-            }
-
-            var culture = CultureInfo.GetCultureInfo("tr-TR");
-
-            DayOfWeek selectedDay;
-
-            try
-            {
-                selectedDay = Enum.GetValues(typeof(DayOfWeek))
-                    .Cast<DayOfWeek>().First(d => string.Equals(culture.DateTimeFormat.GetDayName(d), dayInput, StringComparison.OrdinalIgnoreCase));
-            }
-            catch
-            {
-                await DisplayAlert("Hata", "Geçersiz gün girdiniz", "Tamam");
-                return;
-            }
-
-            var request = new WorkoutRequestDto
-            {
-                WorkoutName = workoutName,
-                DurationMinutes = double.Parse(duration),
-                WorkoutDate = selectedDay,
-                LocationId = (location as LocationDto)?.Id ?? Guid.Empty
-            };
-
-            await _viewModel.AddWorkoutAsync(request);
-
-            await DisplayAlert("Baþarýlý", "Antrenman eklendi", "Tamam");
-            await Navigation.PopAsync();
-        }
-        finally
+        if (!string.IsNullOrEmpty(error))
         {
-            LoadingIndicator.IsRunning = false;
-            LoadingIndicator.IsVisible = false;
+            await DisplayAlert("Hata", error, "Tamam");
+            return;
         }
+
+        await _viewModel.AddWorkoutAsync(workout);
+        await DisplayAlert("Baþarýlý", "Antrenman baþarýyla eklendi.", "Tamam");
+        await Navigation.PopAsync();
     }
 
+    private DayOfWeek? ConvertDayToDayOfWeek(string selectedDay)
+    {   
+        return selectedDay switch
+        {
+            "Pazar" => DayOfWeek.Sunday,
+            "Pazartesi" => DayOfWeek.Monday,
+            "Salý" => DayOfWeek.Tuesday,
+            "Çarþamba" => DayOfWeek.Wednesday,
+            "Perþembe" => DayOfWeek.Thursday,
+            "Cuma" => DayOfWeek.Friday,
+            "Cumartesi" => DayOfWeek.Saturday,
+            _ => null
+        };
+    }
 }

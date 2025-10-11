@@ -1,34 +1,60 @@
-﻿using FitTrackr.MAUI.Models.DTO;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
+using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
-using FitTrackr.MAUI.ViewModels;
 
-namespace FitTrackr.MAUI.Pages
+namespace FitTrackr.MAUI
 {
     public partial class MainPage : ContentPage
     {
-        private readonly WorkoutListViewModel _viewModel;
+        private readonly WorkoutService _workoutService;
+        private List<WorkoutSummaryDto> workout = new();
 
-        public MainPage(WorkoutListViewModel viewModel)
+        public MainPage(WorkoutService workoutService)
         {
             InitializeComponent();
-            BindingContext = _viewModel = viewModel;
+            _workoutService = workoutService;
+
+            WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
+            {
+                workout.Add(m.Value);
+                WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
+            });
+
+            WeakReferenceMessenger.Default.Register<WorkoutDeletedMessage>(this, async (r, m) =>
+            {
+                var workouts = await _workoutService.GetWorkoutsAsync();
+                workout = workouts;
+                WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
+            });
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-            await _viewModel.LoadWorkoutsAsync();
-        }
+            if (WorkoutsList.ItemsSource != null)
+                return;
 
-        public async void OnViewWorkoutsClicked(object sender, EventArgs e)
-        {
-            await _viewModel.LoadWorkoutsAsync();
-        }
+            try
+            {
+                LoadingIndicator.IsVisible = true;
+                LoadingIndicator.IsRunning = true;
 
-        public async void OnAddWorkoutClicked(object sender, EventArgs e)
-        {
-            await Shell.Current.GoToAsync(nameof(AddWorkoutPage));
+                var workouts = await _workoutService.GetWorkoutsAsync();
+
+                WorkoutsList.ItemsSource = workouts.TakeLast(1).ToList();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", $"Veriler alınırken bir hata oluştu: {ex.Message}", "Tamam");
+            }
+            finally
+            {
+                LoadingIndicator.IsVisible = false;
+                LoadingIndicator.IsRunning = false;
+            }
+
         }
     }
 }
