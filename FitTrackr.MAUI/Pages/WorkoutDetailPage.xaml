@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.WorkoutDetailPage"
+             BackgroundColor="#121212">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            
+            <Label Text="{Binding Workout.WorkoutName}"
+                   FontSize="30"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,0"/>
+
+            <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+
+                <Border Stroke="#4CAF50" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                    <Label Text="{Binding Workout.DurationMinutes,StringFormat='⏱ {0} dk'}"
+                           FontSize="14"
+                           TextColor="#4CAF50"/>
+                </Border>
+
+                <Border Stroke="#FF7043" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                    <Label Text="{Binding Workout.Location.LocationName,StringFormat='📍 {0}'}"
+                           FontSize="14"
+                           TextColor="#FF7043"/>
+                </Border>
+
+                <Border Stroke="#2196F3" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                    <Label Text="{Binding Workout.WorkoutDateText,StringFormat='📅 {0}'}"
+                           FontSize="14"
+                           TextColor="#2196F3"/>
+                </Border>
+            </HorizontalStackLayout>
+
+            <Label Text="Egzersizler"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   Margin="0,20,0,10"/>
+
+            <CollectionView ItemsSource="{Binding Workout.Exercises}"
+                            SelectionMode="None"
+                            VerticalScrollBarVisibility="Never">
+
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="15"
+                               CornerRadius="14"
+                               BackgroundColor="#1E1E1E"
+                               HasShadow="True"
+                               BorderColor="#333">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label Text="{Binding ExerciseName}"
+                                       FontSize="18"
+                                       FontAttributes="Bold"
+                                       TextColor="White"/>
+
+                                <HorizontalStackLayout Spacing="15">
+                                    <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
+                                           FontSize="14"
+                                           TextColor="#AAAAAA"/>
+                                    <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
+                                           FontSize="14"
+                                           TextColor="#AAAAAA"/>
+                                    <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
+                                           FontSize="14"
+                                           TextColor="#AAAAAA"/>
+                                </HorizontalStackLayout>
+
+                                <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
+                                       FontSize="14"
+                                       TextColor="#FF7043"/>
+
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>  

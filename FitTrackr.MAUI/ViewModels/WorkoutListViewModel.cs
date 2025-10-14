@@ -14,12 +14,14 @@ namespace FitTrackr.MAUI.ViewModels
         private readonly WorkoutService _workoutService;
         public ObservableCollection<WorkoutSummaryDto> Workouts { get; set; } = new();
         public ICommand DeleteCommand { get; }
+        public ICommand WorkoutSelectedCommand { get; }
 
         public WorkoutListViewModel(WorkoutService service)
         {
             _workoutService = service;
 
             DeleteCommand = new AsyncRelayCommand<Guid>(DeleteWorkoutAsync);
+            WorkoutSelectedCommand = new RelayCommand<WorkoutSummaryDto>(OnWorkoutSelectedAsync);
 
             WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
             {
@@ -40,7 +42,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
         }
 
-        public async Task DeleteWorkoutAsync(Guid id)
+        private async Task DeleteWorkoutAsync(Guid id)
         {
             try
             {
@@ -59,6 +61,14 @@ namespace FitTrackr.MAUI.ViewModels
             {
                 await Shell.Current.DisplayAlert("Hata", $"Silme işlemi başarısız: {ex.Message}", "Tamam");
             }
+        }
+
+        private void OnWorkoutSelectedAsync(WorkoutSummaryDto selectedWorkout)
+        {
+            if (selectedWorkout == null)
+                return;
+
+            WeakReferenceMessenger.Default.Send(new WorkoutSelectedMessage(selectedWorkout.Id));
         }
     }
 }

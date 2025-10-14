@@ -10,7 +10,6 @@
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="20">
 
-                <!-- Başlık -->
                 <Label 
                     Text="Antrenmanlarım"
                     FontSize="32"
@@ -19,7 +18,6 @@
                     HorizontalOptions="Center"
                     Margin="0,10"/>
 
-                <!-- Liste -->
                 <CollectionView 
                     x:Name="WorkoutsCollection"
                     ItemsSource="{Binding Workouts}"
@@ -31,7 +29,6 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <!-- Her öğeye SwipeView ekliyoruz -->
                             <SwipeView>
                                 <SwipeView.RightItems>
                                     <SwipeItems Mode="Reveal">
@@ -43,7 +40,6 @@
                                     </SwipeItems>
                                 </SwipeView.RightItems>
 
-                                <!-- Kart -->
                                 <Frame 
                                     Margin="0,8"
                                     CornerRadius="16"
@@ -51,6 +47,12 @@
                                     BackgroundColor="#1E1E1E"
                                     HasShadow="True"
                                     BorderColor="#333">
+
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={x:Reference ThisPage},Path=BindingContext.WorkoutSelectedCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Frame.GestureRecognizers>
 
                                     <VerticalStackLayout Spacing="6">
 
@@ -89,7 +91,6 @@
                     </CollectionView.ItemTemplate>
                 </CollectionView>
 
-                <!-- Yükleniyor göstergesi -->
                 <ActivityIndicator 
                     x:Name="LoadingIndicator"
                     IsRunning="False"
@@ -102,7 +103,6 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Ekle butonu (sabit duruyor) -->
         <Button 
             Text="+" 
             Clicked="OnAddWorkoutClicked"

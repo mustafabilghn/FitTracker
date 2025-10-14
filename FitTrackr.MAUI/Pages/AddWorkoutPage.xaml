@@ -8,7 +8,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="25">
 
-            <!-- Başlık -->
             <Label Text="Yeni Antrenman"
                    FontSize="28"
                    FontAttributes="Bold"
@@ -16,7 +15,6 @@
                    HorizontalOptions="Center"
                    Margin="0,10" />
 
-            <!-- Antrenman Adı -->
             <Frame CornerRadius="12"
                    BackgroundColor="#1E1E1E"
                    Padding="10"
@@ -30,7 +28,6 @@
                        Keyboard="Text"/>
             </Frame>
 
-            <!-- Gün Picker -->
             <Frame CornerRadius="12"
                    BackgroundColor="#1E1E1E"
                    Padding="10"
@@ -52,7 +49,6 @@
                 </Picker>
             </Frame>
 
-            <!-- Süre -->
             <Frame CornerRadius="12"
                    BackgroundColor="#1E1E1E"
                    Padding="10"
@@ -66,7 +62,6 @@
                        Keyboard="Numeric"/>
             </Frame>
 
-            <!-- Yer Picker -->
             <Frame CornerRadius="12"
                    BackgroundColor="#1E1E1E"
                    Padding="10"
@@ -80,7 +75,6 @@
                         TextColor="White"/>
             </Frame>
 
-            <!-- Kaydet Butonu -->
             <Button Text="Kaydet"
                     FontSize="20"
                     TextColor="White"

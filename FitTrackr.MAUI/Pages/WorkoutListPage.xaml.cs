@@ -1,4 +1,5 @@
-using FitTrackr.MAUI.Services;
+using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.ViewModels;
 
 namespace FitTrackr.MAUI.Pages;
@@ -13,6 +14,33 @@ public partial class WorkoutListPage : ContentPage
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
         this.serviceProvider = serviceProvider;
+
+        WeakReferenceMessenger.Default.Register<WorkoutSelectedMessage>(this, async (r, m) =>
+        {
+            try
+            {
+                LoadingIndicator.IsVisible = true;
+                LoadingIndicator.IsRunning = true;
+
+                var workoutDetailPage = serviceProvider.GetService<WorkoutDetailPage>();
+                if (workoutDetailPage == null)
+                    return;
+
+                if (workoutDetailPage.BindingContext is WorkoutDetailViewModel vm)
+                    await vm.LoadWorkoutDetailsAsync(m.Value);
+
+                await Navigation.PushAsync(workoutDetailPage);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Hata", $"Sayfa yüklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
+            }
+            finally
+            {
+                LoadingIndicator.IsVisible = false;
+                LoadingIndicator.IsRunning = false;
+            }
+        });
     }
 
     protected override async void OnAppearing()
@@ -28,7 +56,7 @@ public partial class WorkoutListPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", $"Antrenmanlar y�klenirken bir hata meydana geldi: {ex.Message}", "Tamam");
+            await DisplayAlert("Hata", $"Antrenmanlar yüklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
         }
         finally
         {
@@ -39,7 +67,7 @@ public partial class WorkoutListPage : ContentPage
 
     private async void OnAddWorkoutClicked(object sender, EventArgs e)
     {
-       var addWorkoutPage = serviceProvider.GetService<AddWorkoutPage>();
+        var addWorkoutPage = serviceProvider.GetService<AddWorkoutPage>();
 
         await Navigation.PushAsync(addWorkoutPage);
     }

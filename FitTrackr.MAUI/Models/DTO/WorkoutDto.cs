@@ -1,4 +1,6 @@
-﻿namespace FitTrackr.MAUI.Models.DTO
+﻿using System.Globalization;
+
+namespace FitTrackr.MAUI.Models.DTO
 {
     public class WorkoutDto
     {
@@ -13,5 +15,7 @@
         public LocationDto Location { get; set; }
 
         public List<ExerciseDto> Exercises { get; set; }
+
+        public string WorkoutDateText => CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.GetDayName(WorkoutDate);
     }
 }
