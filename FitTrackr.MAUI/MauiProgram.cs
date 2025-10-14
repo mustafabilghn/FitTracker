@@ -39,6 +39,8 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<WorkoutListViewModel>();
             builder.Services.AddTransient<AddWorkoutPage>();
             builder.Services.AddTransient<AddWorkoutViewModel>();
+            builder.Services.AddTransient<WorkoutDetailPage>();
+            builder.Services.AddTransient<WorkoutDetailViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();

@@ -7,7 +7,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="20">
 
-            <!-- Başlık -->
             <Label 
                 Text="Fit Tracker"
                 FontSize="36"
@@ -16,7 +15,6 @@
                 HorizontalOptions="Center"
                 Margin="0,10"/>
 
-            <!-- Son Antrenmanlar Başlığı -->
             <Label 
                 Text="Son Eklenen Antrenman"
                 FontSize="22"
@@ -24,7 +22,6 @@
                 TextColor="White"
                 Margin="0,20,0,0"/>
 
-            <!-- Antrenman Listesi -->
             <CollectionView x:Name="WorkoutsList" Margin="0,10,0,0">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
@@ -42,18 +39,15 @@
 
                             <VerticalStackLayout Spacing="6">
 
-                                <!-- Antrenman Adı -->
                                 <Label Text="{Binding WorkoutName}"
                                        FontSize="20"
                                        FontAttributes="Bold"
                                        TextColor="White"/>
 
-                                <!-- Tarih -->
                                 <Label Text="{Binding WorkoutDateText}"
                                        FontSize="14"
                                        TextColor="#AAAAAA"/>
 
-                                <!-- Bilgiler -->
                                 <HorizontalStackLayout Spacing="15">
                                     <Border Stroke="#4CAF50"
                                             StrokeThickness="1"
