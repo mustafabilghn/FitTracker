@@ -3,88 +3,103 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FitTrackr.MAUI.Pages.WorkoutDetailPage"
              BackgroundColor="#121212">
+    
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="20">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
-            
-            <Label Text="{Binding Workout.WorkoutName}"
+                <Label Text="{Binding Workout.WorkoutName}"
                    FontSize="30"
                    FontAttributes="Bold"
                    TextColor="White"
                    HorizontalOptions="Center"
                    Margin="0,10,0,0"/>
 
-            <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
 
-                <Border Stroke="#4CAF50" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
-                    <Label Text="{Binding Workout.DurationMinutes,StringFormat='⏱ {0} dk'}"
+                    <Border Stroke="#4CAF50" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                        <Label Text="{Binding Workout.DurationMinutes,StringFormat='⏱ {0} dk'}"
                            FontSize="14"
                            TextColor="#4CAF50"/>
-                </Border>
+                    </Border>
 
-                <Border Stroke="#FF7043" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
-                    <Label Text="{Binding Workout.Location.LocationName,StringFormat='📍 {0}'}"
+                    <Border Stroke="#FF7043" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                        <Label Text="{Binding Workout.Location.LocationName,StringFormat='📍 {0}'}"
                            FontSize="14"
                            TextColor="#FF7043"/>
-                </Border>
+                    </Border>
 
-                <Border Stroke="#2196F3" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
-                    <Label Text="{Binding Workout.WorkoutDateText,StringFormat='📅 {0}'}"
+                    <Border Stroke="#2196F3" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
+                        <Label Text="{Binding Workout.WorkoutDateText,StringFormat='📅 {0}'}"
                            FontSize="14"
                            TextColor="#2196F3"/>
-                </Border>
-            </HorizontalStackLayout>
+                    </Border>
+                </HorizontalStackLayout>
 
-            <Label Text="Egzersizler"
+                <Label Text="Egzersizler"
                    FontSize="24"
                    FontAttributes="Bold"
                    TextColor="White"
                    Margin="0,20,0,10"/>
 
-            <CollectionView ItemsSource="{Binding Workout.Exercises}"
+                <CollectionView ItemsSource="{Binding Workout.Exercises}"
                             SelectionMode="None"
                             VerticalScrollBarVisibility="Never">
 
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
-                </CollectionView.ItemsLayout>
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+                    </CollectionView.ItemsLayout>
 
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Frame Padding="15"
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="15"
                                CornerRadius="14"
                                BackgroundColor="#1E1E1E"
                                HasShadow="True"
                                BorderColor="#333">
 
-                            <VerticalStackLayout Spacing="6">
+                                <VerticalStackLayout Spacing="6">
 
-                                <Label Text="{Binding ExerciseName}"
+                                    <Label Text="{Binding ExerciseName}"
                                        FontSize="18"
                                        FontAttributes="Bold"
                                        TextColor="White"/>
 
-                                <HorizontalStackLayout Spacing="15">
-                                    <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
+                                    <HorizontalStackLayout Spacing="15">
+                                        <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                    <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
+                                        <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                    <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
+                                        <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                </HorizontalStackLayout>
+                                    </HorizontalStackLayout>
 
-                                <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
+                                    <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
                                        FontSize="14"
                                        TextColor="#FF7043"/>
 
-                            </VerticalStackLayout>
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </VerticalStackLayout>
-    </ScrollView>
+                                </VerticalStackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+        <Button 
+    Text="+" 
+    Clicked="OnAddExerciseClicked"
+    FontSize="32"
+    TextColor="White"
+    BackgroundColor="#FF7043"
+    CornerRadius="40"
+    WidthRequest="70"
+    HeightRequest="70"
+    HorizontalOptions="End"
+    VerticalOptions="End"
+    Margin="20"/>
+    </Grid>
 </ContentPage>  
+    
