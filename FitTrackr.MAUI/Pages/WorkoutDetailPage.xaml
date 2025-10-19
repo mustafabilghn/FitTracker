@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Name="ThisPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FitTrackr.MAUI.Pages.WorkoutDetailPage"
              BackgroundColor="#121212">
-    
+
     <Grid>
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="20">
@@ -42,7 +43,7 @@
                    TextColor="White"
                    Margin="0,20,0,10"/>
 
-                <CollectionView ItemsSource="{Binding Workout.Exercises}"
+                <CollectionView ItemsSource="{Binding Exercises}"
                             SelectionMode="None"
                             VerticalScrollBarVisibility="Never">
 
@@ -52,37 +53,43 @@
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Frame Padding="15"
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems Mode="Reveal">
+                                        <SwipeItem Text="Sil"
+                                                   BackgroundColor="#E53935"
+                                                   Command="{Binding Source={x:Reference ThisPage},Path=BindingContext.DeleteExerciseCommand}"
+                                                   CommandParameter="{Binding Id}"/>
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+
+                                <Frame Padding="15"
                                CornerRadius="14"
                                BackgroundColor="#1E1E1E"
                                HasShadow="True"
                                BorderColor="#333">
-
-                                <VerticalStackLayout Spacing="6">
-
-                                    <Label Text="{Binding ExerciseName}"
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Text="{Binding ExerciseName}"
                                        FontSize="18"
                                        FontAttributes="Bold"
                                        TextColor="White"/>
-
-                                    <HorizontalStackLayout Spacing="15">
-                                        <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
+                                        <HorizontalStackLayout Spacing="15">
+                                            <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                        <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
+                                            <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                        <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
+                                            <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
                                            FontSize="14"
                                            TextColor="#AAAAAA"/>
-                                    </HorizontalStackLayout>
-
-                                    <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
+                                        </HorizontalStackLayout>
+                                        <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
                                        FontSize="14"
                                        TextColor="#FF7043"/>
-
-                                </VerticalStackLayout>
-                            </Frame>
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </SwipeView>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
