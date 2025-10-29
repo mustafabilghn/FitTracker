@@ -19,20 +19,6 @@ namespace FitTrackr.API.Validations
                 .MaximumLength(25)
                 .WithMessage("Exercise name cannot exceed 25 characters.");
 
-            RuleFor(s => s.Sets)
-                .NotEmpty()
-                .WithMessage("Sets is required.")
-                .GreaterThan(0)
-                .WithMessage("Sets must be greater than 0.");
-
-            RuleFor(r => r.Reps)
-                .NotEmpty()
-                .WithMessage("Reps is required.");
-
-            RuleFor(w => w.WeightInKg)
-                .NotEmpty()
-                .WithMessage("Weight in kg is required.");
-
             RuleFor(i => i.IntensityId)
                 .NotEmpty()
                 .WithMessage("Intensity ID is required.")

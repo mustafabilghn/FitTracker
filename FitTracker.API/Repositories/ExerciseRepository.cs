@@ -25,7 +25,6 @@ namespace FitTrackr.API.Repositories
             exercise.Intensity = intensity;
 
             await dbContext.Exercises.AddAsync(exercise);
-
             await dbContext.SaveChangesAsync();
 
             return exercise;
@@ -69,12 +68,6 @@ namespace FitTrackr.API.Repositories
                 {
                     exercise = isAscending ? exercise.OrderBy(e => e.ExerciseName) : exercise.OrderByDescending(e => e.ExerciseName);
                 }
-
-                else if (sortBy.Equals("Weight", StringComparison.OrdinalIgnoreCase) ||
-                    sortBy.Equals("Kg", StringComparison.OrdinalIgnoreCase))
-                {
-                    exercise = isAscending ? exercise.OrderBy(e => e.WeightInKg) : exercise.OrderByDescending(e => e.WeightInKg);
-                }
             }
 
             //Pagination
@@ -85,7 +78,11 @@ namespace FitTrackr.API.Repositories
 
         public async Task<Exercise?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Exercises.Include(e => e.Intensity).Include(e => e.Workout).FirstOrDefaultAsync(x => x.Id == id);
+            return await dbContext.Exercises
+                .Include(e => e.Intensity)
+                .Include(e => e.Workout)
+                .Include(e => e.ExerciseSets)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Exercise?> UpdateAsync(Guid id, Exercise exercise)
@@ -114,9 +111,7 @@ namespace FitTrackr.API.Repositories
             existingExercise.Workout = workout;
             existingExercise.Intensity = intensity;
             existingExercise.ExerciseName = exercise.ExerciseName;
-            existingExercise.Sets = exercise.Sets;
-            existingExercise.Reps = exercise.Reps;
-            existingExercise.WeightInKg = exercise.WeightInKg;
+            existingExercise.Notes = exercise.Notes;
 
             await dbContext.SaveChangesAsync();
 

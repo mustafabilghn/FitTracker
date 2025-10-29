@@ -3,11 +3,7 @@ using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
 using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
-using System.Net;
-using System.Text.Json;
 
 namespace FitTrackr.API.Controllers
 {
@@ -47,7 +43,7 @@ namespace FitTrackr.API.Controllers
         {
             var exercises = await exerciseRepository.GetAllAsync(filterOn, filterQuery, sortBy, isAscending ?? true, pageNumber, pageSize);
 
-            return Ok(mapper.Map<List<ExerciseDto>>(exercises));
+            return Ok(mapper.Map<List<ExerciseSummaryDto>>(exercises));
         }
 
         [HttpPost]
@@ -65,7 +61,7 @@ namespace FitTrackr.API.Controllers
 
             var createdExercise = await exerciseRepository.CreateAsync(exercise);
 
-            var exerciseDto = mapper.Map<ExerciseDto>(createdExercise);
+            var exerciseDto = mapper.Map<ExerciseSummaryDto>(createdExercise);
 
             return CreatedAtAction(nameof(GetById), new { id = exerciseDto.Id }, exerciseDto);
         }
@@ -91,7 +87,7 @@ namespace FitTrackr.API.Controllers
                 return NotFound();
             }
 
-            return Ok(mapper.Map<ExerciseDto>(updatedExercise));
+            return Ok(mapper.Map<ExerciseSummaryDto>(updatedExercise));
 
         }
 
@@ -107,7 +103,7 @@ namespace FitTrackr.API.Controllers
                 return NotFound();
             }
 
-            return Ok(mapper.Map<ExerciseDto>(exercise));
+            return Ok(mapper.Map<ExerciseSummaryDto>(exercise));
         }
 
         private async Task<IActionResult> ValidateAsync<T>(IValidator<T> validator, T model)

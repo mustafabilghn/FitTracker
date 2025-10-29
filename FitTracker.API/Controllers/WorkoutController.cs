@@ -95,7 +95,7 @@ namespace FitTrackr.API.Controllers
                 return NotFound();
             }
 
-            return Ok(mapper.Map<WorkoutDto>(workout));
+            return Ok(mapper.Map<WorkoutSummaryDto>(workout));
         }
 
         private async Task<IActionResult> ValidateAsync<T>(IValidator<T> validator, T model)

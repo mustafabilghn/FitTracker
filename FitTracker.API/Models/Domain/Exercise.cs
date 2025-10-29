@@ -9,19 +9,14 @@ namespace FitTrackr.API.Models.Domain
         [Required]
         public string ExerciseName { get; set; }//bench press
 
-        public int Sets { get; set; }
-
-        public string Reps { get; set; }
-
-        public double? WeightInKg { get; set; }
+        public string? Notes { get; set; }
 
         public Guid IntensityId { get; set; }
-
-        public Guid WorkoutId { get; set; }
-
         public Intensity Intensity { get; set; }
 
+        public Guid WorkoutId { get; set; }
         public Workout Workout { get; set; }
 
+        public List<ExerciseSet> ExerciseSets { get; set; }
     }
 }

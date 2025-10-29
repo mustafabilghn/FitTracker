@@ -11,12 +11,20 @@ namespace FitTrackr.API.Mappings
             CreateMap<Exercise, ExerciseDto>().ReverseMap();
             CreateMap<ExerciseRequestDto, Exercise>().ReverseMap();
             CreateMap<UpdateExerciseRequestDto, Exercise>().ReverseMap();
+            CreateMap<Exercise, ExerciseSummaryDto>().ReverseMap();
+
             CreateMap<WorkoutRequestDto, Workout>().ReverseMap();
             CreateMap<Workout, WorkoutDto>().ReverseMap();
-            CreateMap<Location, LocationDto>().ReverseMap();
-            CreateMap<Intensity, IntensityDto>().ReverseMap();
             CreateMap<Workout, WorkoutSummaryDto>().ReverseMap();
             CreateMap<UpdateWorkoutRequestDto, Workout>().ReverseMap();
+
+            CreateMap<Location, LocationDto>().ReverseMap();
+
+            CreateMap<Intensity, IntensityDto>().ReverseMap();
+
+            CreateMap<ExerciseSet, ExerciseSetDto>().ReverseMap();
+            CreateMap<ExerciseSetRequestDto, ExerciseSet>().ReverseMap();
+            CreateMap<UpdateExerciseSetRequestDto, ExerciseSet>().ReverseMap();
         }
     }
 }

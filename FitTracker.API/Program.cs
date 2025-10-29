@@ -65,6 +65,7 @@ builder.Services.AddDbContext<FitTrackrAuthDbContext>(options => options.UseSqlS
 
 builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
+builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
