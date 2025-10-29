@@ -10,16 +10,14 @@ namespace FitTrackr.API.Data
         }
 
         public DbSet<Workout> Workouts { get; set; }
-
         public DbSet<Intensity> Intensities { get; set; }
-
         public DbSet<Location> Locations { get; set; }
-
         public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<ExerciseSet> ExerciseSets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            List<Intensity> ıntensities = new List<Intensity>
+            List<Intensity> intensities = new List<Intensity>
             {
                 new Intensity
                 {
@@ -38,7 +36,7 @@ namespace FitTrackr.API.Data
                 }
             };
 
-            modelBuilder.Entity<Intensity>().HasData(ıntensities);
+            modelBuilder.Entity<Intensity>().HasData(intensities);
 
             List<Location> locations = new List<Location>
             {

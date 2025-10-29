@@ -12,6 +12,6 @@
 
         public LocationDto Location { get; set; }
 
-        public List<ExerciseDto> Exercises { get; set; }
+        public List<ExerciseSummaryDto> Exercises { get; set; }
     }
 }
