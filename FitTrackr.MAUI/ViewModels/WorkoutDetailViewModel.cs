@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using FitTrackr.MAUI.Messages;
@@ -37,13 +37,26 @@ namespace FitTrackr.MAUI.ViewModels
             Workout = await workoutService.GetWorkoutByIdAsync(workoutId);
 
             Exercises.Clear();
+
             if (Workout.Exercises != null)
             {
                 foreach (var exercise in Workout.Exercises)
                 {
-                    Exercises.Add(exercise);
+                    var exerciseWithSets = await exerciseService.GetExerciseByIdAsync(exercise.Id);
+                    Exercises.Add(exerciseWithSets);
                 }
             }
+        }
+
+        [RelayCommand]
+        public void ToggleExercise(ExerciseDto exercise)
+        {
+            if (exercise is null)
+            {
+                return;
+            }
+
+            exercise.IsExpanded = !exercise.IsExpanded;
         }
 
         [RelayCommand]
