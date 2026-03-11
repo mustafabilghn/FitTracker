@@ -7,7 +7,7 @@
 
     <Grid>
         <ScrollView>
-            <VerticalStackLayout Padding="20" Spacing="20">
+            <VerticalStackLayout Padding="20,20,20,120" Spacing="20">
 
                 <Label Text="{Binding Workout.WorkoutName}"
                    FontSize="30"
@@ -64,29 +64,68 @@
                                 </SwipeView.RightItems>
 
                                 <Frame Padding="15"
-                               CornerRadius="14"
-                               BackgroundColor="#1E1E1E"
-                               HasShadow="True"
-                               BorderColor="#333">
-                                    <VerticalStackLayout Spacing="6">
-                                        <Label Text="{Binding ExerciseName}"
-                                       FontSize="18"
-                                       FontAttributes="Bold"
-                                       TextColor="White"/>
-                                        <HorizontalStackLayout Spacing="15">
-                                            <Label Text="{Binding Sets,StringFormat='Set: {0}'}"
-                                           FontSize="14"
-                                           TextColor="#AAAAAA"/>
-                                            <Label Text="{Binding Reps,StringFormat='Tekrar: {0}'}"
-                                           FontSize="14"
-                                           TextColor="#AAAAAA"/>
-                                            <Label Text="{Binding WeightInKg,StringFormat='Ağırlık: {0} kg'}"
-                                           FontSize="14"
-                                           TextColor="#AAAAAA"/>
-                                        </HorizontalStackLayout>
-                                        <Label Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
-                                       FontSize="14"
-                                       TextColor="#FF7043"/>
+                                       CornerRadius="14"
+                                       BackgroundColor="#1E1E1E"
+                                       HasShadow="True"
+                                       BorderColor="#333">
+                                    <VerticalStackLayout Spacing="10">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.ToggleExerciseCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Grid.GestureRecognizers>
+
+                                            <Label Text="{Binding ExerciseName}"
+                                                   FontSize="18"
+                                                   FontAttributes="Bold"
+                                                   TextColor="White" />
+
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
+                                                   FontSize="14"
+                                                   TextColor="#FF7043"
+                                                   HorizontalOptions="End"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+
+                                        <CollectionView ItemsSource="{Binding ExerciseSets}"
+                                                        SelectionMode="None"
+                                                        IsVisible="{Binding IsExpanded}">
+                                            <CollectionView.ItemsLayout>
+                                                <LinearItemsLayout Orientation="Vertical"
+                                                                   ItemSpacing="6" />
+                                            </CollectionView.ItemsLayout>
+
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Frame Padding="8"
+                                                           CornerRadius="10"
+                                                           BackgroundColor="#252525"
+                                                           HasShadow="False"
+                                                           BorderColor="#333">
+                                                        <Grid ColumnDefinitions="Auto,*">
+                                                            <Label Text="{Binding SetNumber, StringFormat='Set {0}'}"
+                                                                   FontSize="14"
+                                                                   TextColor="#CCCCCC" />
+
+                                                            <Label Grid.Column="1"
+                                                                   Text="{Binding DisplayText}"
+                                                                   FontSize="14"
+                                                                   TextColor="#FFFFFF"
+                                                                   HorizontalOptions="End"
+                                                                   VerticalOptions="Center" />
+                                                        </Grid>
+                                                    </Frame>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                        <Label Text="{Binding Notes,StringFormat='Notlar: {0}'}"
+                                               FontSize="14"
+                                               TextColor="#FF7043"
+                                               IsVisible="{Binding IsExpanded}" />
+
                                     </VerticalStackLayout>
                                 </Frame>
                             </SwipeView>
@@ -95,6 +134,7 @@
                 </CollectionView>
             </VerticalStackLayout>
         </ScrollView>
+        
         <Button 
     Text="+" 
     Clicked="OnAddExerciseClicked"
