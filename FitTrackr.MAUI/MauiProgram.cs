@@ -35,6 +35,7 @@ namespace FitTrackr.MAUI
             builder.Services.AddSingleton<ExerciseService>();
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<AppShell>();
+            builder.Services.AddSingleton<ExerciseSetService>();
 
             builder.Services.AddTransient<WorkoutListPage>();
             builder.Services.AddTransient<WorkoutListViewModel>();
