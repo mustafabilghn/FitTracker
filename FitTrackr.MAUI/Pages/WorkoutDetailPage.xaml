@@ -105,10 +105,11 @@
                                                            BackgroundColor="#252525"
                                                            HasShadow="False"
                                                            BorderColor="#333">
-                                                        <Grid ColumnDefinitions="Auto,*">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto">
                                                             <Label Text="{Binding SetNumber, StringFormat='Set {0}'}"
                                                                    FontSize="14"
-                                                                   TextColor="#CCCCCC" />
+                                                                   TextColor="#CCCCCC" 
+                                                                   VerticalOptions="Center"/>
 
                                                             <Label Grid.Column="1"
                                                                    Text="{Binding DisplayText}"
@@ -116,6 +117,17 @@
                                                                    TextColor="#FFFFFF"
                                                                    HorizontalOptions="End"
                                                                    VerticalOptions="Center" />
+
+                                                            <Button Grid.Column="2"
+                                                                    Text="✕"
+                                                                    FontSize="12"
+                                                                    TextColor="#E53935"
+                                                                    BackgroundColor="Transparent"
+                                                                    WidthRequest="36"
+                                                                    HeightRequest="36"
+                                                                    Padding="0"
+                                                                    Command="{Binding Source={x:Reference ThisPage},Path=BindingContext.DeleteSetCommand}"
+                                                                    CommandParameter="{Binding Id}"/>
                                                         </Grid>
                                                     </Frame>
                                                 </DataTemplate>
