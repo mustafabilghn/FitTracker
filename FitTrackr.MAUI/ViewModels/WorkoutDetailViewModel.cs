@@ -51,9 +51,10 @@ namespace FitTrackr.MAUI.ViewModels
                 foreach (var exercise in Workout.Exercises)
                 {
                     var exerciseWithSets = await exerciseService.GetExerciseByIdAsync(exercise.Id);
-                    exerciseWithSets.ExerciseSets = exerciseWithSets.ExerciseSets?
-                        .OrderBy(s => s.SetNumber)
-                        .ToList();
+
+                    exerciseWithSets.ExerciseSets = new ObservableCollection<ExerciseSetDto>(
+                        exerciseWithSets.ExerciseSets?.OrderBy(s => s.SetNumber) ?? Enumerable.Empty<ExerciseSetDto>()
+                    );
 
                     Exercises.Add(exerciseWithSets);
                 }
@@ -102,13 +103,31 @@ namespace FitTrackr.MAUI.ViewModels
                 WeightInKg = NewWeightInKg,
             };
 
-            await exerciseSetService.AddSetAsync(request);
+            var addedSet = await exerciseSetService.AddSetAsync(request);
+
+            exercise.ExerciseSets.Add(addedSet);
 
             NewReps = string.Empty;
             NewWeightInKg = 0;
             exercise.IsAddingSet = false;
+        }
 
-            await LoadWorkoutDetailsAsync(Workout.Id);
+        [RelayCommand]
+        public async Task DeleteSetAsync(Guid setId)
+        {
+            await exerciseSetService.DeleteSetAsync(setId);
+
+            var exercise = Exercises.FirstOrDefault(e => e.ExerciseSets != null && e.ExerciseSets.Any(s => s.Id == setId));
+
+            if (exercise != null)
+            {
+                var setToRemove = exercise.ExerciseSets.FirstOrDefault(s => s.Id == setId);
+
+                if (setToRemove != null)
+                {
+                    exercise.ExerciseSets.Remove(setToRemove);
+                }
+            }
         }
     }
 }

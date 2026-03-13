@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -14,7 +15,7 @@ namespace FitTrackr.MAUI.Models.DTO
 
         public IntensityDto? Intensity { get; set; }
 
-        public List<ExerciseSetDto> ExerciseSets { get; set; }
+        public ObservableCollection<ExerciseSetDto> ExerciseSets { get; set; }
 
         private bool isExpanded;
 

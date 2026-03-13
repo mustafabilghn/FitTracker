@@ -22,7 +22,15 @@ namespace FitTrackr.MAUI.Services
 
         public async Task<ExerciseSetDto?> AddSetAsync(ExerciseSetRequestDto exerciseSetRequestDto)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/exercisesets",exerciseSetRequestDto);
+            var response = await _httpClient.PostAsJsonAsync("api/exercisesets", exerciseSetRequestDto);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<ExerciseSetDto>(_jsonOptions);
+        }
+
+        public async Task<ExerciseSetDto> DeleteSetAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/exercisesets/{id}");
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<ExerciseSetDto>(_jsonOptions);
