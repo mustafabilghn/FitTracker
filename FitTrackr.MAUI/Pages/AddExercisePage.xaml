@@ -28,43 +28,14 @@
                        Keyboard="Text"/>
             </Frame>
 
-            <Frame CornerRadius="12"
-                   BackgroundColor="#1E1E1E"
-                   Padding="10"
-                   HasShadow="True"
-                   BorderColor="#333">
-                <Entry x:Name="SetsEntry"
-                       Placeholder="Set Sayısı"
+            <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
+                   Padding="10" HasShadow="True" BorderColor="#333">
+                <Entry x:Name="NotesEntry"
+                       Placeholder="Notlar (opsiyonel)"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
-                       Keyboard="Numeric"/>
-            </Frame>
-
-            <Frame CornerRadius="12"
-                   BackgroundColor="#1E1E1E"
-                   Padding="10"
-                   HasShadow="True"
-                   BorderColor="#333">
-                <Entry x:Name="RepsEntry"
-                       Placeholder="Tekrar"
-                       PlaceholderColor="#AAAAAA"
-                       TextColor="White"
-                       BackgroundColor="Transparent"
-                       Keyboard="Numeric"/>
-            </Frame>
-
-            <Frame CornerRadius="12"
-                   BackgroundColor="#1E1E1E"
-                   Padding="10"
-                   HasShadow="True"
-                   BorderColor="#333">
-                <Entry x:Name="WeightEntry"
-                       Placeholder="Ağırlık (kg)"
-                       PlaceholderColor="#AAAAAA"
-                       TextColor="White"
-                       BackgroundColor="Transparent"
-                       Keyboard="Numeric"/>
+                       Keyboard="Text"/>
             </Frame>
 
             <Frame CornerRadius="12"

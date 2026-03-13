@@ -25,28 +25,24 @@ public partial class AddExercisePage : ContentPage
     private async void OnSaveClicked(object sender, EventArgs e)
     {
         var exerciseName = ExerciseNameEntry.Text;
-        var sets = SetsEntry.Text;
-        var reps = RepsEntry.Text;
-        var weight = WeightEntry.Text;
+        var notes = NotesEntry.Text;
         var intensity = IntensityPicker.SelectedItem as IntensityDto;
 
-        var exercise = new ExerciseRequestDto
-        {
-            ExerciseName = exerciseName,
-            Sets = int.TryParse(sets, out var setsResult) ? setsResult : 0,
-            Reps = reps,
-            WeightInKg = double.TryParse(weight, out var weightResult) ? weightResult : 0,
-            IntensityId = intensity?.Id ?? Guid.Empty,
-            WorkoutId = _workoutId,
-        };
-
-        var error = ExerciseValidator.Validate(exerciseName, exercise.Sets, reps, exercise.WeightInKg, exercise.IntensityId);
+        var error = ExerciseValidator.Validate(exerciseName, intensity?.Id ?? Guid.Empty);
 
         if (!string.IsNullOrEmpty(error))
         {
             await DisplayAlert("Hata", error, "Tamam");
             return;
         }
+
+        var exercise = new ExerciseRequestDto
+        {
+            ExerciseName = exerciseName,
+            Notes = notes,
+            IntensityId = intensity?.Id ?? Guid.Empty,
+            WorkoutId = _workoutId,
+        };
 
         await _viewModel.AddExerciseAsync(exercise);
         await DisplayAlert("Baþarýlý", "Egzersiz baþarýyla eklendi.", "Tamam");
