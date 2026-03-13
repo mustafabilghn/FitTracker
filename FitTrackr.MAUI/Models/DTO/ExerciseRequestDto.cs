@@ -12,12 +12,7 @@ namespace FitTrackr.MAUI.Models.DTO
         [Required]
         public string ExerciseName { get; set; }//bench press
 
-        public int Sets { get; set; }
-
-        [Required]
-        public string Reps { get; set; }
-
-        public double WeightInKg { get; set; }
+        public string? Notes { get; set; }
 
         [Required]
         public Guid IntensityId { get; set; }
