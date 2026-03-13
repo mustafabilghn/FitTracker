@@ -32,5 +32,20 @@ namespace FitTrackr.MAUI.Models.DTO
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        private bool isAddingSet;
+
+        public bool IsAddingSet
+        {
+            get => isAddingSet;
+            set
+            {
+                if (isAddingSet != value)
+                {
+                    isAddingSet = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsAddingSet)));
+                }
+            }
+        }
     }
 }

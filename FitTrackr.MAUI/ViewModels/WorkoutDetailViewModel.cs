@@ -12,16 +12,24 @@ namespace FitTrackr.MAUI.ViewModels
     {
         private readonly WorkoutService workoutService;
         private readonly ExerciseService exerciseService;
+        private readonly ExerciseSetService exerciseSetService;
 
         [ObservableProperty]
         private WorkoutDto workout;
 
+        [ObservableProperty]
+        private string newReps = string.Empty;
+
+        [ObservableProperty]
+        private double newWeightInKg;
+
         public ObservableCollection<ExerciseDto> Exercises { get; } = new();
 
-        public WorkoutDetailViewModel(WorkoutService workoutService, ExerciseService exerciseService)
+        public WorkoutDetailViewModel(WorkoutService workoutService, ExerciseService exerciseService, ExerciseSetService exerciseSetService)
         {
             this.workoutService = workoutService;
             this.exerciseService = exerciseService;
+            this.exerciseSetService = exerciseSetService;
 
             WeakReferenceMessenger.Default.Register<ExerciseAddedMessage>(this, async (r, m) =>
             {
@@ -43,7 +51,25 @@ namespace FitTrackr.MAUI.ViewModels
                 foreach (var exercise in Workout.Exercises)
                 {
                     var exerciseWithSets = await exerciseService.GetExerciseByIdAsync(exercise.Id);
+                    exerciseWithSets.ExerciseSets = exerciseWithSets.ExerciseSets?
+                        .OrderBy(s => s.SetNumber)
+                        .ToList();
+
                     Exercises.Add(exerciseWithSets);
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task DeleteExerciseAsync(Guid id)
+        {
+            var exercise = await exerciseService.DeleteExerciseAsync(id);
+            if (exercise != null)
+            {
+                var exerciseToRemove = Exercises.FirstOrDefault(x => x.Id == id);
+                if (exerciseToRemove != null)
+                {
+                    Exercises.Remove(exerciseToRemove);
                 }
             }
         }
@@ -60,17 +86,29 @@ namespace FitTrackr.MAUI.ViewModels
         }
 
         [RelayCommand]
-        public async Task DeleteExerciseAsync(Guid id)
+        public void ToggleAddSet(ExerciseDto exercise)
         {
-            var exercise = await exerciseService.DeleteExerciseAsync(id);
-            if (exercise != null)
+            exercise.IsAddingSet = !exercise.IsAddingSet;
+        }
+
+        [RelayCommand]
+        public async Task AddSetAsync(ExerciseDto exercise)
+        {
+            var request = new ExerciseSetRequestDto
             {
-                var exerciseToRemove = Exercises.FirstOrDefault(x => x.Id == id);
-                if (exerciseToRemove != null)
-                {
-                    Exercises.Remove(exerciseToRemove);
-                }
-            }
+                ExerciseId = exercise.Id,
+                SetNumber = (exercise.ExerciseSets?.Count ?? 0) + 1,
+                Reps = NewReps,
+                WeightInKg = NewWeightInKg,
+            };
+
+            await exerciseSetService.AddSetAsync(request);
+
+            NewReps = string.Empty;
+            NewWeightInKg = 0;
+            exercise.IsAddingSet = false;
+
+            await LoadWorkoutDetailsAsync(Workout.Id);
         }
     }
 }

@@ -91,7 +91,8 @@
 
                                         <CollectionView ItemsSource="{Binding ExerciseSets}"
                                                         SelectionMode="None"
-                                                        IsVisible="{Binding IsExpanded}">
+                                                        IsVisible="{Binding IsExpanded}"
+                                                        MinimumHeightRequest="0">
                                             <CollectionView.ItemsLayout>
                                                 <LinearItemsLayout Orientation="Vertical"
                                                                    ItemSpacing="6" />
@@ -125,6 +126,37 @@
                                                FontSize="14"
                                                TextColor="#FF7043"
                                                IsVisible="{Binding IsExpanded}" />
+
+                                        <Button Text=" + Set Ekle"
+                                                FontSize="13"
+                                                TextColor="#FF7043"
+                                                BackgroundColor="Transparent"
+                                                HorizontalOptions="Start"
+                                                IsVisible="{Binding IsExpanded}"
+                                                Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.ToggleAddSetCommand}"
+                                                CommandParameter="{Binding .}"/>
+
+                                        <VerticalStackLayout IsVisible="{Binding IsAddingSet}" Spacing="8">
+
+                                            <Entry Placeholder="Tekrar Sayısı"
+                                                   PlaceholderColor="#888"
+                                                   TextColor="White"
+                                                   BackgroundColor="#2A2A2A"
+                                                   Text="{Binding Source={x:Reference ThisPage}, Path=BindingContext.NewReps}"/>
+
+                                            <Entry Placeholder="Ağırlık (kg)"
+                                                   PlaceholderColor="#888"
+                                                   TextColor="White"
+                                                   BackgroundColor="#2A2A2A"
+                                                   Text="{Binding Source={x:Reference ThisPage},Path=BindingContext.NewWeightInKg}"/>
+
+                                            <Button Text="Kaydet"
+                                                    BackgroundColor="#FF7043"
+                                                    TextColor="White"
+                                                    CornerRadius="8"
+                                                    Command="{Binding Source={x:Reference ThisPage},Path=BindingContext.AddSetCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                        </VerticalStackLayout>
 
                                     </VerticalStackLayout>
                                 </Frame>
