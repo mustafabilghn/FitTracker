@@ -18,5 +18,7 @@ namespace FitTrackr.API.Models.Domain
         public Location Location { get; set; }
 
         public List<Exercise> Exercises { get; set; }
+
+        public string userId { get; set; }
     }
 }

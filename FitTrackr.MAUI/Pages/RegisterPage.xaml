@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.RegisterPage"
+             BackgroundColor="#121212"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+
+            <Label Text="FitTracker"
+                   FontSize="36"
+                   FontAttributes="Bold"
+                   TextColor="#FF7043"
+                   HorizontalOptions="Center"
+                   Margin="0,40,0,10"/>
+
+            <Label Text="Yeni hesap oluştur"
+                   FontSize="16"
+                   TextColor="#AAAAAA"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20"/>
+
+            <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
+                   Padding="10" HasShadow="True" BorderColor="#333">
+                <Entry Placeholder="Kullanıcı adı"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Text="{Binding Username}"/>
+            </Frame>
+
+            <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
+                   Padding="10" HasShadow="True" BorderColor="#333">
+                <Entry Placeholder="Şifre"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       IsPassword="True"
+                       Text="{Binding Password}"/>
+            </Frame>
+
+            <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
+                   Padding="10" HasShadow="True" BorderColor="#333">
+                <Entry Placeholder="Şifre tekrar"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       IsPassword="True"
+                       Text="{Binding ConfirmPassword}"/>
+            </Frame>
+
+            <Button Text="Kayıt Ol"
+                    FontSize="18"
+                    TextColor="White"
+                    BackgroundColor="#FF7043"
+                    CornerRadius="10"
+                    HeightRequest="55"
+                    Command="{Binding RegisterCommand}"/>
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                <Label Text="Zaten hesabın var mı?"
+                       TextColor="#AAAAAA"
+                       VerticalOptions="Center"/>
+                <Label Text="Giriş yap"
+                       TextColor="#FF7043"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnLoginClicked"/>
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
