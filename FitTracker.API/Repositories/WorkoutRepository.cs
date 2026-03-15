@@ -13,21 +13,18 @@ namespace FitTrackr.API.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<Workout> CreateAsync(Workout workout)
+        public async Task<Workout> CreateAsync(Workout workout,string userId)
         {
             var location = await dbContext.Locations.FirstOrDefaultAsync(w => w.Id == workout.LocationId);
 
             if (location is null)
-            {
                 return null;
-            }
 
             workout.Location = location;
+            workout.userId = userId;
 
             await dbContext.Workouts.AddAsync(workout);
-
             await dbContext.SaveChangesAsync();
-
             return workout;
         }
 
@@ -47,9 +44,9 @@ namespace FitTrackr.API.Repositories
             return workout;
         }
 
-        public async Task<List<Workout>> GetAllAsync()
+        public async Task<List<Workout>> GetAllAsync(string userId)
         {
-            return await dbContext.Workouts.Include(l => l.Location).ToListAsync();
+            return await dbContext.Workouts.Include(l => l.Location).Where(w => w.userId == userId).ToListAsync();
         }
 
         public async Task<Workout?> GetByIdAsync(Guid id)

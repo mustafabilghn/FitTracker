@@ -20,9 +20,13 @@ namespace FitTrackr.MAUI
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            builder.Services.AddSingleton(new HttpClient
+            builder.Services.AddSingleton(sp =>
             {
-                BaseAddress = new Uri("https://fittracker-stqv.onrender.com/")
+                var client = new HttpClient
+                {
+                    BaseAddress = new Uri("https://fittracker-stqv.onrender.com/")
+                };
+                return client;
             });
 
             builder.Services.AddSingleton(new JsonSerializerOptions
@@ -36,6 +40,7 @@ namespace FitTrackr.MAUI
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<AppShell>();
             builder.Services.AddSingleton<ExerciseSetService>();
+            builder.Services.AddSingleton<AuthService>();
 
             builder.Services.AddTransient<WorkoutListPage>();
             builder.Services.AddTransient<WorkoutListViewModel>();
@@ -45,6 +50,10 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<WorkoutDetailViewModel>();
             builder.Services.AddTransient<AddExercisePage>();
             builder.Services.AddTransient<AddExerciseViewModel>();
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<RegisterPage>();
+            builder.Services.AddTransient<RegisterViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();

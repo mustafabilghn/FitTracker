@@ -11,11 +11,12 @@
         <ShellContent Title="Ana Sayfa"
                       Shell.NavBarIsVisible="False"
                       Icon="home.png"
-                      ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage"/>
-
+                      ContentTemplate="{DataTemplate local:MainPage}"
+                      Route="MainPage"/>
         <ShellContent Title="Antrenmanlar"
                       Shell.NavBarIsVisible="False"
                       Icon="workouts.png"
-                      ContentTemplate="{DataTemplate pages:WorkoutListPage}" Route="WorkoutListPage"/>
+                      ContentTemplate="{DataTemplate pages:WorkoutListPage}"
+                      Route="WorkoutListPage"/>
     </TabBar>
 </Shell>

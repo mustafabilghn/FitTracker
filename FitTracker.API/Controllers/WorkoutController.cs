@@ -3,12 +3,15 @@ using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FitTrackr.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class WorkoutController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -20,19 +23,22 @@ namespace FitTrackr.API.Controllers
             this.repository = repository;
         }
 
+        private string getUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WorkoutRequestDto requestDto, [FromServices] IValidator<WorkoutRequestDto> validator)
         {
             var validationError = await ValidateAsync(validator, requestDto);
 
             if (validationError is not null)
-            {
                 return validationError;
-            }
 
             var workout = mapper.Map<Workout>(requestDto);
 
-            var createdWorkout = await repository.CreateAsync(workout);
+            var createdWorkout = await repository.CreateAsync(workout,getUserId());
 
             var workoutDto = mapper.Map<WorkoutSummaryDto>(createdWorkout);
 
@@ -46,9 +52,7 @@ namespace FitTrackr.API.Controllers
             var workout = await repository.GetByIdAsync(id);
 
             if (workout == null)
-            {
                 return NotFound();
-            }
 
             return Ok(mapper.Map<WorkoutDto>(workout));
         }
@@ -56,7 +60,7 @@ namespace FitTrackr.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var workout = await repository.GetAllAsync();
+            var workout = await repository.GetAllAsync(getUserId());
 
             return Ok(mapper.Map<List<WorkoutSummaryDto>>(workout));
         }
@@ -68,18 +72,14 @@ namespace FitTrackr.API.Controllers
             var validationError = await ValidateAsync(validator, requestDto);
 
             if (validationError is not null)
-            {
                 return validationError;
-            }
 
             var workoutDomain = mapper.Map<Workout>(requestDto);
 
             var updatedWorkout = await repository.UpdateAsync(id, workoutDomain);
 
             if (updatedWorkout is null)
-            {
                 return NotFound();
-            }
 
             return Ok(mapper.Map<WorkoutSummaryDto>(updatedWorkout));
         }
@@ -91,9 +91,7 @@ namespace FitTrackr.API.Controllers
             var workout = await repository.DeleteAsync(id);
 
             if (workout is null)
-            {
                 return NotFound();
-            }
 
             return Ok(mapper.Map<WorkoutSummaryDto>(workout));
         }
