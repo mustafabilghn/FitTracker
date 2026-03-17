@@ -31,6 +31,10 @@ public partial class WorkoutListPage : ContentPage
 
                 await Navigation.PushAsync(workoutDetailPage);
             }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+
+            }
             catch (Exception ex)
             {
                 await DisplayAlert("Hata", $"Sayfa yüklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
@@ -53,6 +57,10 @@ public partial class WorkoutListPage : ContentPage
             LoadingIndicator.IsRunning = true;
 
             await _viewModel.LoadWorkoutsAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+
         }
         catch (Exception ex)
         {

@@ -22,10 +22,16 @@ namespace FitTrackr.MAUI
 
             builder.Services.AddSingleton(sp =>
             {
-                var client = new HttpClient
+                var handler = new AuthHandler
+                {
+                    InnerHandler = new HttpClientHandler()
+                };
+
+                var client = new HttpClient(handler)
                 {
                     BaseAddress = new Uri("https://fittracker-stqv.onrender.com/")
                 };
+
                 return client;
             });
 
@@ -54,6 +60,7 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<AuthHandler>();
 
 #if DEBUG
             builder.Logging.AddDebug();
