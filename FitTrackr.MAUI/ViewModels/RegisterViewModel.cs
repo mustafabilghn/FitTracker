@@ -46,7 +46,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (success)
             {
-                await Application.Current.MainPage.DisplayAlert("Başarılı", "Hesabın oluşturuşldu, giriş yapabilirsin.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert("Başarılı", "Hesabın oluşturuldu, giriş yapabilirsin.", "Tamam");
                 await Application.Current.MainPage.Navigation.PopAsync();
             }
             else

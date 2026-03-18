@@ -15,6 +15,51 @@
                 HorizontalOptions="Center"
                 Margin="0,10"/>
 
+            <Label x:Name="GreetingLabel"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   Margin="0,10,0,0"/>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+
+                <Frame Grid.Column="0"
+                       CornerRadius="14"
+                       BackgroundColor="#1E1E1E"
+                       Padding="16"
+                       HasShadow="True"
+                       BorderColor="#333">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="TotalWorkoutsLabel"
+                               Text="0"
+                               FontSize="28"
+                               FontAttributes="Bold"
+                               TextColor="#FF7043"/>
+                        <Label Text="Antrenman"
+                               FontSize="13"
+                               TextColor="#AAAAAA"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Column="1"
+                       CornerRadius="14"
+                       BackgroundColor="#1E1E1E"
+                       Padding="16"
+                       HasShadow="True"
+                       BorderColor="#333">
+                    <VerticalStackLayout Spacing="4">
+                        <Label x:Name="TotalMinutesLabel"
+                               Text="0 dk"
+                               FontSize="28"
+                               FontAttributes="Bold"
+                               TextColor="#4CAF50"/>
+                        <Label Text="Toplam Süre"
+                               FontSize="13"
+                               TextColor="#AAAAAA"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+            
             <Label 
                 Text="Son Eklenen Antrenman"
                 FontSize="22"

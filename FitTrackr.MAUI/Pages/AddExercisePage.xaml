@@ -31,7 +31,7 @@
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
                 <Entry x:Name="NotesEntry"
-                       Placeholder="Notlar (opsiyonel)"
+                       Placeholder="Notlar"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -44,7 +44,7 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Picker x:Name="IntensityPicker"
-                        Title="Yoğunluk Seç"
+                        Title="Yoğunluk"
                         TitleColor="#AAAAAA"
                         TextColor="White"
                         ItemsSource="{Binding Intensities}"

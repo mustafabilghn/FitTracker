@@ -34,7 +34,7 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Picker x:Name="DayPicker"
-                        Title="Gün Seç"
+                        Title="Gün"
                         TitleColor="#AAAAAA"
                         TextColor="White">
                     <Picker.Items>
@@ -67,7 +67,7 @@
                    Padding="10"
                    HasShadow="True"
                    BorderColor="#333">
-                <Picker Title="Yer Seç"
+                <Picker Title="Yer"
                         x:Name="LocationPicker"
                         TitleColor="#AAAAAA"
                         ItemsSource="{Binding Locations}"
