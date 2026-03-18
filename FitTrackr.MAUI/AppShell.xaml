@@ -18,5 +18,10 @@
                       Icon="workouts.png"
                       ContentTemplate="{DataTemplate pages:WorkoutListPage}"
                       Route="WorkoutListPage"/>
+        <ShellContent Title="Profil"
+                      Shell.NavBarIsVisible="False"
+                      Icon="profile.png"
+                      ContentTemplate="{DataTemplate pages:ProfilePage}"
+                      Route="ProfilePage"/>
     </TabBar>
 </Shell>

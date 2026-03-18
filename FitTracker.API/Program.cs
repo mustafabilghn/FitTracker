@@ -91,6 +91,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireDigit = false;
     options.Password.RequiredUniqueChars = 1;
+    options.User.AllowedUserNameCharacters = 
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>

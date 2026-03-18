@@ -31,8 +31,7 @@ namespace FitTrackr.MAUI.ViewModels
 
         public async Task LoadWorkoutsAsync()
         {
-            if (Workouts.Any())
-                return;
+            Workouts.Clear();
 
             var workouts = await _workoutService.GetWorkoutsAsync();
 

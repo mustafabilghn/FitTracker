@@ -18,6 +18,8 @@ namespace FitTrackr.MAUI
             WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, (r, m) =>
             {
                 workout.Add(m.Value);
+                TotalWorkoutsLabel.Text = workout.Count.ToString();
+                TotalMinutesLabel.Text = $"{workout.Sum(w => w.DurationMinutes)} dk";
                 WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
             });
 
@@ -42,6 +44,14 @@ namespace FitTrackr.MAUI
                 LoadingIndicator.IsRunning = true;
 
                 var workouts = await _workoutService.GetWorkoutsAsync();
+                workout = workouts;
+
+                TotalWorkoutsLabel.Text = workouts.Count.ToString();
+                TotalMinutesLabel.Text = $"{workouts.Sum(w => w.DurationMinutes)} dk";
+
+                var hour = DateTime.Now.Hour;
+                var greeting = hour < 12 ? "Günaydın" : hour < 18 ? "İyi günler" : "İyi akşamlar";
+                GreetingLabel.Text = $"{greeting} 💪";
 
                 WorkoutsList.ItemsSource = workouts.TakeLast(1).ToList();
             }

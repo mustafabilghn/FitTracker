@@ -61,6 +61,8 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<AuthHandler>();
+            builder.Services.AddTransient<ProfilePage>();
+            builder.Services.AddTransient<ProfileViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();
