@@ -8,9 +8,10 @@ namespace FitTrackr.MAUI
     public partial class MainPage : ContentPage
     {
         private readonly WorkoutService _workoutService;
+        private readonly AuthService authService;
         private List<WorkoutSummaryDto> workout = new();
 
-        public MainPage(WorkoutService workoutService)
+        public MainPage(WorkoutService workoutService, AuthService authService)
         {
             InitializeComponent();
             _workoutService = workoutService;
@@ -29,6 +30,7 @@ namespace FitTrackr.MAUI
                 workout = workouts;
                 WorkoutsList.ItemsSource = workout.TakeLast(1).ToList();
             });
+            this.authService = authService;
         }
 
         protected override async void OnAppearing()
@@ -49,9 +51,26 @@ namespace FitTrackr.MAUI
                 TotalWorkoutsLabel.Text = workouts.Count.ToString();
                 TotalMinutesLabel.Text = $"{workouts.Sum(w => w.DurationMinutes)} dk";
 
+                var token = await authService.GetTokenAsync();
+                string displayName = "Kullanıcı";
+
+                if(token != null)
+                {
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    var jwt = handler.ReadJwtToken(token);
+                    var fullName = jwt.Claims
+                        .FirstOrDefault(c =>
+                        c.Type == "unique_name" ||
+                        c.Type == "email" ||
+                        c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+                        ?.Value;
+
+                    displayName = fullName?.Split(' ')[0] ?? "Kullanıcı";
+                }
+
                 var hour = DateTime.Now.Hour;
                 var greeting = hour < 12 ? "Günaydın" : hour < 18 ? "İyi günler" : "İyi akşamlar";
-                GreetingLabel.Text = $"{greeting} 💪";
+                GreetingLabel.Text = $"{greeting}, {displayName}";
 
                 WorkoutsList.ItemsSource = workouts.TakeLast(1).ToList();
             }

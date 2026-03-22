@@ -8,11 +8,11 @@
         <VerticalStackLayout Padding="20" Spacing="20">
 
             <Label 
-                Text="Fit Tracker"
-                FontSize="36"
+                Text="FitTracker"
+                FontSize="28"
                 FontAttributes="Bold"
                 TextColor="White"
-                HorizontalOptions="Center"
+                HorizontalOptions="Start"
                 Margin="0,10"/>
 
             <Label x:Name="GreetingLabel"

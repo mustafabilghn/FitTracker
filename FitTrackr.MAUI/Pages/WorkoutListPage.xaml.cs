@@ -55,6 +55,7 @@ public partial class WorkoutListPage : ContentPage
         {
             LoadingIndicator.IsVisible = true;
             LoadingIndicator.IsRunning = true;
+            WorkoutsCollection.IsVisible = false;
 
             await _viewModel.LoadWorkoutsAsync();
         }
@@ -70,6 +71,7 @@ public partial class WorkoutListPage : ContentPage
         {
             LoadingIndicator.IsVisible = false;
             LoadingIndicator.IsRunning = false;
+            WorkoutsCollection.IsVisible = true;
         }
     }
 

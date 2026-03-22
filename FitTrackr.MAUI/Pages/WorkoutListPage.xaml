@@ -7,7 +7,7 @@
     BackgroundColor="#121212">
 
     <Grid>
-        <ScrollView>
+       <ScrollView> 
             <VerticalStackLayout Padding="20" Spacing="20">
 
                 <Label 
@@ -21,11 +21,22 @@
                 <CollectionView 
                     x:Name="WorkoutsCollection"
                     ItemsSource="{Binding Workouts}"
-                    VerticalScrollBarVisibility="Always">
+                    VerticalScrollBarVisibility="Always"
+                    MinimumHeightRequest="300">
 
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
                     </CollectionView.ItemsLayout>
+
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,40">
+                            <Label Text="Henüz antrenman eklenmedi."
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
@@ -101,7 +112,7 @@
                     HorizontalOptions="Center"
                     Margin="0,20"/>
             </VerticalStackLayout>
-        </ScrollView>
+       </ScrollView> 
 
         <Button 
             Text="+" 
