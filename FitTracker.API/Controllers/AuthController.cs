@@ -1,7 +1,11 @@
-﻿using FitTrackr.API.Models.DTO;
+﻿using FitTrackr.API.Data;
+using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FitTrackr.API.Controllers
 {
@@ -75,6 +79,38 @@ namespace FitTrackr.API.Controllers
             }
 
             return BadRequest("Invalid login attempt");
+        }
+
+        [HttpDelete]
+        [Route("delete-account")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount([FromServices] FitTrackrDbContext fitTrackrDbContext)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if(userId == null)
+                return Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return NotFound();
+
+            var workouts = fitTrackrDbContext.Workouts
+                .Include(w => w.Exercises)
+                .ThenInclude(e => e.ExerciseSets)
+                .Where(w => w.userId == userId)
+                .ToListAsync();
+
+            fitTrackrDbContext.RemoveRange(workouts);
+            await fitTrackrDbContext.SaveChangesAsync();
+
+            var result = await userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+                return Ok();
+
+            return BadRequest("Hesap silinirken bir hata oluştu.");
         }
     }
 }

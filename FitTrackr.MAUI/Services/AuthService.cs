@@ -69,5 +69,27 @@ namespace FitTrackr.MAUI.Services
         {
             SecureStorage.Remove("jwt_token");
         }
+
+        public async Task<bool> DeleteAccountAsync()
+        {
+            try
+            {
+                await InitializeAsync();
+
+                var response = await _httpClient.DeleteAsync("api/auth/delete-account");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Logout();
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

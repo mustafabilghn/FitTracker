@@ -29,7 +29,7 @@ namespace FitTrackr.MAUI
 
                 var client = new HttpClient(handler)
                 {
-                    BaseAddress = new Uri("https://fittracker-production-2c5c.up.railway.app/")
+                    BaseAddress = new Uri("https://fittracker-stqv.onrender.com/")
                 };
 
                 return client;

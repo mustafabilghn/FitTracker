@@ -52,5 +52,33 @@ namespace FitTrackr.MAUI.ViewModels
             Application.Current.MainPage = new NavigationPage(
                 IPlatformApplication.Current.Services.GetService<LoginPage>());
         }
+
+        [RelayCommand]
+        public async Task ConfirmDeleteAccountAsync()
+        {
+            bool isConfirmed = await Application.Current.MainPage.DisplayAlert(
+                "Hesabı Sil",
+                "Bu işlemi gerçekleştirmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+                "Evet",
+                "Vazgeç");
+
+            if (isConfirmed)
+            {
+                var success = await authService.DeleteAccountAsync();
+
+                if (success)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Başarılı", "Hesabınız ve tüm verileriniz kalıcı olarak silindi.", "Tamam");
+
+                    authService.Logout();
+                    Application.Current.MainPage = new NavigationPage(
+                        IPlatformApplication.Current.Services.GetService<LoginPage>());
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Hata", "Hesap silme işlemi sırasında bir hata oluştu. Lütfen bağlantınızı kontrol edip tekrar deneyin.", "Tamam");
+                }
+            }
+        }
     }
 }
