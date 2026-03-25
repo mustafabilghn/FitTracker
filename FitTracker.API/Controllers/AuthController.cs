@@ -96,7 +96,7 @@ namespace FitTrackr.API.Controllers
             if (user == null)
                 return NotFound();
 
-            var workouts = fitTrackrDbContext.Workouts
+            var workouts = await fitTrackrDbContext.Workouts
                 .Include(w => w.Exercises)
                 .ThenInclude(e => e.ExerciseSets)
                 .Where(w => w.userId == userId)
