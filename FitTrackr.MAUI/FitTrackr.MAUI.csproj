@@ -22,7 +22,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>Fit Tracker</ApplicationTitle>
+		<ApplicationTitle>FitTracker</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.fittrackr.maui</ApplicationId>
