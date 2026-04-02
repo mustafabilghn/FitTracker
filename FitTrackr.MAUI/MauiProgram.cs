@@ -1,4 +1,5 @@
-﻿using FitTrackr.MAUI.Pages;
+using FitTrackr.MAUI.Configuration;
+using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
 using FitTrackr.MAUI.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,8 @@ namespace FitTrackr.MAUI
 
                 var client = new HttpClient(handler)
                 {
-                    BaseAddress = new Uri("https://fittracker-production-2c5c.up.railway.app/")
+                    BaseAddress = ApiSettings.ApiBaseUri,
+                    Timeout = TimeSpan.FromSeconds(30)
                 };
 
                 return client;

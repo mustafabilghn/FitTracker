@@ -1,4 +1,4 @@
-﻿@model FitTrackr.UI.Models.DTO.WorkoutRequestDto
+@model FitTrackr.UI.Models.DTO.WorkoutRequestDto
 @{
     ViewData["Title"] = "Add";
 }
@@ -14,7 +14,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="WorkoutDate" class="control-label">Workout Date</label>
-                <input asp-for="WorkoutDate" type="text" class="form-control" />
+                <input asp-for="WorkoutDate" type="date" class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="DurationMinutes" class="control-label">Duration</label>

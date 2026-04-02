@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace FitTrackr.API.Models.DTO
 {
@@ -8,7 +8,7 @@ namespace FitTrackr.API.Models.DTO
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
         [Required]
-        public DayOfWeek WorkoutDate { get; set; }
+        public DateTime WorkoutDate { get; set; }
 
         [Required]
         public double DurationMinutes { get; set; }

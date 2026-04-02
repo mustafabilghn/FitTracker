@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
 
 namespace FitTrackr.UI.Models.DTO
 {
@@ -9,8 +8,8 @@ namespace FitTrackr.UI.Models.DTO
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
         [Required]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public DayOfWeek WorkoutDate { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime WorkoutDate { get; set; }
 
         [Required]
         public double DurationMinutes { get; set; }

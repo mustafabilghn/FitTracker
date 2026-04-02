@@ -1,4 +1,4 @@
-﻿@model IEnumerable<FitTrackr.UI.Models.DTO.WorkoutSummaryDto>
+@model IEnumerable<FitTrackr.UI.Models.DTO.WorkoutSummaryDto>
 @{
     ViewData["Title"] = "Workouts";
 }
@@ -22,7 +22,7 @@
             <tr>
                 <td>@item.Id</td>
                 <td>@item.WorkoutName</td>
-                <td>@item.WorkoutDate</td>
+                <td>@item.WorkoutDateDisplay</td>
                 <td>@item.DurationMinutes</td>
                 <td>@item.Location.LocationName</td>
                 <td>

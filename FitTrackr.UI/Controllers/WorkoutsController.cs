@@ -1,4 +1,4 @@
-﻿using FitTrackr.UI.Models.DTO;
+using FitTrackr.UI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Text;
@@ -46,7 +46,7 @@ namespace FitTrackr.UI.Controllers
 
             ViewBag.Locations = new SelectList(locations, "Id", "LocationName");
 
-            return View();
+            return View(new WorkoutRequestDto { WorkoutDate = DateTime.Today });
         }
 
         [HttpPost]

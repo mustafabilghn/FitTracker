@@ -1,4 +1,4 @@
-﻿using FitTrackr.API.Data;
+using FitTrackr.API.Data;
 using FitTrackr.API.Models.DTO;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +18,8 @@ namespace FitTrackr.API.Validations
                 .MaximumLength(20).WithMessage("Workout name cannot exceed 20 characters.");
 
             RuleFor(w => w.WorkoutDate)
-                .Must(day => Enum.IsDefined(typeof(DayOfWeek), day))
-                .WithMessage("Workout day is required and must be valid.");
+                .Must(d => d != default && d.Year >= 1900)
+                .WithMessage("Workout date is required and must be valid.");
 
             RuleFor(w => w.DurationMinutes)
                 .NotNull().WithMessage("Duration in minutes is required.")
