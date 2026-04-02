@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using FitTrackr.MAUI.Models;
 
 namespace FitTrackr.MAUI.Models.DTO
 {
@@ -8,14 +8,16 @@ namespace FitTrackr.MAUI.Models.DTO
 
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
-        public DayOfWeek WorkoutDate { get; set; }
+        public DateTime WorkoutDate { get; set; }
 
         public double DurationMinutes { get; set; }
+
+        public Guid LocationId { get; set; }
 
         public LocationDto Location { get; set; }
 
         public List<ExerciseDto> Exercises { get; set; }
 
-        public string WorkoutDateText => CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.GetDayName(WorkoutDate);
+        public string WorkoutDateText => WorkoutDateDisplay.FormatDateAndWeekday(WorkoutDate);
     }
 }

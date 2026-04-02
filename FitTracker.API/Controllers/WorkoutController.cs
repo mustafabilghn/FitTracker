@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
+using FitTrackr.API.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +64,20 @@ namespace FitTrackr.API.Controllers
             var workout = await repository.GetAllAsync(getUserId());
 
             return Ok(mapper.Map<List<WorkoutSummaryDto>>(workout));
+        }
+
+        [HttpGet("analysis")]
+        public async Task<IActionResult> GetAnalysis([FromServices] IWorkoutAnalysisService analysisService)
+        {
+            var userId = getUserId();
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await analysisService.GetAnalysisAsync(userId);
+            return Ok(result);
         }
 
         [HttpPut]

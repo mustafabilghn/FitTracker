@@ -1,20 +1,20 @@
-﻿using FitTrackr.MAUI.Models.DTO;
+using FitTrackr.MAUI.Models.DTO;
 using System.Threading.Tasks;
 
 namespace FitTrackr.MAUI.Validations
 {
     public static class WorkoutValidator
     {
-       public static string Validate(string workoutName,double duration,Guid locationId,DayOfWeek? workoutDate)
+       public static string Validate(string workoutName,double duration,Guid locationId,DateTime workoutDate)
         {
             if (string.IsNullOrEmpty(workoutName))
             {
                 return "Antrenman adı boş olamaz.";
             }
 
-            if (workoutDate == null)
+            if (workoutDate == default)
             {
-                return "Gün seçilmelidir.";
+                return "Tarih seçilmelidir.";
             }
 
             if (duration <= 0)

@@ -1,4 +1,4 @@
-﻿namespace FitTrackr.API.Models.DTO
+namespace FitTrackr.API.Models.DTO
 {
     public class WorkoutSummaryDto
     {
@@ -6,7 +6,7 @@
 
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
-        public DayOfWeek WorkoutDate { get; set; }
+        public DateTime WorkoutDate { get; set; }
 
         public double DurationMinutes { get; set; }
 

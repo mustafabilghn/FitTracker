@@ -3,6 +3,8 @@ using FitTrackr.API.Mappings;
 using FitTrackr.API.Middlewares;
 using FitTrackr.API.Repositories;
 using FitTrackr.API.Validations;
+using FitTrackr.API.Services;
+using FitTrackr.API.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -67,6 +69,7 @@ builder.Services.AddScoped<IExerciseRepository, ExerciseRepository>();
 builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 
@@ -91,7 +94,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireDigit = false;
     options.Password.RequiredUniqueChars = 1;
-    options.User.AllowedUserNameCharacters = 
+    options.User.AllowedUserNameCharacters =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
 });
 
@@ -121,7 +124,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

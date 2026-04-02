@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace FitTrackr.API.Models.Domain
 {
@@ -9,7 +9,7 @@ namespace FitTrackr.API.Models.Domain
         [Required]
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
-        public DayOfWeek WorkoutDate { get; set; }
+        public DateTime WorkoutDate { get; set; }
 
         public double DurationMinutes { get; set; }
 

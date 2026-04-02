@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Globalization;
+using System.ComponentModel.DataAnnotations;
+using FitTrackr.MAUI.Models;
 
 namespace FitTrackr.MAUI.Models.DTO
 {
@@ -9,7 +9,7 @@ namespace FitTrackr.MAUI.Models.DTO
         public string WorkoutName { get; set; }//upper,lower,push,pull,legs...
 
         [Required]
-        public DayOfWeek WorkoutDate { get; set; }
+        public DateTime WorkoutDate { get; set; }
 
         [Required]
         public double DurationMinutes { get; set; }
@@ -17,6 +17,6 @@ namespace FitTrackr.MAUI.Models.DTO
         [Required]
         public Guid LocationId { get; set; }
 
-        public string WorkoutDateText => CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.GetDayName(WorkoutDate);
+        public string WorkoutDateText => WorkoutDateDisplay.FormatDateAndWeekday(WorkoutDate);
     }
 }

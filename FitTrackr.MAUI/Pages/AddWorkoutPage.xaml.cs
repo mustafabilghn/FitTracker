@@ -19,21 +19,21 @@ public partial class AddWorkoutPage : ContentPage
     {
         base.OnAppearing();
 
+        WorkoutDatePicker.Date = DateTime.Today;
         await _viewModel.LoadLocationsAsync();
     }
 
     private async void OnSaveClicked(object sender, EventArgs e)
     {
         var workoutName = WorkoutNameEntry.Text;
-        var selectedDay = DayPicker.SelectedItem?.ToString();
-        DayOfWeek? workoutDate = ConvertDayToDayOfWeek(selectedDay);
+        var workoutDate = WorkoutDatePicker.Date;
         var duration = DurationMinutes.Text;
         var location = LocationPicker.SelectedItem as LocationDto;
 
         var workout = new WorkoutRequestDto
         {
             WorkoutName = workoutName,
-            WorkoutDate = workoutDate ?? DayOfWeek.Sunday,
+            WorkoutDate = workoutDate.Date,
             DurationMinutes = double.TryParse(duration,out var result) ? result : 0,
             LocationId = location?.Id ?? Guid.Empty,
         };
@@ -47,22 +47,7 @@ public partial class AddWorkoutPage : ContentPage
         }
 
         await _viewModel.AddWorkoutAsync(workout);
-        await DisplayAlert("Baþarýlý", "Antrenman baþarýyla eklendi.", "Tamam");
+        await DisplayAlert("BaÅŸarÄ±lÄ±", "Antrenman baÅŸarÄ±yla eklendi.", "Tamam");
         await Navigation.PopAsync();
-    }
-
-    private DayOfWeek? ConvertDayToDayOfWeek(string selectedDay)
-    {   
-        return selectedDay switch
-        {
-            "Pazar" => DayOfWeek.Sunday,
-            "Pazartesi" => DayOfWeek.Monday,
-            "Salý" => DayOfWeek.Tuesday,
-            "Çarþamba" => DayOfWeek.Wednesday,
-            "Perþembe" => DayOfWeek.Thursday,
-            "Cuma" => DayOfWeek.Friday,
-            "Cumartesi" => DayOfWeek.Saturday,
-            _ => null
-        };
     }
 }
