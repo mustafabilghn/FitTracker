@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +23,13 @@ jobs:
         with:
           dotnet-version: '9.x'
 
+      # Sadece API projesini derlemesi için yolu belirttik
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build FitTrackr.API/FitTrackr.API.csproj --configuration Release
 
+      # Sadece API projesini paketlemesi için yolu belirttik
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish FitTrackr.API/FitTrackr.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -39,8 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -62,4 +64,3 @@ jobs:
           app-name: 'fittracker-api'
           slot-name: 'Production'
           package: .
-          
