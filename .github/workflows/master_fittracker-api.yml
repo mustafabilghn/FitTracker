@@ -23,13 +23,11 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      # Sadece API projesini derlemesi için yolu belirttik
       - name: Build with dotnet
-        run: dotnet build FitTrackr.API/FitTrackr.API.csproj --configuration Release
+        run: dotnet build FitTracker.API/FitTrackr.API.csproj --configuration Release
 
-      # Sadece API projesini paketlemesi için yolu belirttik
       - name: dotnet publish
-        run: dotnet publish FitTrackr.API/FitTrackr.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish FitTracker.API/FitTrackr.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
