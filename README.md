@@ -60,7 +60,7 @@ FitTracker consists of three parts:
 - Dockerized
 
 **Infrastructure**
-- API hosted on Railway
+- API hosted on Microsoft Azure
 - Database on Azure SQL
 - Docker
 
