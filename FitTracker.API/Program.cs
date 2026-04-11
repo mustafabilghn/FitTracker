@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -70,6 +71,10 @@ builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
+builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.groq.com/openai/v1/");
+});
 
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 
@@ -135,3 +140,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+

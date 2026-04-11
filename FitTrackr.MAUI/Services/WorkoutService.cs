@@ -1,4 +1,4 @@
-﻿using FitTrackr.MAUI.Models.DTO;
+using FitTrackr.MAUI.Models.DTO;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -55,6 +55,15 @@ namespace FitTrackr.MAUI.Services
             response.EnsureSuccessStatusCode();
 
            return await response.Content.ReadFromJsonAsync<WorkoutDto>(_jsonOptions) ?? new WorkoutDto();
+        }
+
+        public async Task<AiWorkoutInsightDto> GetAiInsightsAsync()
+        {
+            var response = await _httpClient.GetAsync("api/workout/ai-insights");
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<AiWorkoutInsightDto>(_jsonOptions)
+                ?? new AiWorkoutInsightDto();
         }
     }
 }

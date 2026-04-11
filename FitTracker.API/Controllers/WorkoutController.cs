@@ -80,6 +80,21 @@ namespace FitTrackr.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("ai-insights")]
+        [Authorize]
+        public async Task<IActionResult> GetAiInsights([FromServices] IAiWorkoutCoachService aiWorkoutCoachService)
+        {
+            var userId = getUserId();
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await aiWorkoutCoachService.GetInsightsAsync(userId);
+            return Ok(result);
+        }
+
         [HttpPut]
         [Route("{id:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateWorkoutRequestDto requestDto, [FromServices] IValidator<UpdateWorkoutRequestDto> validator)
