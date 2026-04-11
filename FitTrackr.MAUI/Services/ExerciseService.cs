@@ -1,4 +1,4 @@
-﻿using FitTrackr.MAUI.Models.DTO;
+using FitTrackr.MAUI.Models.DTO;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -49,3 +49,4 @@ namespace FitTrackr.MAUI.Services
         }
     }
 }
+

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Name="ThisPage"
+    x:Class="FitTrackr.MAUI.Pages.FitBotPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:FitTrackr.MAUI.Models"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#121212">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="0">
+
+        <Grid
+            Grid.Row="0"
+            Padding="16,14,16,8"
+            ColumnDefinitions="Auto,*"
+            ColumnSpacing="12">
+            <Button
+                Grid.Column="0"
+                Padding="10,6"
+                BackgroundColor="#2A2A2A"
+                Command="{Binding GoBackCommand}"
+                CornerRadius="14"
+                FontSize="18"
+                Text="←"
+                TextColor="White" />
+            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="24"
+                    Text="FitBot"
+                    TextColor="White" />
+                <Label
+                    FontSize="14"
+                    Text="Kişisel fitness asistanın"
+                    TextColor="#AAAAAA" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <Border
+            Grid.Row="1"
+            Margin="16,0,16,8"
+            Padding="12,10"
+            BackgroundColor="#3D1F1F"
+            IsVisible="{Binding HasError}"
+            Stroke="#E53935"
+            StrokeShape="RoundRectangle 12"
+            StrokeThickness="1">
+            <Label
+                FontSize="13"
+                LineBreakMode="WordWrap"
+                Text="{Binding ErrorMessage}"
+                TextColor="#FFCDD2" />
+        </Border>
+
+        <Grid Grid.Row="2">
+            <CollectionView
+                x:Name="MessagesView"
+                ItemsSource="{Binding Messages}"
+                ItemsUpdatingScrollMode="KeepScrollOffset">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="10" Orientation="Vertical" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:FitBotChatMessage">
+                        <Grid Padding="16,4">
+                            <Border
+                                Padding="14,12"
+                                BackgroundColor="#1E1E1E"
+                                HorizontalOptions="{Binding BubbleAlignment}"
+                                MaximumWidthRequest="340"
+                                Stroke="#333333"
+                                StrokeShape="RoundRectangle 18"
+                                StrokeThickness="1">
+                                <Border.Triggers>
+                                    <DataTrigger Binding="{Binding IsFromUser}" TargetType="Border" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#FF7043" />
+                                        <Setter Property="Stroke" Value="#FF8A65" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+
+                                <Label
+                                    FontSize="15"
+                                    LineBreakMode="WordWrap"
+                                    LineHeight="1.3"
+                                    Text="{Binding Text}"
+                                    TextColor="#F5F5F5">
+                                    <Label.Triggers>
+                                        <DataTrigger Binding="{Binding IsFromUser}" TargetType="Label" Value="True">
+                                            <Setter Property="TextColor" Value="White" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Grid
+                BackgroundColor="#99000000"
+                InputTransparent="False"
+                IsVisible="{Binding IsLoading}">
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="10" VerticalOptions="Center">
+                    <ActivityIndicator Color="#FF7043" IsRunning="{Binding IsLoading}" />
+                    <Label
+                        FontSize="13"
+                        Text="Analiz hazırlanıyor..."
+                        TextColor="#EEEEEE" />
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+
+        <FlexLayout
+            Grid.Row="3"
+            Margin="16,8,16,4"
+            AlignContent="Start"
+            AlignItems="Start"
+            BindableLayout.ItemsSource="{Binding QuickActions}"
+            Direction="Row"
+            JustifyContent="Start"
+            Wrap="Wrap">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border
+                        Margin="0,0,8,8"
+                        Padding="12,8"
+                        BackgroundColor="#2A2A2A"
+                        MaximumWidthRequest="260"
+                        Stroke="#444444"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="1">
+                        <Label
+                            FontSize="13"
+                            LineBreakMode="WordWrap"
+                            Text="{Binding .}"
+                            TextColor="White" />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.QuickActionCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
+
+        <Grid
+            Grid.Row="4"
+            Padding="16,8,16,20"
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="10">
+            <Entry
+                Grid.Column="0"
+                Placeholder="Bir mesaj yaz"
+                PlaceholderColor="#888888"
+                ReturnCommand="{Binding SendMessageCommand}"
+                ReturnType="Send"
+                Text="{Binding UserInputText}"
+                TextColor="White" />
+            <Button
+                Grid.Column="1"
+                Padding="16,10"
+                BackgroundColor="#FF7043"
+                Command="{Binding SendMessageCommand}"
+                CornerRadius="16"
+                FontAttributes="Bold"
+                Text="Gönder"
+                TextColor="White" />
+        </Grid>
+    </Grid>
+</ContentPage>

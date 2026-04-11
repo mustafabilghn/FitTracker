@@ -1,4 +1,4 @@
-﻿using FitTrackr.MAUI.Pages;
+using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
 
 namespace FitTrackr.MAUI
@@ -14,6 +14,7 @@ namespace FitTrackr.MAUI
 
             Routing.RegisterRoute("LoginPage", typeof(LoginPage));
             Routing.RegisterRoute("RegisterPage", typeof(RegisterPage));
+            Routing.RegisterRoute(nameof(FitBotPage), typeof(FitBotPage));
         }
 
         protected override async void OnAppearing()

@@ -29,8 +29,8 @@ namespace FitTrackr.MAUI
 
                 var client = new HttpClient(handler)
                 {
-                    BaseAddress = new Uri("https://fittracker-production-2c5c.up.railway.app/"),
-                    //BaseAddress = new Uri("http://10.0.2.2:5187/"),
+                    //BaseAddress = new Uri("https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net/"),
+                    BaseAddress = new Uri("http://10.0.2.2:5187/"),
                     Timeout = TimeSpan.FromSeconds(30)
                 };
 
@@ -65,6 +65,8 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<ProfileViewModel>();
             builder.Services.AddTransient<AppShell>();
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<FitBotPage>();
+            builder.Services.AddTransient<FitBotViewModel>();
 
 #if DEBUG
             builder.Logging.AddDebug();
@@ -74,3 +76,4 @@ namespace FitTrackr.MAUI
         }
     }
 }
+
