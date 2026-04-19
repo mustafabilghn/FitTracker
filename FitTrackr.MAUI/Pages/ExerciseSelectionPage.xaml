@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.ExerciseSelectionPage"
+             BackgroundColor="#121212"
+             Title="Egzersiz Seç">
+
+    <ContentPage.Resources>
+        <Style x:Key="FilterChipBorderStyle" TargetType="Border">
+            <Setter Property="Stroke" Value="#FF8A65" />
+            <Setter Property="BackgroundColor" Value="#2A1E1A" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="HorizontalOptions" Value="Fill" />
+        </Style>
+
+        <Style x:Key="FilterChipLabelStyle" TargetType="Label">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="TextColor" Value="White" />
+            <Setter Property="HorizontalOptions" Value="Fill" />
+            <Setter Property="VerticalOptions" Value="Fill" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+            <Setter Property="LineBreakMode" Value="NoWrap" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="20,18,20,16" RowSpacing="14">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Border Grid.Column="0" Style="{StaticResource FilterChipBorderStyle}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsBodyPartFiltered}" Value="False">
+                        <Setter Property="Stroke" Value="#3A3A3A" />
+                        <Setter Property="BackgroundColor" Value="#1B1B1B" />
+                    </DataTrigger>
+                </Border.Triggers>
+
+                <Grid>
+                    <Label Text="{Binding BodyPartDisplayText}"
+                           Style="{StaticResource FilterChipLabelStyle}" />
+
+                    <Picker Opacity="0.01"
+                            BackgroundColor="Transparent"
+                            Title="Bölge"
+                            ItemsSource="{Binding BodyPartOptions}"
+                            SelectedItem="{Binding SelectedBodyPart}"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"
+                            MinimumHeightRequest="0" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource FilterChipBorderStyle}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsEquipmentFiltered}" Value="False">
+                        <Setter Property="Stroke" Value="#3A3A3A" />
+                        <Setter Property="BackgroundColor" Value="#1B1B1B" />
+                    </DataTrigger>
+                </Border.Triggers>
+
+                <Grid>
+                    <Label Text="{Binding EquipmentDisplayText}"
+                           Style="{StaticResource FilterChipLabelStyle}" />
+
+                    <Picker Opacity="0.01"
+                            BackgroundColor="Transparent"
+                            Title="Ekipman"
+                            ItemsSource="{Binding EquipmentOptions}"
+                            SelectedItem="{Binding SelectedEquipment}"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"
+                            MinimumHeightRequest="0" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource FilterChipBorderStyle}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsLevelFiltered}" Value="False">
+                        <Setter Property="Stroke" Value="#3A3A3A" />
+                        <Setter Property="BackgroundColor" Value="#1B1B1B" />
+                    </DataTrigger>
+                </Border.Triggers>
+
+                <Grid>
+                    <Label Text="{Binding LevelDisplayText}"
+                           Style="{StaticResource FilterChipLabelStyle}" />
+
+                    <Picker Opacity="0.01"
+                            BackgroundColor="Transparent"
+                            Title="Seviye"
+                            ItemsSource="{Binding LevelOptions}"
+                            SelectedItem="{Binding SelectedLevel}"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"
+                            MinimumHeightRequest="0" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1"
+                BackgroundColor="#1E1E1E"
+                Stroke="#313131"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 14"
+                Padding="12,4">
+            <SearchBar Placeholder="Egzersiz ara"
+                       PlaceholderColor="#8F8F8F"
+                       BackgroundColor="Transparent"
+                       TextColor="White"
+                       CancelButtonColor="#FF8A65"
+                       Text="{Binding SearchText}" />
+        </Border>
+
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding FilteredExercises}"
+                        SelectionMode="None"
+                        VerticalScrollBarVisibility="Never">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.EmptyView>
+                <Label Text="Aramanıza uygun egzersiz bulunamadı"
+                       TextColor="#B9B9B9"
+                       FontSize="14"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="#1E1E1E"
+                            Stroke="#2F2F2F"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="10">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnExerciseTapped"
+                                                  CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+
+                        <VerticalStackLayout Spacing="10">
+                            <Grid HeightRequest="130">
+                                <Border BackgroundColor="#171717"
+                                        Stroke="#2A2A2A"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 12" />
+
+                                <Image Source="{Binding ImageName}"
+                                       Aspect="AspectFill">
+                                    <Image.Triggers>
+                                        <DataTrigger TargetType="Image"
+                                                     Binding="{Binding ImageName}"
+                                                     Value="">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Image.Triggers>
+                                </Image>
+
+                                <Label Text="Görsel yok"
+                                       TextColor="#8C8C8C"
+                                       FontSize="12"
+                                       IsVisible="False"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding ImageName}"
+                                                     Value="">
+                                            <Setter Property="IsVisible" Value="True" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+
+                            <Label Text="{Binding Name}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="TailTruncation"
+                                   TextColor="White" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

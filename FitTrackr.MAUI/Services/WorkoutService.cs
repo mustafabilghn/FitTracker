@@ -32,6 +32,14 @@ namespace FitTrackr.MAUI.Services
             return await response.Content.ReadFromJsonAsync<WorkoutSummaryDto>(_jsonOptions) ?? new WorkoutSummaryDto();
         }
 
+        public async Task<WorkoutSummaryDto> UpdateWorkoutAsync(Guid id, UpdateWorkoutRequestDto workout)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/workout/{id}", workout);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<WorkoutSummaryDto>(_jsonOptions) ?? new WorkoutSummaryDto();
+        }
+
         public async Task<List<LocationDto>> GetLocationsAsync()
         {
             var response = await _httpClient.GetAsync("api/location");
@@ -54,7 +62,7 @@ namespace FitTrackr.MAUI.Services
             var response = await _httpClient.GetAsync($"api/workout/{id}");
             response.EnsureSuccessStatusCode();
 
-           return await response.Content.ReadFromJsonAsync<WorkoutDto>(_jsonOptions) ?? new WorkoutDto();
+            return await response.Content.ReadFromJsonAsync<WorkoutDto>(_jsonOptions) ?? new WorkoutDto();
         }
 
         public async Task<AiWorkoutInsightDto> GetAiInsightsAsync()

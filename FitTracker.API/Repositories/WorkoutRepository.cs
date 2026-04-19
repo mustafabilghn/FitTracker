@@ -1,4 +1,4 @@
-﻿using FitTrackr.API.Data;
+using FitTrackr.API.Data;
 using FitTrackr.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,14 +13,8 @@ namespace FitTrackr.API.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<Workout> CreateAsync(Workout workout,string userId)
+        public async Task<Workout> CreateAsync(Workout workout, string userId)
         {
-            var location = await dbContext.Locations.FirstOrDefaultAsync(w => w.Id == workout.LocationId);
-
-            if (location is null)
-                return null;
-
-            workout.Location = location;
             workout.userId = userId;
 
             await dbContext.Workouts.AddAsync(workout);
@@ -30,7 +24,10 @@ namespace FitTrackr.API.Repositories
 
         public async Task<Workout?> DeleteAsync(Guid id)
         {
-            var workout = await dbContext.Workouts.Include(w => w.Location).Include(e => e.Exercises).ThenInclude(i => i.Intensity).FirstOrDefaultAsync(w => w.Id == id);
+            var workout = await dbContext.Workouts
+                .Include(e => e.Exercises)
+                .ThenInclude(i => i.Intensity)
+                .FirstOrDefaultAsync(w => w.Id == id);
 
             if (workout is null)
             {
@@ -46,34 +43,30 @@ namespace FitTrackr.API.Repositories
 
         public async Task<List<Workout>> GetAllAsync(string userId)
         {
-            return await dbContext.Workouts.Include(l => l.Location).Where(w => w.userId == userId).ToListAsync();
+            return await dbContext.Workouts
+                .Where(w => w.userId == userId)
+                .ToListAsync();
         }
 
         public async Task<Workout?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Workouts.Include(l => l.Location).Include(e => e.Exercises).ThenInclude(i => i.Intensity).FirstOrDefaultAsync(x => x.Id == id);
+            return await dbContext.Workouts
+                .Include(e => e.Exercises)
+                .ThenInclude(i => i.Intensity)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Workout?> UpdateAsync(Guid id, Workout workout)
         {
-            var existingWorkout = await dbContext.Workouts.Include(l => l.Location).FirstOrDefaultAsync(w => w.Id == id);
+            var existingWorkout = await dbContext.Workouts.FirstOrDefaultAsync(w => w.Id == id);
 
             if (existingWorkout is null)
             {
                 return null;
             }
 
-            var location = await dbContext.Locations.FirstOrDefaultAsync(w => w.Id == workout.LocationId);
-
-            if (location is null)
-            {
-                return null;
-            }
-
-            existingWorkout.Location = location;
             existingWorkout.WorkoutName = workout.WorkoutName;
             existingWorkout.WorkoutDate = workout.WorkoutDate;
-            existingWorkout.DurationMinutes = workout.DurationMinutes;
 
             await dbContext.SaveChangesAsync();
 

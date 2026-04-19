@@ -9,11 +9,5 @@ namespace FitTrackr.API.Models.DTO
 
         [Required]
         public DateTime WorkoutDate { get; set; }
-
-        [Required]
-        public double DurationMinutes { get; set; }
-
-        [Required]
-        public Guid LocationId { get; set; }
     }
 }
