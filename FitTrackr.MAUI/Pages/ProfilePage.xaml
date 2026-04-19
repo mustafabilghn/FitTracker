@@ -1,14 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:controls="clr-namespace:FitTrackr.MAUI.Controls"
              x:Class="FitTrackr.MAUI.Pages.ProfilePage"
              Title="ProfilePage"
              BackgroundColor="#121212">
 
-    <Grid RowDefinitions="*,Auto">
-        <ScrollView Grid.Row="0">
-            <VerticalStackLayout Padding="30,30,30,120" Spacing="20" VerticalOptions="Center">
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
                 <Frame WidthRequest="90"
                        HeightRequest="90"
                        CornerRadius="45"
@@ -45,17 +44,6 @@
                         HeightRequest="45"/>
             </VerticalStackLayout>
         </ScrollView>
-
-        <Grid Grid.Row="1"
-              HeightRequest="78"
-              ColumnDefinitions="*,Auto,*"
-              Margin="0,0,0,8">
-            <controls:FitBotLaunchButton
-                Grid.Column="1"
-                HorizontalOptions="Center"
-                VerticalOptions="End"
-                TranslationY="-14"
-                ZIndex="10" />
-        </Grid>
-    </Grid>
+</Grid>
 </ContentPage>
+

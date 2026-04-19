@@ -11,12 +11,6 @@ namespace FitTrackr.API.Models.Domain
 
         public DateTime WorkoutDate { get; set; }
 
-        public double DurationMinutes { get; set; }
-
-        public Guid LocationId { get; set; }
-
-        public Location Location { get; set; }
-
         public List<Exercise> Exercises { get; set; }
 
         public string userId { get; set; }

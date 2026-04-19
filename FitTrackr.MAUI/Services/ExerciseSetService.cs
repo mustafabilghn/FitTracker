@@ -1,11 +1,6 @@
-﻿using FitTrackr.MAUI.Models.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using FitTrackr.MAUI.Models.DTO;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace FitTrackr.MAUI.Services
 {
@@ -23,6 +18,14 @@ namespace FitTrackr.MAUI.Services
         public async Task<ExerciseSetDto?> AddSetAsync(ExerciseSetRequestDto exerciseSetRequestDto)
         {
             var response = await _httpClient.PostAsJsonAsync("api/exercisesets", exerciseSetRequestDto);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<ExerciseSetDto>(_jsonOptions);
+        }
+
+        public async Task<ExerciseSetDto?> UpdateSetAsync(Guid id, UpdateExerciseSetRequestDto request)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/exercisesets/{id}", request);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<ExerciseSetDto>(_jsonOptions);

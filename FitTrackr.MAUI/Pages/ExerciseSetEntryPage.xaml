@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.ExerciseSetEntryPage"
+             x:Name="ThisPage"
+             BackgroundColor="#121212"
+             Title="Set Girişi">
+
+    <Grid RowDefinitions="*,Auto" Padding="20,18,20,16" RowSpacing="16">
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="16">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Egzersiz"
+                           FontSize="13"
+                           TextColor="#9E9E9E" />
+                    <Label Text="{Binding ExerciseName}"
+                           FontSize="30"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+
+                <Border BackgroundColor="#1E1E1E"
+                        Stroke="#2F2F2F"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Set Bilgisi"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Border BackgroundColor="#252525"
+                                    Stroke="#343434"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="10,6">
+                                <Entry Placeholder="Tekrar Sayısı"
+                                       PlaceholderColor="#8E8E8E"
+                                       TextColor="White"
+                                       Keyboard="Numeric"
+                                       BackgroundColor="Transparent"
+                                       Text="{Binding RepsInput}" />
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    BackgroundColor="#252525"
+                                    Stroke="#343434"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 12"
+                                    Padding="10,6">
+                                <Entry Placeholder="Ağırlık (kg)"
+                                       PlaceholderColor="#8E8E8E"
+                                       TextColor="White"
+                                       Keyboard="Numeric"
+                                       BackgroundColor="Transparent"
+                                       Text="{Binding WeightInput}" />
+                            </Border>
+                        </Grid>
+
+                        <Button Text="Set Ekle"
+                                Command="{Binding AddSetCommand}"
+                                BackgroundColor="#2B2B2B"
+                                TextColor="#FF8A65"
+                                BorderColor="#3A3A3A"
+                                BorderWidth="1"
+                                CornerRadius="12"
+                                HeightRequest="48"
+                                FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border BackgroundColor="#1E1E1E"
+                        Stroke="#2F2F2F"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14"
+                        IsVisible="{Binding HasPendingSets}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Eklenen Setler"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="White" />
+
+                        <CollectionView ItemsSource="{Binding PendingSets}"
+                                        SelectionMode="None">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                            </CollectionView.ItemsLayout>
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BackgroundColor="#252525"
+                                            Stroke="#343434"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 12"
+                                            Padding="12,10">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.EditSetCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                            <Label Text="{Binding SetNumber, StringFormat='Set {0}'}"
+                                                   TextColor="#BDBDBD"
+                                                   VerticalOptions="Center" />
+
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding DisplayText}"
+                                                   TextColor="White"
+                                                   HorizontalOptions="End"
+                                                   VerticalOptions="Center" />
+
+                                            <ImageButton Grid.Column="2"
+                                                         Source="delete.svg"
+                                                         Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.RemoveSetCommand}"
+                                                         CommandParameter="{Binding .}"
+                                                         BackgroundColor="Transparent"
+                                                         Padding="6"
+                                                         WidthRequest="30"
+                                                         HeightRequest="30"
+                                                         Aspect="AspectFit" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Grid Grid.Row="1" RowDefinitions="Auto,Auto" RowSpacing="8">
+            <Button Grid.Row="0"
+                    Text="Kaydet"
+                    Command="{Binding SaveCommand}"
+                    BackgroundColor="#FF7043"
+                    TextColor="White"
+                    CornerRadius="14"
+                    HeightRequest="54"
+                    FontAttributes="Bold" />
+            <ActivityIndicator Grid.Row="1"
+                               IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="#FF8A65"
+                               HorizontalOptions="Center" />
+        </Grid>
+    </Grid>
+</ContentPage>
+
+
+
+
+

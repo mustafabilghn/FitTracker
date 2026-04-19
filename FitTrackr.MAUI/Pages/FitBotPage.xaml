@@ -12,29 +12,14 @@
 
         <Grid
             Grid.Row="0"
-            Padding="16,14,16,8"
-            ColumnDefinitions="Auto,*"
-            ColumnSpacing="12">
-            <Button
-                Grid.Column="0"
-                Padding="10,6"
-                BackgroundColor="#2A2A2A"
-                Command="{Binding GoBackCommand}"
-                CornerRadius="14"
-                FontSize="18"
-                Text="←"
-                TextColor="White" />
-            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                <Label
-                    FontAttributes="Bold"
-                    FontSize="24"
-                    Text="FitBot"
-                    TextColor="White" />
-                <Label
-                    FontSize="14"
-                    Text="Kişisel fitness asistanın"
-                    TextColor="#AAAAAA" />
-            </VerticalStackLayout>
+            Padding="16,14,16,8">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                <Image Source="fitbot_icon.png" WidthRequest="40" HeightRequest="40" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                    <Label FontAttributes="Bold" FontSize="24" Text="FitBot" TextColor="White" />
+                    <Label FontSize="14" Text="Kişisel fitness asistanın" TextColor="#AAAAAA" />
+                </VerticalStackLayout>
+            </Grid>
         </Grid>
 
         <Border
@@ -170,3 +155,6 @@
         </Grid>
     </Grid>
 </ContentPage>
+
+
+

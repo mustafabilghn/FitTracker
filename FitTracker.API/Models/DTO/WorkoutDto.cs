@@ -8,12 +8,6 @@ namespace FitTrackr.API.Models.DTO
 
         public DateTime WorkoutDate { get; set; }
 
-        public double DurationMinutes { get; set; }
-
-        public Guid LocationId { get; set; }
-
-        public LocationDto Location { get; set; }
-
         public List<ExerciseSummaryDto> Exercises { get; set; }
     }
 }
