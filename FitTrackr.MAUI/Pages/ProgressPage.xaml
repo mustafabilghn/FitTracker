@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="FitTrackr.MAUI.Pages.ProgressPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="ThisPage"
+    BackgroundColor="#0F0F0F"
+    Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,26,20,28" Spacing="14">
+            <Label
+                Text="Raporlar"
+                FontSize="34"
+                FontAttributes="Bold"
+                TextColor="White" />
+
+            <CollectionView
+                ItemsSource="{Binding TimeFilters}"
+                SelectionMode="None"
+                HeightRequest="46">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Text="{Binding Title}"
+                            Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelectTimeFilterCommand}"
+                            CommandParameter="{Binding .}"
+                            Padding="18,8"
+                            CornerRadius="14"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            BorderWidth="1"
+                            BackgroundColor="#1B1B1B"
+                            BorderColor="#313131"
+                            TextColor="#D6D6D6">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#2A1E17" />
+                                    <Setter Property="BorderColor" Value="#FF8A65" />
+                                    <Setter Property="TextColor" Value="#FF8A65" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Border
+                Padding="14,10"
+                BackgroundColor="#171717"
+                Stroke="#2C2C2C"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="Egzersiz"
+                        FontSize="12"
+                        TextColor="#A9A9A9" />
+
+                    <Border
+                        Padding="12,10"
+                        BackgroundColor="#1B1B1B"
+                        Stroke="#313131"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 14">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnExerciseSelectorTapped" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                            <Label
+                                Text="{Binding SelectedExerciseDisplay}"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="White"
+                                VerticalTextAlignment="Center" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="▾"
+                                FontSize="15"
+                                TextColor="#FF8A65"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Label
+                        IsVisible="{Binding ShowExerciseEmptyState}"
+                        Text="{Binding ExerciseEmptyStateText}"
+                        FontSize="12"
+                        TextColor="#9A9A9A" />
+                </VerticalStackLayout>
+            </Border>
+
+            <CollectionView
+                ItemsSource="{Binding MetricOptions}"
+                SelectionMode="None"
+                HeightRequest="46">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Text="{Binding Title}"
+                            Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.SelectMetricCommand}"
+                            CommandParameter="{Binding .}"
+                            Padding="16,8"
+                            CornerRadius="14"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            BorderWidth="1"
+                            BackgroundColor="#1B1B1B"
+                            BorderColor="#313131"
+                            TextColor="#D6D6D6">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#2A1E17" />
+                                    <Setter Property="BorderColor" Value="#FF8A65" />
+                                    <Setter Property="TextColor" Value="#FF8A65" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Border
+                Padding="16"
+                BackgroundColor="#171717"
+                Stroke="#2A2A2A"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="22" HorizontalOptions="Center">
+                        <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                            <Label
+                                Text="Güncel"
+                                FontSize="12"
+                                TextColor="#A9A9A9" />
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="End">
+                                <Label
+                                    Text="{Binding ComparisonCurrentValueText}"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="White"
+                                    LineBreakMode="NoWrap" />
+                                <Label
+                                    Text="{Binding ComparisonCurrentUnitText}"
+                                    FontSize="13"
+                                    TextColor="#A9A9A9"
+                                    VerticalTextAlignment="End"
+                                    Margin="0,0,0,2" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6" HorizontalOptions="Center">
+                            <Label
+                                Text="Fark"
+                                FontSize="12"
+                                TextColor="#A9A9A9" />
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="End">
+                                <Label
+                                    Text="{Binding ComparisonDifferenceText}"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="#FF8A65"
+                                    LineBreakMode="NoWrap" />
+                                <Label
+                                    Text="{Binding ComparisonDifferenceUnitText}"
+                                    FontSize="13"
+                                    TextColor="#A9A9A9"
+                                    VerticalTextAlignment="End"
+                                    Margin="0,0,0,2" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label
+                        Text="{Binding SelectedRangeDateDisplay}"
+                        FontSize="12"
+                        TextColor="#A9A9A9" />
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <VerticalStackLayout Spacing="16" VerticalOptions="Fill" WidthRequest="52">
+                            <Label Text="{Binding ChartMaxLabel}" FontSize="11" TextColor="#AFAFAF" />
+                            <Label Text="{Binding ChartMidLabel}" FontSize="11" TextColor="#AFAFAF" />
+                            <Label Text="{Binding ChartMinLabel}" FontSize="11" TextColor="#AFAFAF" />
+                        </VerticalStackLayout>
+
+                        <Grid Grid.Column="1" HeightRequest="190">
+                            <GraphicsView Drawable="{Binding PerformanceChartDrawable}" />
+
+                            <Grid IsVisible="{Binding ShowChartEmptyState}">
+                                <VerticalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                    <Label
+                                        Text="Grafik için veri yok"
+                                        FontSize="14"
+                                        FontAttributes="Bold"
+                                        TextColor="White"
+                                        HorizontalTextAlignment="Center" />
+                                    <Label
+                                        Text="Seçili egzersiz ve dönem için kayıt bulunamadı."
+                                        FontSize="12"
+                                        TextColor="#9A9A9A"
+                                        HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
+                    <CollectionView
+                        ItemsSource="{Binding PerformanceChartPoints}"
+                        SelectionMode="None"
+                        HeightRequest="48">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <VerticalStackLayout WidthRequest="72" Spacing="2">
+                                    <Label
+                                        Text="{Binding ValueLabel}"
+                                        FontSize="10"
+                                        FontAttributes="Bold"
+                                        HorizontalTextAlignment="Center"
+                                        TextColor="#FF8A65" />
+                                    <Label
+                                        Text="{Binding Label}"
+                                        FontSize="10"
+                                        HorizontalTextAlignment="Center"
+                                        TextColor="#C4C4C4"
+                                        LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                Padding="18"
+                BackgroundColor="#171717"
+                Stroke="#2A2A2A"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 24">
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Kısa İçgörüler"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="White" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Insights}" Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Padding="12,10"
+                                    BackgroundColor="#1B1B1B"
+                                    Stroke="#2C2C2C"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 14">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <Border
+                                            WidthRequest="18"
+                                            HeightRequest="18"
+                                            BackgroundColor="#242424"
+                                            Stroke="{Binding AccentColor}"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 9"
+                                            VerticalOptions="Start">
+                                            <Label
+                                                Text="✓"
+                                                FontSize="10"
+                                                TextColor="{Binding AccentColor}"
+                                                HorizontalTextAlignment="Center"
+                                                VerticalTextAlignment="Center" />
+                                        </Border>
+
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="{Binding Text}"
+                                            FontSize="13"
+                                            TextColor="#E4E4E4"
+                                            LineBreakMode="WordWrap" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+
+

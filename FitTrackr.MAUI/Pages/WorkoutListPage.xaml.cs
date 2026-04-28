@@ -41,6 +41,23 @@ public partial class WorkoutListPage : ContentPage
         _calendarMonthDate = new DateTime(_viewModel.SelectedDate.Year, _viewModel.SelectedDate.Month, 1);
         BuildCalendarDays();
 
+        _viewModel.PropertyChanged += ViewModelOnPropertyChanged;
+
+        WeakReferenceMessenger.Default.Register<WorkoutAddedMessage>(this, async (r, m) =>
+        {
+            await RefreshWorkoutDataAsync();
+        });
+
+        WeakReferenceMessenger.Default.Register<WorkoutDeletedMessage>(this, async (r, m) =>
+        {
+            await RefreshWorkoutDataAsync();
+        });
+
+        WeakReferenceMessenger.Default.Register<ExerciseDeletedMessage>(this, async (r, m) =>
+        {
+            await RefreshWorkoutDataAsync();
+        });
+
         WeakReferenceMessenger.Default.Register<WorkoutSelectedMessage>(this, async (r, m) =>
         {
             try
@@ -79,12 +96,7 @@ public partial class WorkoutListPage : ContentPage
 
         try
         {
-            LoadingIndicator.IsVisible = true;
-            LoadingIndicator.IsRunning = true;
-            WorkoutsCollection.IsVisible = false;
-
-            await _viewModel.LoadWorkoutsAsync();
-            SyncCalendarToSelectedDate();
+            await RefreshWorkoutDataAsync();
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
@@ -99,6 +111,28 @@ public partial class WorkoutListPage : ContentPage
             LoadingIndicator.IsVisible = false;
             LoadingIndicator.IsRunning = false;
             WorkoutsCollection.IsVisible = true;
+        }
+    }
+
+    private async Task RefreshWorkoutDataAsync()
+    {
+        LoadingIndicator.IsVisible = true;
+        LoadingIndicator.IsRunning = true;
+        WorkoutsCollection.IsVisible = false;
+
+        await _viewModel.LoadWorkoutsAsync();
+        SyncCalendarToSelectedDate();
+
+        LoadingIndicator.IsVisible = false;
+        LoadingIndicator.IsRunning = false;
+        WorkoutsCollection.IsVisible = true;
+    }
+
+    private void ViewModelOnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WorkoutListViewModel.SelectedDate))
+        {
+            SyncCalendarToSelectedDate();
         }
     }
 
@@ -238,7 +272,11 @@ public sealed class CalendarDayItem
     public bool IsCurrentMonthDay { get; init; }
 
     public bool IsSelected { get; init; }
+
+    
 }
+
+
 
 
 

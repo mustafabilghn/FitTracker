@@ -1,4 +1,4 @@
-namespace FitTrackr.MAUI.Models.DTO
+﻿namespace FitTrackr.MAUI.Models.DTO
 {
     public class ExerciseCatalogItemDto
     {
@@ -15,5 +15,7 @@ namespace FitTrackr.MAUI.Models.DTO
         public string? Description { get; set; }
 
         public string ImageName { get; set; } = string.Empty;
+
+        public bool HasImage => !string.IsNullOrWhiteSpace(ImageName);
     }
 }

@@ -1,13 +1,15 @@
-using FitTrackr.MAUI.Models.DTO;
+﻿using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.ViewModels;
 
 namespace FitTrackr.MAUI.Pages;
 
 public partial class ExerciseSelectionPage : ContentPage
 {
+    private readonly ExerciseSelectionViewModel _viewModel;
     private readonly Guid _workoutId;
     private readonly DateTime _workoutDate;
     private readonly string _workoutName;
+    private bool _isLoaded;
 
     public ExerciseSelectionPage(
         ExerciseSelectionViewModel viewModel,
@@ -16,11 +18,25 @@ public partial class ExerciseSelectionPage : ContentPage
         string workoutName)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
 
         _workoutId = workoutId;
         _workoutDate = workoutDate.Date;
         _workoutName = string.IsNullOrWhiteSpace(workoutName) ? "Antrenman" : workoutName;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (_isLoaded)
+        {
+            return;
+        }
+
+        _isLoaded = true;
+        await _viewModel.InitializeAsync();
     }
 
     private async void OnExerciseTapped(object sender, TappedEventArgs e)

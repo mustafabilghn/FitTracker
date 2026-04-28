@@ -170,6 +170,7 @@ namespace FitTrackr.MAUI.ViewModels
 
                     SyncWorkout(updatedWorkout);
                     card.ApplyWorkout(updatedWorkout);
+                    BuildWeekStrip();
                     return;
                 }
 
@@ -184,6 +185,7 @@ namespace FitTrackr.MAUI.ViewModels
                 _allWorkouts.Add(createdWorkout);
                 card.ApplyWorkout(createdWorkout);
                 card.UpdateExerciseState(false);
+                BuildWeekStrip();
                 WeakReferenceMessenger.Default.Send(new WorkoutAddedMessage(createdWorkout));
             }
             catch (Exception ex)
@@ -282,7 +284,6 @@ namespace FitTrackr.MAUI.ViewModels
     public class WeekDayItem : ObservableObject
     {
         private bool _isSelected;
-
         public DateTime Date { get; set; }
         public string DayLabel { get; set; } = string.Empty;
         public string DayNumber { get; set; } = string.Empty;
@@ -292,5 +293,12 @@ namespace FitTrackr.MAUI.ViewModels
             get => _isSelected;
             set => SetProperty(ref _isSelected, value);
         }
+
+
     }
 }
+
+
+
+
+

@@ -1,7 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:FitTrackr.MAUI.Models.DTO"
+             xmlns:vm="clr-namespace:FitTrackr.MAUI.ViewModels"
              x:Class="FitTrackr.MAUI.Pages.ExerciseSelectionPage"
+             x:DataType="vm:ExerciseSelectionViewModel"
              BackgroundColor="#121212"
              Title="Egzersiz Seç">
 
@@ -118,6 +121,7 @@
         <CollectionView Grid.Row="2"
                         ItemsSource="{Binding FilteredExercises}"
                         SelectionMode="None"
+                        ItemSizingStrategy="MeasureFirstItem"
                         VerticalScrollBarVisibility="Never">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" />
@@ -132,7 +136,7 @@
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:ExerciseCatalogItemDto">
                     <Border BackgroundColor="#1E1E1E"
                             Stroke="#2F2F2F"
                             StrokeThickness="1"
@@ -151,30 +155,8 @@
                                         StrokeShape="RoundRectangle 12" />
 
                                 <Image Source="{Binding ImageName}"
-                                       Aspect="AspectFill">
-                                    <Image.Triggers>
-                                        <DataTrigger TargetType="Image"
-                                                     Binding="{Binding ImageName}"
-                                                     Value="">
-                                            <Setter Property="IsVisible" Value="False" />
-                                        </DataTrigger>
-                                    </Image.Triggers>
-                                </Image>
-
-                                <Label Text="Görsel yok"
-                                       TextColor="#8C8C8C"
-                                       FontSize="12"
-                                       IsVisible="False"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label"
-                                                     Binding="{Binding ImageName}"
-                                                     Value="">
-                                            <Setter Property="IsVisible" Value="True" />
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
+                                       IsVisible="{Binding HasImage}"
+                                       Aspect="AspectFill" />
                             </Grid>
 
                             <Label Text="{Binding Name}"

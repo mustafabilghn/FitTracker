@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Name="ThisPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -100,7 +100,7 @@
                                         StrokeThickness="0"
                                         BackgroundColor="Transparent"
                                         StrokeShape="RoundRectangle 10"
-                                        HeightRequest="32">
+                                        HeightRequest="38">
                                         <Border.GestureRecognizers>
                                             <TapGestureRecognizer
                                                 Tapped="OnCalendarDayTapped"
@@ -111,21 +111,24 @@
                                                 <Setter Property="BackgroundColor" Value="#FF7043" />
                                             </DataTrigger>
                                         </Border.Triggers>
-                                        <Label
-                                            Text="{Binding DayNumber}"
-                                            FontSize="13"
-                                            HorizontalTextAlignment="Center"
-                                            VerticalTextAlignment="Center"
-                                            TextColor="#7F7F7F">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding IsCurrentMonthDay}" Value="True">
-                                                    <Setter Property="TextColor" Value="#E6E6E6" />
-                                                </DataTrigger>
-                                                <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
-                                                    <Setter Property="TextColor" Value="White" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
+                                        <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Label
+                                                Text="{Binding DayNumber}"
+                                                FontSize="13"
+                                                HorizontalTextAlignment="Center"
+                                                VerticalTextAlignment="Center"
+                                                TextColor="#7F7F7F">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsCurrentMonthDay}" Value="True">
+                                                        <Setter Property="TextColor" Value="#E6E6E6" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="TextColor" Value="White" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            
+                                        </VerticalStackLayout>
                                     </Border>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
@@ -152,7 +155,7 @@
                 <CollectionView
                     ItemsSource="{Binding WeekDays}"
                     SelectionMode="None"
-                    HeightRequest="84">
+                    HeightRequest="92">
                     <CollectionView.ItemsLayout>
                         <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10" />
                     </CollectionView.ItemsLayout>
@@ -193,6 +196,7 @@
                                         FontAttributes="Bold"
                                         HorizontalOptions="Center"
                                         TextColor="White" />
+                                    
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>
@@ -375,7 +379,6 @@
                     Margin="0,20" />
             </VerticalStackLayout>
         </ScrollView>
-</Grid>
+    </Grid>
 </ContentPage>
-
 

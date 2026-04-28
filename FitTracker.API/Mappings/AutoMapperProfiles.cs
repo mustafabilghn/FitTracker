@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 
