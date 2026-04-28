@@ -68,7 +68,7 @@ FitTracker consists of three parts:
 
 ## API Endpoints
 
-Base URL: `https://fittracker-stqv.onrender.com](https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net`
+Base URL: `https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net`
 
 ---
 
