@@ -1,5 +1,6 @@
-﻿using FitTrackr.MAUI.Pages;
+using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
+using System.Globalization;
 
 namespace FitTrackr.MAUI
 {
@@ -11,6 +12,12 @@ namespace FitTrackr.MAUI
         public App(AppShell shell, AuthService authService)
         {
             InitializeComponent();
+
+            var trCulture = CultureInfo.GetCultureInfo("tr-TR");
+            CultureInfo.DefaultThreadCurrentCulture = trCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = trCulture;
+            CultureInfo.CurrentCulture = trCulture;
+            CultureInfo.CurrentUICulture = trCulture;
 
             Current.UserAppTheme = AppTheme.Dark;
 

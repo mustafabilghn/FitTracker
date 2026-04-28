@@ -1,14 +1,24 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using FitTrackr.MAUI.Models.DTO;
+using FitTrackr.MAUI.Services;
+using Microsoft.Maui.ApplicationModel;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace FitTrackr.MAUI.ViewModels
 {
     public partial class ExerciseSelectionViewModel : ObservableObject
     {
         private const string AllOption = "Tümü";
+        private static readonly TimeSpan SearchDebounceDelay = TimeSpan.FromMilliseconds(180);
 
-        private readonly List<ExerciseCatalogItemDto> allExercises;
+        private readonly ExerciseCatalogProvider _exerciseCatalogProvider;
+        private readonly List<ExerciseCatalogItemDto> allExercises = [];
+        private bool _isInitialized;
+        private bool _suspendFiltering;
+        private CancellationTokenSource? _searchDebounceCts;
+        private int _filterVersion;
+        private string _lastAppliedFilterKey = string.Empty;
 
         [ObservableProperty]
         private string searchText = string.Empty;
@@ -22,17 +32,19 @@ namespace FitTrackr.MAUI.ViewModels
         [ObservableProperty]
         private string selectedLevel = AllOption;
 
-        public string BodyPartDisplayText => SelectedBodyPart == AllOption ? "Bölge" : SelectedBodyPart;
+        private IReadOnlyList<ExerciseCatalogItemDto> filteredExercises = [];
 
-        public string EquipmentDisplayText => SelectedEquipment == AllOption ? "Ekipman" : SelectedEquipment;
+        public string BodyPartDisplayText => IsFilterInactive(SelectedBodyPart) ? "Bölge" : SelectedBodyPart;
 
-        public string LevelDisplayText => SelectedLevel == AllOption ? "Seviye" : SelectedLevel;
+        public string EquipmentDisplayText => IsFilterInactive(SelectedEquipment) ? "Ekipman" : SelectedEquipment;
 
-        public bool IsBodyPartFiltered => SelectedBodyPart != AllOption;
+        public string LevelDisplayText => IsFilterInactive(SelectedLevel) ? "Seviye" : SelectedLevel;
 
-        public bool IsEquipmentFiltered => SelectedEquipment != AllOption;
+        public bool IsBodyPartFiltered => !IsFilterInactive(SelectedBodyPart);
 
-        public bool IsLevelFiltered => SelectedLevel != AllOption;
+        public bool IsEquipmentFiltered => !IsFilterInactive(SelectedEquipment);
+
+        public bool IsLevelFiltered => !IsFilterInactive(SelectedLevel);
 
         public ObservableCollection<string> BodyPartOptions { get; } = new();
 
@@ -40,48 +52,98 @@ namespace FitTrackr.MAUI.ViewModels
 
         public ObservableCollection<string> LevelOptions { get; } = new();
 
-        public ObservableCollection<ExerciseCatalogItemDto> FilteredExercises { get; } = new();
-
-        public ExerciseSelectionViewModel()
+        public IReadOnlyList<ExerciseCatalogItemDto> FilteredExercises
         {
-            allExercises =
-            [
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Bench Press", BodyPart = "Göğüs", Equipment = "Barbell", Level = "Orta", ImageName = "bench_press.png" },
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Squat", BodyPart = "Bacak", Equipment = "Barbell", Level = "Orta" ,ImageName = "squat.png"},
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Deadlift", BodyPart = "Sırt", Equipment = "Barbell", Level = "İleri" ,ImageName = "deadlift.png"},
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Shoulder Press", BodyPart = "Omuz", Equipment = "Dumbbell", Level = "Başlangıç" ,ImageName = "dumbbell_shoulderpress.png"},
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Lat Pulldown", BodyPart = "Sırt", Equipment = "Makine", Level = "Başlangıç" ,ImageName = "lat_pulldown.png"},
-                new ExerciseCatalogItemDto { Id = Guid.NewGuid(), Name = "Leg Curl", BodyPart = "Arka Bacak", Equipment = "Makine", Level = "Başlangıç" ,ImageName = "leg_curl.png"}
-            ];
+            get => filteredExercises;
+            private set => SetProperty(ref filteredExercises, value);
+        }
+
+        public ExerciseSelectionViewModel(ExerciseCatalogProvider exerciseCatalogProvider)
+        {
+            _exerciseCatalogProvider = exerciseCatalogProvider;
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
+            var catalog = await _exerciseCatalogProvider.GetCatalogAsync();
+
+            allExercises.Clear();
+            allExercises.AddRange(catalog);
+
+            _suspendFiltering = true;
+
+            SearchText = string.Empty;
 
             InitializeFilterOptions();
+
+            SelectedBodyPart = BodyPartOptions.FirstOrDefault() ?? AllOption;
+            SelectedEquipment = EquipmentOptions.FirstOrDefault() ?? AllOption;
+            SelectedLevel = LevelOptions.FirstOrDefault() ?? AllOption;
+
+            _suspendFiltering = false;
+            _isInitialized = true;
+
             ApplyFilter();
         }
 
         partial void OnSearchTextChanged(string value)
         {
-            ApplyFilter();
+            if (_suspendFiltering || !_isInitialized)
+            {
+                return;
+            }
+
+            _ = DebouncedApplyFilterAsync();
         }
 
         partial void OnSelectedBodyPartChanged(string value)
         {
             OnPropertyChanged(nameof(BodyPartDisplayText));
             OnPropertyChanged(nameof(IsBodyPartFiltered));
-            ApplyFilter();
+            ApplyFilterIfReady();
         }
 
         partial void OnSelectedEquipmentChanged(string value)
         {
             OnPropertyChanged(nameof(EquipmentDisplayText));
             OnPropertyChanged(nameof(IsEquipmentFiltered));
-            ApplyFilter();
+            ApplyFilterIfReady();
         }
 
         partial void OnSelectedLevelChanged(string value)
         {
             OnPropertyChanged(nameof(LevelDisplayText));
             OnPropertyChanged(nameof(IsLevelFiltered));
-            ApplyFilter();
+            ApplyFilterIfReady();
+        }
+
+        private async Task DebouncedApplyFilterAsync()
+        {
+            _searchDebounceCts?.Cancel();
+            _searchDebounceCts?.Dispose();
+
+            var cts = new CancellationTokenSource();
+            _searchDebounceCts = cts;
+
+            try
+            {
+                await Task.Delay(SearchDebounceDelay, cts.Token);
+
+                if (cts.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                ApplyFilterIfReady();
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
         private void InitializeFilterOptions()
@@ -105,22 +167,130 @@ namespace FitTrackr.MAUI.ViewModels
             }
         }
 
+        private void ApplyFilterIfReady()
+        {
+            if (_suspendFiltering || !_isInitialized)
+            {
+                return;
+            }
+
+            var filterKey = CreateFilterKey();
+            if (filterKey == _lastAppliedFilterKey)
+            {
+                return;
+            }
+
+            var version = Interlocked.Increment(ref _filterVersion);
+            _ = ApplyFilterAsync(filterKey, version);
+        }
+
         private void ApplyFilter()
         {
-            var query = SearchText?.Trim() ?? string.Empty;
+            var filterKey = CreateFilterKey();
+            var filtered = BuildFilteredExercises(
+                SearchText,
+                SelectedBodyPart,
+                SelectedEquipment,
+                SelectedLevel);
 
-            var filtered = allExercises.Where(exercise =>
-                (string.IsNullOrWhiteSpace(query) || exercise.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase)) &&
-                (SelectedBodyPart == AllOption || exercise.BodyPart.Equals(SelectedBodyPart, StringComparison.CurrentCultureIgnoreCase)) &&
-                (SelectedEquipment == AllOption || exercise.Equipment.Equals(SelectedEquipment, StringComparison.CurrentCultureIgnoreCase)) &&
-                (SelectedLevel == AllOption || exercise.Level.Equals(SelectedLevel, StringComparison.CurrentCultureIgnoreCase)));
-
-            FilteredExercises.Clear();
-
-            foreach (var exercise in filtered)
+            if (filterKey == _lastAppliedFilterKey && HasSameResults(filtered))
             {
-                FilteredExercises.Add(exercise);
+                return;
             }
+
+            _lastAppliedFilterKey = filterKey;
+            FilteredExercises = filtered;
+        }
+
+        private async Task ApplyFilterAsync(string filterKey, int version)
+        {
+            var searchText = SearchText;
+            var bodyPart = SelectedBodyPart;
+            var equipment = SelectedEquipment;
+            var level = SelectedLevel;
+
+            var filtered = await Task.Run(() => BuildFilteredExercises(
+                searchText,
+                bodyPart,
+                equipment,
+                level));
+
+            if (version != Volatile.Read(ref _filterVersion))
+            {
+                return;
+            }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (version != _filterVersion)
+                {
+                    return;
+                }
+
+                if (filterKey == _lastAppliedFilterKey && HasSameResults(filtered))
+                {
+                    return;
+                }
+
+                _lastAppliedFilterKey = filterKey;
+                FilteredExercises = filtered;
+            });
+        }
+
+        private IReadOnlyList<ExerciseCatalogItemDto> BuildFilteredExercises(
+            string? searchText,
+            string? bodyPart,
+            string? equipment,
+            string? level)
+        {
+            var query = searchText?.Trim() ?? string.Empty;
+            var selectedBodyPart = NormalizeFilterValue(bodyPart);
+            var selectedEquipment = NormalizeFilterValue(equipment);
+            var selectedLevel = NormalizeFilterValue(level);
+
+            return allExercises.Where(exercise =>
+                (string.IsNullOrWhiteSpace(query) || exercise.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase)) &&
+                (IsFilterInactive(selectedBodyPart) || exercise.BodyPart.Equals(selectedBodyPart, StringComparison.CurrentCultureIgnoreCase)) &&
+                (IsFilterInactive(selectedEquipment) || exercise.Equipment.Equals(selectedEquipment, StringComparison.CurrentCultureIgnoreCase)) &&
+                (IsFilterInactive(selectedLevel) || exercise.Level.Equals(selectedLevel, StringComparison.CurrentCultureIgnoreCase)))
+                .ToArray();
+        }
+
+        private bool HasSameResults(IReadOnlyList<ExerciseCatalogItemDto> next)
+        {
+            if (FilteredExercises.Count != next.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < next.Count; i++)
+            {
+                if (FilteredExercises[i].Id != next[i].Id)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private string CreateFilterKey()
+        {
+            return string.Join("|",
+                SearchText?.Trim() ?? string.Empty,
+                NormalizeFilterValue(SelectedBodyPart),
+                NormalizeFilterValue(SelectedEquipment),
+                NormalizeFilterValue(SelectedLevel));
+        }
+
+        private static bool IsFilterInactive(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) || value.Equals(AllOption, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        private static string NormalizeFilterValue(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? AllOption : value.Trim();
         }
     }
 }

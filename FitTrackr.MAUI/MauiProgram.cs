@@ -1,4 +1,4 @@
-﻿using FitTrackr.MAUI.Pages;
+using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
 using FitTrackr.MAUI.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -47,6 +47,7 @@ namespace FitTrackr.MAUI
             builder.Services.AddSingleton<ExerciseService>();
             builder.Services.AddSingleton<ExerciseSetService>();
             builder.Services.AddSingleton<AuthService>();
+            builder.Services.AddSingleton<ExerciseCatalogProvider>();
 
             builder.Services.AddTransient<WorkoutListPage>();
             builder.Services.AddTransient<WorkoutListViewModel>();
@@ -64,9 +65,10 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<RegisterViewModel>();
-            builder.Services.AddTransient<AuthHandler>();
             builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<ProfileViewModel>();
+            builder.Services.AddTransient<ProgressPage>();
+            builder.Services.AddTransient<ProgressViewModel>();
             builder.Services.AddTransient<AppShell>();
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<FitBotPage>();
@@ -80,3 +82,6 @@ namespace FitTrackr.MAUI
         }
     }
 }
+
+
+

@@ -1,4 +1,4 @@
-﻿using FitTrackr.API.Data;
+using FitTrackr.API.Data;
 using FitTrackr.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 

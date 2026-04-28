@@ -1,0 +1,434 @@
+[
+  {
+    "id": "3d8c9d67-7176-4b06-bf0c-ec7a6fb5db17",
+    "name": "Bench Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "bench_press.png"
+  },
+  {
+    "id": "8f2f22fd-ff9b-4cfd-b875-28ae3fb99a8b",
+    "name": "Squat",
+    "bodyPart": "Bacak",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "squat.png"
+  },
+  {
+    "id": "fd90faeb-6d2f-4910-b0c0-5c0a2414b3b5",
+    "name": "Deadlift",
+    "bodyPart": "Full Body",
+    "equipment": "Barbell",
+    "level": "İleri",
+    "imageName": "deadlift.png"
+  },
+  {
+    "id": "0f45948e-c944-4134-b656-8e14f3184393",
+    "name": "Dumbbell Shoulder Press",
+    "bodyPart": "Omuz",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "dumbbell_shoulder_press.png"
+  },
+  {
+    "id": "06ca33bf-ee50-4d2d-8f4a-38f414e0a9f0",
+    "name": "Lat Pulldown",
+    "bodyPart": "Sırt",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "lat_pulldown.png"
+  },
+  {
+    "id": "f95f82f1-e2c4-4277-ab75-35d69e88f448",
+    "name": "Leg Curl",
+    "bodyPart": "Arka Bacak",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "leg_curl.png"
+  },
+  {
+    "id": "7f1267f6-a82f-4ca5-a9f3-aaf06e8c6714",
+    "name": "Incline Bench Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "incline_bench_press.png"
+  },
+  {
+    "id": "9fbf3f6a-1be0-4e23-b7d3-cf9a8af4ebbd",
+    "name": "Incline Dumbbell Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Dumbbell",
+    "level": "Orta",
+    "imageName": "incline_dumbbell_press.png"
+  },
+  {
+    "id": "1135e6af-6702-4ac8-a1d0-7c50cdf4d1a2",
+    "name": "Dumbbell Bench Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "dumbbell_bench_press.png"
+  },
+  {
+    "id": "0e9ad4a7-9f83-45c4-896f-336f4f445853",
+    "name": "Dumbbell Chest Fly",
+    "bodyPart": "Göğüs",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "dumbbell_chest_fly.png"
+  },
+  {
+    "id": "f52f7eb2-93b9-4f1e-8a9e-c70bc756b09f",
+    "name": "Machine Chest Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "machine_chest_press.png"
+  },
+  {
+    "id": "2a9d8289-11ec-4a24-a387-6f89f77f1f80",
+    "name": "Push-Up",
+    "bodyPart": "Göğüs",
+    "equipment": "Bodyweight",
+    "level": "Başlangıç",
+    "imageName": "push_up.png"
+  },
+  {
+    "id": "99f6c861-6ebf-4b9f-b8a8-ec9de0b9f859",
+    "name": "Pull-Up",
+    "bodyPart": "Sırt",
+    "equipment": "Bodyweight",
+    "level": "Orta",
+    "imageName": "pull_up.png"
+  },
+  {
+    "id": "c9ed1d3d-f594-4eaf-af13-bd8464f1f49b",
+    "name": "Barbell Row",
+    "bodyPart": "Sırt",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "barbell_row.png"
+  },
+  {
+    "id": "5ebf3e95-ef16-4f5e-8410-92431358f9a3",
+    "name": "Cable Row",
+    "bodyPart": "Sırt",
+    "equipment": "Cable",
+    "level": "Başlangıç",
+    "imageName": "seated_cable_row.png"
+  },
+  {
+    "id": "b515f5f9-c19b-42e2-8989-c573d80d5db0",
+    "name": "One Arm Dumbbell Row",
+    "bodyPart": "Sırt",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "onearm_dumbbell_row.png"
+  },
+  {
+    "id": "70ec6fd5-a1de-402d-9256-d7bb2d397544",
+    "name": "Chest Supported Row",
+    "bodyPart": "Sırt",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "chest_supported_row.png"
+  },
+  {
+    "id": "261cc6c9-9efb-494d-bc5c-f4bd77e09d67",
+    "name": "Straight Arm Pulldown",
+    "bodyPart": "Sırt",
+    "equipment": "Cable",
+    "level": "Orta",
+    "imageName": "straight_arm_pulldown.png"
+  },
+  {
+    "id": "9938d2c4-77c6-4fd5-8f70-d9a64b0de84c",
+    "name": "Front Squat",
+    "bodyPart": "Bacak",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "front_squat.png"
+  },
+  {
+    "id": "c22f35a2-9da6-41be-a59b-e18a3f9f8e2d",
+    "name": "Leg Press",
+    "bodyPart": "Bacak",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "leg_press.png"
+  },
+  {
+    "id": "59f8fe63-08fc-4c82-ad4c-eb8e4ce4a93a",
+    "name": "Romanian Deadlift",
+    "bodyPart": "Arka Bacak",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "romanian_deadlift.png"
+  },
+  {
+    "id": "4b60e1d7-f995-4868-9840-a30bd8686e94",
+    "name": "Leg Extension",
+    "bodyPart": "Bacak",
+    "equipment": "Makine",
+    "level": "Başlangıç",
+    "imageName": "leg_extension.png"
+  },
+  {
+    "id": "18f6e8a1-8e44-422f-a257-7d0d0977c15c",
+    "name": "Bulgarian Split Squat",
+    "bodyPart": "Bacak",
+    "equipment": "Dumbbell",
+    "level": "Orta",
+    "imageName": "bulgarian_split_squat.png"
+  },
+  {
+    "id": "8bb4f829-c43b-4ee1-8ee4-f0bb3bf8f7a3",
+    "name": "Walking Lunge",
+    "bodyPart": "Bacak",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "walking_lunge.png"
+  },
+  {
+    "id": "21f4dc33-34db-4838-a49e-6be42f45e3e7",
+    "name": "Goblet Squat",
+    "bodyPart": "Bacak",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "goblet_squat.png"
+  },
+  {
+    "id": "570d5f31-fb30-4777-9097-72b5ac2fb4c8",
+    "name": "Standing Calf Raise",
+    "bodyPart": "Bacak",
+    "equipment": "Bodyweight",
+    "level": "Başlangıç",
+    "imageName": "standing_calf_raise.png"
+  },
+  {
+    "id": "f0f75258-8548-4562-b7a9-224d9249d989",
+    "name": "Hip Thrust",
+    "bodyPart": "Kalça",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "hip_thrust.png"
+  },
+  {
+    "id": "2369a5ea-847d-4442-8050-f52fd9edddcb",
+    "name": "Overhead Press",
+    "bodyPart": "Omuz",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "overhead_press.png"
+  },
+  {
+    "id": "9326ae54-a990-4f7f-8df2-37e0a57dae35",
+    "name": "Arnold Press",
+    "bodyPart": "Omuz",
+    "equipment": "Dumbbell",
+    "level": "Orta",
+    "imageName": "arnold_press.png"
+  },
+  {
+    "id": "0dd4cd46-6935-4674-9102-8b7fd31f08f3",
+    "name": "Lateral Raise",
+    "bodyPart": "Omuz",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "lateral_raise.png"
+  },
+  {
+    "id": "7e2da99d-7c52-48ce-8ac6-007fbe5ce079",
+    "name": "Rear Delt Fly",
+    "bodyPart": "Omuz",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "rear_delt_fly.png"
+  },
+  {
+    "id": "425acdf3-db7b-4d72-8d69-6f541537f500",
+    "name": "Face Pull",
+    "bodyPart": "Omuz",
+    "equipment": "Cable",
+    "level": "Başlangıç",
+    "imageName": "face_pull.png"
+  },
+  {
+    "id": "eafe5937-1738-44cc-8ed0-8f85fbe6b001",
+    "name": "Barbell Curl",
+    "bodyPart": "Kol",
+    "equipment": "Barbell",
+    "level": "Başlangıç",
+    "imageName": "barbell_curl.png"
+  },
+  {
+    "id": "37b992eb-2fa7-4fc7-ab95-4f5ad2b5e5bc",
+    "name": "Dumbbell Curl",
+    "bodyPart": "Kol",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "dumbbell_curl.png"
+  },
+  {
+    "id": "1ad9bf78-1363-4f74-a3e8-06f3eb882f9f",
+    "name": "Hammer Curl",
+    "bodyPart": "Kol",
+    "equipment": "Dumbbell",
+    "level": "Başlangıç",
+    "imageName": "hammer_curl.png"
+  },
+  {
+    "id": "a4f9ecdc-38fc-4f8c-a027-4bcf3f2f30ca",
+    "name": "Triceps Pushdown",
+    "bodyPart": "Kol",
+    "equipment": "Cable",
+    "level": "Başlangıç",
+    "imageName": "triceps_pushdown.png"
+  },
+  {
+    "id": "34f5273d-5648-406a-a4e2-e5612193fb44",
+    "name": "Skull Crusher",
+    "bodyPart": "Kol",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "skullcrusher.png"
+  },
+  {
+    "id": "09067cce-e6eb-4512-b467-88416d32753e",
+    "name": "Dips",
+    "bodyPart": "Kol",
+    "equipment": "Bodyweight",
+    "level": "Orta",
+    "imageName": "dips.png"
+  },
+  {
+    "id": "f359aa7e-d5ba-4f93-bdbc-d20b822247f2",
+    "name": "Plank",
+    "bodyPart": "Karın",
+    "equipment": "Bodyweight",
+    "level": "Başlangıç",
+    "imageName": "plank.png"
+  },
+  {
+    "id": "1db5f9a7-0e90-40e5-b962-bd49e2cf4f53",
+    "name": "Hanging Leg Raise",
+    "bodyPart": "Karın",
+    "equipment": "Bodyweight",
+    "level": "Orta",
+    "imageName": "hanging_leg_raise.png"
+  },
+  {
+    "id": "eecdcdb6-dfa2-419d-b63e-5787011eb32b",
+    "name": "Cable Crunch",
+    "bodyPart": "Karın",
+    "equipment": "Cable",
+    "level": "Başlangıç",
+    "imageName": "cable_crunch.png"
+  },
+  {
+    "id": "319e3db3-42e5-4525-ba6d-31a8f0f0aa3e",
+    "name": "Russian Twist",
+    "bodyPart": "Karın",
+    "equipment": "Bodyweight",
+    "level": "Başlangıç",
+    "imageName": "russian_twist.png"
+  },
+  {
+    "id": "9c2e44eb-8ad3-4465-8fbb-b0e8f5be3d94",
+    "name": "Ab Wheel Rollout",
+    "bodyPart": "Karın",
+    "equipment": "Bodyweight",
+    "level": "Orta",
+    "imageName": "ab_wheel_rollout.png"
+  },
+  {
+    "id": "8bd63d84-aafb-4183-a5f8-b0c871ae77aa",
+    "name": "Incline Smith Machine Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Smith Machine",
+    "level": "İleri",
+    "imageName": "incline_smith_machine.png"
+  },
+  {
+    "id": "d3d3dd23-dd1b-4e32-9963-a3b4cf2fc2da",
+    "name": "Plate Loaded Chest Press",
+    "bodyPart": "Göğüs",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "plate_loaded_chest_press.png"
+  },
+  {
+    "id": "9511dbd1-d30e-46ab-ad7e-2e01620fdd11",
+    "name": "Chest Fly Machine",
+    "bodyPart": "Göğüs",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "chest_fly_machine.png"
+  },
+  {
+    "id": "5b6c1404-12ee-4d9b-a18a-518e27d950a2",
+    "name": "Shoulder Press Machine",
+    "bodyPart": "Omuz",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "shoulder_press_machine.png"
+  },
+  {
+    "id": "8fd19a52-61c1-4e07-8d94-49eda4009359",
+    "name": "Overhead Rope Extension",
+    "bodyPart": "Kol",
+    "equipment": "Cable",
+    "level": "Orta",
+    "imageName": "overhead_rope_extension.png"
+  },
+  {
+    "id": "cf231fb8-3b3f-45d3-922d-e1b98660b759",
+    "name": "Plate Loaded Seated Row",
+    "bodyPart": "Sırt",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "plate_loaded_row.png"
+  },
+  {
+    "id": "df9579ad-15fe-4517-a6e7-6c1ffb6995fd",
+    "name": "Reverse Barbell Curl",
+    "bodyPart": "Kol",
+    "equipment": "Barbell",
+    "level": "Orta",
+    "imageName": "reverse_barbell_curl.png"
+  },
+  {
+    "id": "935aad22-063f-417b-870f-6f80f34d5c2e",
+    "name": "Smith Machine Squat",
+    "bodyPart": "Bacak",
+    "equipment": "Smith Machine",
+    "level": "Orta",
+    "imageName": "smith_machine_squat.png"
+  },
+  {
+    "id": "ca2cf98c-6009-447a-af0f-192611b95873",
+    "name": "Seated Leg Curl",
+    "bodyPart": "Bacak",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "seated_leg_curl.png"
+  },
+  {
+    "id": "7a7791c8-cf4b-4b75-967e-5f0b01bab1d5",
+    "name": "Rear Delt Machine Fly",
+    "bodyPart": "Omuz",
+    "equipment": "Makine",
+    "level": "Orta",
+    "imageName": "rear_delt_machine_fly.png"
+  },
+  {
+    "id": "017af0d8-b0ee-4f37-a104-de3e1393ee4c",
+    "name": "Cable Curl",
+    "bodyPart": "Kol",
+    "equipment": "Cable",
+    "level": "Orta",
+    "imageName": "cable_curl.png"
+  }
+]

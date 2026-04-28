@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="FitTrackr.MAUI.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -18,9 +18,14 @@
                       Icon="workouts.png"
                       ContentTemplate="{DataTemplate pages:WorkoutListPage}"
                       Route="WorkoutListPage"/>
+        <ShellContent Title="Raporlar"
+                      Shell.NavBarIsVisible="False"
+                      Icon="progress.svg"
+                      ContentTemplate="{DataTemplate pages:ProgressPage}"
+                      Route="ProgressPage"/>
         <ShellContent Title="FitBot"
                       Shell.NavBarIsVisible="False"
-                      Icon="fitbot_icon.png"
+                      Icon="bot.png"
                       ContentTemplate="{DataTemplate pages:FitBotPage}"
                       Route="FitBotPage"/>
         <ShellContent Title="Profil"
@@ -28,6 +33,5 @@
                       Icon="profile.png"
                       ContentTemplate="{DataTemplate pages:ProfilePage}"
                       Route="ProfilePage"/>
-        
     </TabBar>
 </Shell>

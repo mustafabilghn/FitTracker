@@ -15,6 +15,7 @@ namespace FitTrackr.MAUI
             Routing.RegisterRoute("LoginPage", typeof(LoginPage));
             Routing.RegisterRoute("RegisterPage", typeof(RegisterPage));
             Routing.RegisterRoute(nameof(FitBotPage), typeof(FitBotPage));
+            Routing.RegisterRoute(nameof(ProgressPage), typeof(ProgressPage));
         }
 
         protected override async void OnAppearing()
