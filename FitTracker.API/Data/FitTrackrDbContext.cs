@@ -1,4 +1,4 @@
-﻿using FitTrackr.API.Models.Domain;
+using FitTrackr.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitTrackr.API.Data
@@ -17,6 +17,12 @@ namespace FitTrackr.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure Exercise entity
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.ExerciseName)
+                .HasMaxLength(50)
+                .IsRequired();
+
             List<Intensity> intensities = new List<Intensity>
             {
                 new Intensity

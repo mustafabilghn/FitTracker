@@ -252,8 +252,11 @@ namespace FitTrackr.MAUI.ViewModels
                 });
             }
 
-            WeakReferenceMessenger.Default.Send(new ExerciseAddedMessage(resolvedWorkoutId));
-            await Shell.Current.Navigation.PopToRootAsync();
+            // Include workout date in message for proper date synchronization
+            WeakReferenceMessenger.Default.Send(
+                new ExerciseAddedMessage(resolvedWorkoutId, _workoutDate));
+
+            await Shell.Current.Navigation.PopAsync();
         }
 
         private async Task SaveExistingExerciseAsync()
@@ -410,7 +413,7 @@ namespace FitTrackr.MAUI.ViewModels
             get => _reps;
             set
             {
-                if (SetProperty(ref _reps, value))
+                if (SetProperty(ref _reps, value ?? string.Empty))
                 {
                     OnPropertyChanged(nameof(DisplayText));
                 }

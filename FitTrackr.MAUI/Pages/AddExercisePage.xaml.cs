@@ -7,14 +7,16 @@ namespace FitTrackr.MAUI.Pages;
 public partial class AddExercisePage : ContentPage
 {
     private readonly Guid _workoutId;
+    private readonly DateTime _workoutDate;
     private readonly AddExerciseViewModel _viewModel;
 
-    public AddExercisePage(AddExerciseViewModel viewModel, Guid workoutId)
+    public AddExercisePage(AddExerciseViewModel viewModel, Guid workoutId, DateTime workoutDate)
     {
         InitializeComponent();
 
         BindingContext = _viewModel = viewModel;
         _workoutId = workoutId;
+        _workoutDate = workoutDate.Date;
     }
 
     protected override async void OnAppearing()
@@ -44,8 +46,8 @@ public partial class AddExercisePage : ContentPage
             WorkoutId = _workoutId,
         };
 
-        await _viewModel.AddExerciseAsync(exercise);
-        await DisplayAlert("Baþarýlý", "Egzersiz baþarýyla eklendi.", "Tamam");
+        await _viewModel.AddExerciseAsync(exercise, _workoutDate);
+        await DisplayAlert("BaÅŸarÄ±lÄ±", "Egzersiz baÅŸarÄ±yla eklendi.", "Tamam");
         await Navigation.PopAsync();
     }
 }

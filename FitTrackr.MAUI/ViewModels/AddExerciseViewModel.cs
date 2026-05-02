@@ -1,12 +1,17 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using FitTrackr.MAUI.Messages;
+using CommunityToolkit.Mvvm.ComponentModel;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
 using System.Collections.ObjectModel;
 
 namespace FitTrackr.MAUI.ViewModels
 {
+    /// <summary>
+    /// ViewModel for the Add Exercise quick entry flow.
+    /// 
+    /// NOTE: Does NOT send ExerciseAddedMessage anymore.
+    /// Message is sent by ExerciseSetEntryViewModel as the single source,
+    /// avoiding duplicate message broadcasts and race conditions.
+    /// </summary>
     public class AddExerciseViewModel : ObservableObject
     {
         private readonly ExerciseService _exerciseService;
@@ -29,16 +34,11 @@ namespace FitTrackr.MAUI.ViewModels
             }
         }
 
-        public async Task<ExerciseDto> AddExerciseAsync(ExerciseRequestDto exercise)
+        public async Task<ExerciseDto> AddExerciseAsync(ExerciseRequestDto exercise, DateTime workoutDate)
         {
-            var addedExercise = await _exerciseService.AddExerciseAsync(exercise);
-
-            if (addedExercise != null)
-            {
-                WeakReferenceMessenger.Default.Send(new ExerciseAddedMessage(exercise.WorkoutId));
-            }
-
-            return addedExercise;
+            // Add exercise to backend
+            // Message send is handled by ExerciseSetEntryViewModel (single source)
+            return await _exerciseService.AddExerciseAsync(exercise);
         }
     }
 }

@@ -1,6 +1,7 @@
 using FitTrackr.API.Data;
 using FitTrackr.API.Models.Domain;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace FitTrackr.API.Repositories
 {
@@ -22,6 +23,7 @@ namespace FitTrackr.API.Repositories
                 return null;
             }
 
+            exercise.ExerciseName = SanitizeName(exercise.ExerciseName);
             exercise.Intensity = intensity;
 
             await dbContext.Exercises.AddAsync(exercise);
@@ -110,12 +112,26 @@ namespace FitTrackr.API.Repositories
 
             existingExercise.Workout = workout;
             existingExercise.Intensity = intensity;
-            existingExercise.ExerciseName = exercise.ExerciseName;
+            existingExercise.ExerciseName = SanitizeName(exercise.ExerciseName);
             existingExercise.Notes = exercise.Notes;
 
             await dbContext.SaveChangesAsync();
 
             return existingExercise;
+        }
+
+        private string SanitizeName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return name;
+
+            // Trim leading and trailing whitespace
+            name = name.Trim();
+
+            // Normalize multiple spaces to single space
+            name = Regex.Replace(name, @"\s+", " ");
+
+            return name;
         }
     }
 }

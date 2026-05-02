@@ -14,9 +14,16 @@ namespace FitTrackr.MAUI.ViewModels
     {
         private readonly WorkoutService _workoutService;
         private readonly ExerciseService _exerciseService;
-        private readonly List<WorkoutSummaryDto> _allWorkouts = new();
 
+        // ID-based lookup: fast operations by ID
+        private readonly Dictionary<Guid, WorkoutSummaryDto> _workoutsById = new();
+
+        // Date-based grouping: display organization
+        private readonly Dictionary<DateTime, List<WorkoutSummaryDto>> _workoutsByDate = new();
+
+        private Guid? _selectedWorkoutId;
         private DateTime _selectedDate;
+
         public DateTime SelectedDate
         {
             get => _selectedDate;
@@ -76,12 +83,35 @@ namespace FitTrackr.MAUI.ViewModels
             SelectedDate = DateTime.Today;
         }
 
+        /// <summary>
+        /// Loads all workouts and reorganizes them by ID and date.
+        /// Provides both fast ID-based operations and date-based display.
+        /// </summary>
         public async Task LoadWorkoutsAsync()
         {
-            _allWorkouts.Clear();
+            _workoutsById.Clear();
+            _workoutsByDate.Clear();
 
             var workouts = await _workoutService.GetWorkoutsAsync();
-            _allWorkouts.AddRange(workouts);
+
+            // Index by ID for fast operations
+            foreach (var workout in workouts)
+            {
+                _workoutsById[workout.Id] = workout;
+            }
+
+            // Group by local date for display
+            foreach (var workout in workouts)
+            {
+                var localDate = workout.WorkoutDate.ToLocalDate();
+
+                if (!_workoutsByDate.ContainsKey(localDate))
+                {
+                    _workoutsByDate[localDate] = new List<WorkoutSummaryDto>();
+                }
+
+                _workoutsByDate[localDate].Add(workout);
+            }
 
             BuildWeekStrip();
             await RefreshDailyWorkoutCardAsync();
@@ -162,15 +192,21 @@ namespace FitTrackr.MAUI.ViewModels
             {
                 if (card.HasPersistedWorkout && card.WorkoutId.HasValue)
                 {
-                    var updatedWorkout = await _workoutService.UpdateWorkoutAsync(card.WorkoutId.Value, new UpdateWorkoutRequestDto
-                    {
-                        WorkoutName = normalizedName,
-                        WorkoutDate = card.WorkoutDate
-                    });
+                    // Get current workout from backend to ensure date accuracy
+                    var currentWorkout = await _workoutService.GetWorkoutByIdAsync(card.WorkoutId.Value);
+
+                    var updatedWorkout = await _workoutService.UpdateWorkoutAsync(
+                        card.WorkoutId.Value,
+                        new UpdateWorkoutRequestDto
+                        {
+                            WorkoutName = normalizedName,
+                            WorkoutDate = currentWorkout.WorkoutDate  // Use backend date, not cached date
+                        });
 
                     SyncWorkout(updatedWorkout);
                     card.ApplyWorkout(updatedWorkout);
                     BuildWeekStrip();
+                    _selectedWorkoutId = updatedWorkout.Id;
                     return;
                 }
 
@@ -182,9 +218,10 @@ namespace FitTrackr.MAUI.ViewModels
                     LocationId = Guid.Empty
                 });
 
-                _allWorkouts.Add(createdWorkout);
+                SyncWorkout(createdWorkout);
                 card.ApplyWorkout(createdWorkout);
                 card.UpdateExerciseState(false);
+                _selectedWorkoutId = createdWorkout.Id;
                 BuildWeekStrip();
                 WeakReferenceMessenger.Default.Send(new WorkoutAddedMessage(createdWorkout));
             }
@@ -196,18 +233,28 @@ namespace FitTrackr.MAUI.ViewModels
 
         private void SyncWorkout(WorkoutSummaryDto workout)
         {
-            var existingWorkout = _allWorkouts.FirstOrDefault(w => w.Id == workout.Id);
+            // Update ID index
+            _workoutsById[workout.Id] = workout;
 
-            if (existingWorkout == null)
+            var localDate = workout.WorkoutDate.ToLocalDate();
+
+            // Update date index
+            if (!_workoutsByDate.ContainsKey(localDate))
             {
-                _allWorkouts.Add(workout);
-                return;
+                _workoutsByDate[localDate] = new List<WorkoutSummaryDto>();
             }
 
-            existingWorkout.WorkoutName = workout.WorkoutName;
-            existingWorkout.WorkoutDate = workout.WorkoutDate;
-            existingWorkout.DurationMinutes = workout.DurationMinutes;
-            existingWorkout.Location = workout.Location;
+            var dateList = _workoutsByDate[localDate];
+            var existingIdx = dateList.FindIndex(w => w.Id == workout.Id);
+
+            if (existingIdx >= 0)
+            {
+                dateList[existingIdx] = workout;
+            }
+            else
+            {
+                dateList.Add(workout);
+            }
         }
 
         private void BuildWeekStrip()
@@ -236,28 +283,43 @@ namespace FitTrackr.MAUI.ViewModels
             return date.Date.AddDays(-diff);
         }
 
+        /// <summary>
+        /// Refreshes the daily workout card for the selected date.
+        /// Uses ID-based selection for reliability and date-based filtering for display.
+        /// </summary>
         private async Task RefreshDailyWorkoutCardAsync()
         {
             DailyWorkouts.Clear();
 
             var selectedDate = SelectedDate.Date;
-            var workoutForDay = _allWorkouts
-                .Where(w => w.WorkoutDate.Date == selectedDate)
-                .OrderBy(w => w.WorkoutDate)
-                .FirstOrDefault();
 
-            var card = new DailyWorkoutCardViewModel(selectedDate, workoutForDay);
-            DailyWorkouts.Add(card);
+            // Get workouts for this local date
+            var workoutsForDay = _workoutsByDate.TryGetValue(selectedDate, out var workouts)
+                ? workouts
+                : [];
 
-            if (workoutForDay == null)
+            if (workoutsForDay.Count == 0)
             {
-                card.SetExercises([]);
+                var emptyCard = new DailyWorkoutCardViewModel(selectedDate, null);
+                emptyCard.SetExercises([]);
+                DailyWorkouts.Add(emptyCard);
                 return;
             }
 
+            // Select by ID: prefer previously selected workout, fall back to first
+            var selectedWorkout = workoutsForDay
+                .FirstOrDefault(w => w.Id == _selectedWorkoutId)
+                ?? workoutsForDay.First();
+
+            _selectedWorkoutId = selectedWorkout.Id;
+
+            var card = new DailyWorkoutCardViewModel(selectedDate, selectedWorkout);
+            DailyWorkouts.Add(card);
+
             try
             {
-                var workoutDetail = await _workoutService.GetWorkoutByIdAsync(workoutForDay.Id);
+                // Always load details by ID for accuracy
+                var workoutDetail = await _workoutService.GetWorkoutByIdAsync(selectedWorkout.Id);
                 var detailedExercises = new List<ExerciseDto>();
 
                 foreach (var exercise in workoutDetail.Exercises ?? [])
@@ -279,6 +341,16 @@ namespace FitTrackr.MAUI.ViewModels
                 card.SetExercises([]);
             }
         }
+
+        /// <summary>
+        /// Explicitly select a workout by ID.
+        /// Used to ensure correct workout is displayed when multiple exist on same day.
+        /// </summary>
+        public void SelectWorkoutById(Guid workoutId)
+        {
+            _selectedWorkoutId = workoutId;
+            _ = RefreshDailyWorkoutCardAsync();
+        }
     }
 
     public class WeekDayItem : ObservableObject
@@ -293,12 +365,5 @@ namespace FitTrackr.MAUI.ViewModels
             get => _isSelected;
             set => SetProperty(ref _isSelected, value);
         }
-
-
     }
 }
-
-
-
-
-

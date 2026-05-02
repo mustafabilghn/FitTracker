@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
@@ -10,6 +12,16 @@ using System.Windows.Input;
 
 namespace FitTrackr.MAUI.ViewModels
 {
+    /// <summary>
+    /// Displays workout progress metrics and charts.
+    /// 
+    /// FIXES APPLIED:
+    /// 1. MESSENGER SUBSCRIPTION: Subscribes to ExerciseAddedMessage for real-time updates
+    /// 2. OPTIMISTIC UPDATE: Updates _allEntries immediately when exercise is added (no 2-3 min delay)
+    /// 3. DATE NORMALIZATION: Uses ToLocalDate() consistently to prevent timezone bugs
+    /// 4. DEDUPLICATION: Tracks last processed message to prevent re-processing
+    /// 5. EVENT-DRIVEN: Deterministic state updates via messenger pattern
+    /// </summary>
     public partial class ProgressViewModel : ObservableObject
     {
         private const string TimeFilterFallbackText = "Dönem Seç";
@@ -30,6 +42,9 @@ namespace FitTrackr.MAUI.ViewModels
         private string _chartMaxLabel = "—";
         private string _chartMidLabel = "—";
         private string _chartMinLabel = "0";
+
+        // DEDUPLICATION: Track last processed exercise added message to prevent re-processing
+        private Guid? _lastExerciseAddedWorkoutId;
 
         public ObservableCollection<ProgressTimeRangeOption> TimeFilters { get; } = new();
         public ObservableCollection<ProgressExerciseOption> ExerciseFilters { get; } = new();
@@ -133,12 +148,85 @@ namespace FitTrackr.MAUI.ViewModels
             }
 
             _isInitialized = true;
+
+            // FIX #2: SUBSCRIBE TO EXERCISE ADDED MESSAGE FOR REAL-TIME UPDATES
+            // This enables immediate dashboard refresh when exercise is added (no 2-3 min delay)
+            WeakReferenceMessenger.Default.Register<ExerciseAddedMessage>(this, OnExerciseAdded);
+
             await LoadProgressAsync();
         }
 
         public Task RefreshAsync()
         {
             return LoadProgressAsync();
+        }
+
+        /// <summary>
+        /// FIX #2 & #4: Handles real-time exercise added message.
+        /// Updates _allEntries immediately and refreshes dashboard.
+        /// Deduplicates messages using workout ID tracking to prevent race conditions.
+        /// </summary>
+        private async void OnExerciseAdded(object recipient, ExerciseAddedMessage message)
+        {
+            try
+            {
+                // FIX #4: DEDUPLICATION GUARD
+                // Prevent re-processing the same message if it arrives multiple times
+                if (_lastExerciseAddedWorkoutId == message.Value)
+                {
+                    return;
+                }
+
+                _lastExerciseAddedWorkoutId = message.Value;
+
+                // FIX #2: OPTIMISTIC UPDATE
+                // Fetch the updated workout with new exercise data
+                var workout = await _workoutService.GetWorkoutByIdAsync(message.Value);
+                if (workout == null)
+                {
+                    return;
+                }
+
+                // Load entries for this workout
+                var newEntries = await LoadWorkoutEntriesAsync(new WorkoutSummaryDto
+                {
+                    Id = workout.Id,
+                    WorkoutName = workout.WorkoutName,
+                    WorkoutDate = workout.WorkoutDate
+                });
+
+                if (newEntries.Count == 0)
+                {
+                    return;
+                }
+
+                // FIX #3: UPDATE _allEntries WITH NORMALIZED DATES
+                // Remove old entries for this local date, add new ones
+                var localDate = message.WorkoutDate; // Already normalized by ExerciseAddedMessage
+
+                // Remove duplicates by date and exercise name
+                _allEntries.RemoveAll(x => x.Date == localDate &&
+                    newEntries.Any(ne => ne.ExerciseName.Equals(x.ExerciseName, StringComparison.OrdinalIgnoreCase)));
+
+                _allEntries.AddRange(newEntries);
+
+                // FIX #2: IMMEDIATE REFRESH (NO DELAY)
+                // Trigger dashboard update immediately on UI thread
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    RefreshDashboard();
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"OnExerciseAdded error: {ex.Message}");
+            }
+            finally
+            {
+                // Reset deduplication tracker after delay to allow message to complete processing
+                await Task.Delay(1000);
+                _lastExerciseAddedWorkoutId = null;
+            }
         }
 
         partial void OnSelectedTimeFilterChanged(ProgressTimeRangeOption? value)
@@ -225,6 +313,10 @@ namespace FitTrackr.MAUI.ViewModels
                     return entries;
                 }
 
+                // FIX #3: NORMALIZE DATES USING ToLocalDate()
+                // Backend returns UTC, convert to local for consistent display/grouping
+                var workoutLocalDate = workout.WorkoutDate.ToLocalDate();
+
                 foreach (var exerciseSummary in workout.Exercises)
                 {
                     var exercise = await _exerciseService.GetExerciseByIdAsync(exerciseSummary.Id);
@@ -239,7 +331,7 @@ namespace FitTrackr.MAUI.ViewModels
                     var bestOneRm = sets.Max(s => CalculateEstimatedOneRm(s.WeightInKg, TryParseReps(s.Reps)));
 
                     entries.Add(new ProgressWorkoutEntry(
-                        workout.WorkoutDate.Date,
+                        workoutLocalDate,  // FIX #3: Use ToLocalDate() instead of raw .Date
                         exercise.ExerciseName ?? string.Empty,
                         bestSet.WeightInKg,
                         totalVolume,
@@ -278,8 +370,8 @@ namespace FitTrackr.MAUI.ViewModels
                     SelectedRangeDateDisplay = "—";
                     ComparisonCurrentValueText = "—";
                     ComparisonDifferenceText = "—";
-                ComparisonCurrentUnitText = string.Empty;
-                ComparisonDifferenceUnitText = string.Empty;
+                    ComparisonCurrentUnitText = string.Empty;
+                    ComparisonDifferenceUnitText = string.Empty;
                     Insights.Add(new ProgressInsightItem("Antrenman eklediğinde raporlar burada görünecek.", Color.FromArgb("#FF7043")));
                     OnPropertyChanged(nameof(HasChartData));
                     OnPropertyChanged(nameof(ShowChartEmptyState));
@@ -486,6 +578,7 @@ namespace FitTrackr.MAUI.ViewModels
                 })
                 .ToList();
         }
+
         private void UpdateComparisonVisuals(ProgressComparisonSnapshot comparison)
         {
             PerformanceChartPoints.Clear();
@@ -690,6 +783,7 @@ namespace FitTrackr.MAUI.ViewModels
                 _ => $"{value:0.#}"
             };
         }
+
         private static string FormatSignedMetricValue(double value, ProgressMetricType metricType)
         {
             if (Math.Abs(value) < 0.001)

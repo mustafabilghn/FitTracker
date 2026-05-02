@@ -29,8 +29,8 @@ namespace FitTrackr.MAUI
 
                 var client = new HttpClient(handler)
                 {
-                    //BaseAddress = new Uri("https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net/"),
-                    BaseAddress = new Uri("http://10.0.2.2:5187/"),
+                    BaseAddress = new Uri("https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net/"),
+                    //BaseAddress = new Uri("http://10.0.2.2:5187/"),
                     Timeout = TimeSpan.FromSeconds(30)
                 };
 
