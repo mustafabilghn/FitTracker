@@ -20,6 +20,8 @@ namespace FitTrackr.MAUI.Services
             var response = await _httpClient.PostAsJsonAsync("api/exercise", request);
             response.EnsureSuccessStatusCode();
 
+            var body = await response.Content.ReadAsStringAsync();
+
             return await response.Content.ReadFromJsonAsync<ExerciseDto>(_jsonOptions) ?? new ExerciseDto();
         }
 

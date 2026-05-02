@@ -190,7 +190,7 @@ namespace FitTrackr.MAUI.ViewModels
 
         public double WeightInKg { get; }
 
-        public string SetLine => $"Set {SetNumber} • {Reps} tekrar • {WeightInKg:0.##} kg";
+        public string SetLine => $"Set {SetNumber} • {Reps} x {WeightInKg:0.##} kg";
 
         public WorkoutExerciseSetItemViewModel(int setNumber, string reps, double weightInKg)
         {

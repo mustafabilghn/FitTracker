@@ -1,4 +1,4 @@
-﻿using FitTrackr.API.Data;
+using FitTrackr.API.Data;
 using FitTrackr.API.Models.DTO;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +16,8 @@ namespace FitTrackr.API.Validations
             RuleFor(e => e.ExerciseName)
                 .NotEmpty()
                 .WithMessage("Exercise name is required.")
-                .MaximumLength(20)
-                .WithMessage("Exercise name cannot exceed 20 characters.");
+                .MaximumLength(50)
+                .WithMessage("Exercise name cannot exceed 50 characters.");
 
             RuleFor(i => i.IntensityId)
                .NotEmpty()
