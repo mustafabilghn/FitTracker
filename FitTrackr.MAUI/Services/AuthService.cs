@@ -1,11 +1,7 @@
-﻿using FitTrackr.MAUI.Models.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using FitTrackr.MAUI.Models.DTO;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace FitTrackr.MAUI.Services
 {
@@ -53,9 +49,9 @@ namespace FitTrackr.MAUI.Services
         {
             var token = await SecureStorage.GetAsync("jwt_token");
 
-            if(token != null)
+            if (token != null)
             {
-                _httpClient.DefaultRequestHeaders.Authorization = 
+                _httpClient.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
         }
@@ -63,6 +59,78 @@ namespace FitTrackr.MAUI.Services
         public async Task<string?> GetTokenAsync()
         {
             return await SecureStorage.GetAsync("jwt_token");
+        }
+
+        public async Task<UserProfileDto?> GetProfileAsync()
+        {
+            try
+            {
+                Debug.WriteLine("[AuthService] GetProfileAsync called");
+                await InitializeAsync();
+
+                var token = await GetTokenAsync();
+                Debug.WriteLine($"[AuthService] Token exists: {!string.IsNullOrWhiteSpace(token)}");
+
+                var response = await _httpClient.GetAsync("api/auth/profile");
+
+                Debug.WriteLine($"[AuthService] GetProfile Status: {response.StatusCode}");
+                var responseText = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"[AuthService] GetProfile Response: {responseText}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine("[AuthService] GetProfile failed");
+                    return null;
+                }
+
+                return await response.Content.ReadFromJsonAsync<UserProfileDto>(jsonSerializerOptions);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] GetProfileAsync error: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateProfileAsync(UpdateProfileRequestDto request)
+        {
+            try
+            {
+                Debug.WriteLine("[AuthService] UpdateProfileAsync called");
+                await InitializeAsync();
+
+                var token = await GetTokenAsync();
+                Debug.WriteLine($"[AuthService] Token exists: {!string.IsNullOrWhiteSpace(token)}");
+                Debug.WriteLine($"[AuthService] Auth header: {_httpClient.DefaultRequestHeaders.Authorization}");
+
+                var url = "api/auth/profile";
+                Debug.WriteLine($"[AuthService] URL: {_httpClient.BaseAddress}{url}");
+
+                // Request body'yi log et
+                var json = System.Text.Json.JsonSerializer.Serialize(request, jsonSerializerOptions);
+                Debug.WriteLine($"[AuthService] Request body: {json}");
+
+                var response = await _httpClient.PutAsJsonAsync(url, request);
+
+                Debug.WriteLine($"[AuthService] UpdateProfile Status: {response.StatusCode}");
+                var responseText = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"[AuthService] UpdateProfile Response: {responseText}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Debug.WriteLine($"[AuthService] UpdateProfile failed with status {response.StatusCode}");
+                    return false;
+                }
+
+                Debug.WriteLine("[AuthService] UpdateProfile succeeded");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] UpdateProfileAsync error: {ex.Message}");
+                Debug.WriteLine($"[AuthService] UpdateProfileAsync error stack: {ex.StackTrace}");
+                return false;
+            }
         }
 
         public void Logout()
@@ -86,7 +154,7 @@ namespace FitTrackr.MAUI.Services
 
                 return false;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }

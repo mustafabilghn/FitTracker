@@ -28,8 +28,8 @@ either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 <ApplicationId>com.companyname.fittrackr.maui</ApplicationId>
 
 <!-- Versions -->
-<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-<ApplicationVersion>1</ApplicationVersion>
+<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
+<ApplicationVersion>2</ApplicationVersion>
 
 <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 <WindowsPackageType>None</WindowsPackageType>
@@ -68,10 +68,19 @@ either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 </ItemGroup>
 
 <ItemGroup>
+  <MauiXaml Update="Components\FitnessStatsCard.xaml">
+    <Generator>MSBuild:Compile</Generator>
+  </MauiXaml>
+  <MauiXaml Update="Components\PlayerStatsCard.xaml">
+    <Generator>MSBuild:Compile</Generator>
+  </MauiXaml>
   <MauiXaml Update="Pages\AddExercisePage.xaml">
     <Generator>MSBuild:Compile</Generator>
   </MauiXaml>
   <MauiXaml Update="Pages\AddWorkoutPage.xaml">
+    <Generator>MSBuild:Compile</Generator>
+  </MauiXaml>
+  <MauiXaml Update="Pages\EditProfilePage.xaml">
     <Generator>MSBuild:Compile</Generator>
   </MauiXaml>
   <MauiXaml Update="Pages\ExerciseSelectionPage.xaml">
@@ -81,6 +90,9 @@ either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
     <Generator>MSBuild:Compile</Generator>
   </MauiXaml>
   <MauiXaml Update="Pages\LoginPage.xaml">
+    <Generator>MSBuild:Compile</Generator>
+  </MauiXaml>
+  <MauiXaml Update="Pages\MainPage.xaml">
     <Generator>MSBuild:Compile</Generator>
   </MauiXaml>
   <MauiXaml Update="Pages\ProfilePage.xaml">

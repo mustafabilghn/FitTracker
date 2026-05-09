@@ -16,6 +16,7 @@ namespace FitTrackr.MAUI
             Routing.RegisterRoute("RegisterPage", typeof(RegisterPage));
             Routing.RegisterRoute(nameof(FitBotPage), typeof(FitBotPage));
             Routing.RegisterRoute(nameof(ProgressPage), typeof(ProgressPage));
+            Routing.RegisterRoute(nameof(EditProfilePage), typeof(EditProfilePage));
         }
 
         protected override async void OnAppearing()
@@ -29,7 +30,7 @@ namespace FitTrackr.MAUI
             await authService.InitializeAsync();
             var token = await authService.GetTokenAsync();
 
-            if(token == null)
+            if (token == null)
             {
                 await GoToAsync("LoginPage");
             }

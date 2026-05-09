@@ -4,7 +4,7 @@ namespace FitTrackr.MAUI.Pages;
 
 public partial class ProfilePage : ContentPage
 {
-	private readonly ProfileViewModel viewModel;
+    private readonly ProfileViewModel viewModel;
 
     public ProfilePage(ProfileViewModel viewModel)
     {
@@ -15,6 +15,11 @@ public partial class ProfilePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await viewModel.LoadProfileAsync();
+
+        if (BindingContext is ProfileViewModel vm)
+        {
+            vm.ResetProfileState();
+            await vm.LoadProfileAsync();
+        }
     }
 }

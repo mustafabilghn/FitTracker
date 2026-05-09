@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.EditProfilePage"
+             BackgroundColor="#121212"
+             Title="Profili Düzenle">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,*,Auto" Padding="20,24" RowSpacing="16">
+            <!-- Title -->
+            <Label Grid.Row="0"
+                   Text="Profili Düzenle"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   Margin="0,0,0,8" />
+
+            <!-- Form Content -->
+            <VerticalStackLayout Grid.Row="1" Spacing="14">
+
+                <!-- Username -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Kullanıcı Adı"
+                           TextColor="#BDBDBD"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                    <Entry Text="{Binding Username, Mode=TwoWay}"
+                           BackgroundColor="#1C1C1C"
+                           TextColor="White"
+                           PlaceholderColor="#8A8A8A"
+                           HeightRequest="48"
+                           Placeholder="Kullanıcı adı giriniz" />
+                </VerticalStackLayout>
+
+                <!-- Height -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Boy (cm)"
+                           TextColor="#BDBDBD"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                    <Entry Text="{Binding HeightCm, Mode=TwoWay}"
+                           Keyboard="Numeric"
+                           BackgroundColor="#1C1C1C"
+                           TextColor="White"
+                           PlaceholderColor="#8A8A8A"
+                           HeightRequest="48"
+                           Placeholder="Boy giriniz" />
+                </VerticalStackLayout>
+
+                <!-- Weight -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Kilo (kg)"
+                           TextColor="#BDBDBD"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                    <Entry Text="{Binding WeightKg, Mode=TwoWay}"
+                           Keyboard="Numeric"
+                           BackgroundColor="#1C1C1C"
+                           TextColor="White"
+                           PlaceholderColor="#8A8A8A"
+                           HeightRequest="48"
+                           Placeholder="Kilo giriniz" />
+                </VerticalStackLayout>
+
+                <!-- Gender -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Cinsiyet"
+                           TextColor="#BDBDBD"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                    <Picker ItemsSource="{Binding GenderOptions}"
+                            SelectedItem="{Binding SelectedGender, Mode=TwoWay}"
+                            BackgroundColor="#1C1C1C"
+                            TextColor="White"
+                            TitleColor="#8A8A8A"
+                            HeightRequest="48"
+                            Title="Cinsiyet seçiniz" />
+                </VerticalStackLayout>
+
+                <!-- Goal -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Hedef"
+                           TextColor="#BDBDBD"
+                           FontSize="12"
+                           FontAttributes="Bold" />
+                    <Picker ItemsSource="{Binding GoalOptions}"
+                            SelectedItem="{Binding SelectedGoal, Mode=TwoWay}"
+                            BackgroundColor="#1C1C1C"
+                            TextColor="White"
+                            TitleColor="#8A8A8A"
+                            HeightRequest="48"
+                            Title="Hedef seçiniz" />
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+            <!-- Save Button -->
+            <Button Grid.Row="2"
+                    Text="Kaydet"
+                    Command="{Binding SaveCommand}"
+                    BackgroundColor="#FF7043"
+                    TextColor="White"
+                    CornerRadius="14"
+                    HeightRequest="50"
+                    Margin="0,8,0,0" />
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
