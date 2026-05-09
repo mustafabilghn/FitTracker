@@ -67,6 +67,8 @@ namespace FitTrackr.MAUI
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<ProfilePage>();
             builder.Services.AddTransient<ProfileViewModel>();
+            builder.Services.AddTransient<EditProfilePage>();
+            builder.Services.AddTransient<EditProfileViewModel>();
             builder.Services.AddTransient<ProgressPage>();
             builder.Services.AddTransient<ProgressViewModel>();
             builder.Services.AddTransient<AppShell>();
@@ -82,6 +84,3 @@ namespace FitTrackr.MAUI
         }
     }
 }
-
-
-
