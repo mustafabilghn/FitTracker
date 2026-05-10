@@ -32,7 +32,17 @@
 
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
-                <Entry Placeholder="Şifre"
+                <Entry Placeholder="E-posta"
+                       PlaceholderColor="#AAAAAA"
+                       TextColor="White"
+                       BackgroundColor="Transparent"
+                       Keyboard="Email"
+                       Text="{Binding Email}"/>
+            </Frame>
+
+            <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
+                   Padding="10" HasShadow="True" BorderColor="#333">
+                <Entry Placeholder="Şifre (en az 6 karakter)"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -56,7 +66,13 @@
                     BackgroundColor="#FF7043"
                     CornerRadius="10"
                     HeightRequest="55"
+                    IsEnabled="{Binding IsNotLoading}"
                     Command="{Binding RegisterCommand}"/>
+
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               Color="#FF7043"
+                               HorizontalOptions="Center"/>
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                 <Label Text="Zaten hesabın var mı?"

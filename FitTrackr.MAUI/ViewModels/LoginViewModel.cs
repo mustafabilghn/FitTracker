@@ -1,11 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FitTrackr.MAUI.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace FitTrackr.MAUI.ViewModels
 {
@@ -14,10 +10,16 @@ namespace FitTrackr.MAUI.ViewModels
         private readonly AuthService authService;
 
         [ObservableProperty]
-        private string username = string.Empty;
+        private string email = string.Empty;
 
         [ObservableProperty]
         private string password = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsNotLoading))]
+        private bool isLoading = false;
+
+        public bool IsNotLoading => !IsLoading;
 
         public LoginViewModel(AuthService authService)
         {
@@ -27,22 +29,40 @@ namespace FitTrackr.MAUI.ViewModels
         [RelayCommand]
         public async Task LoginAsync()
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Kullanıcı adı ve şifre boş olamaz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert("Hata", "E-posta ve şifre boş olamaz.", "Tamam");
                 return;
             }
 
-            var success = await authService.LoginAsync(username, password);
-
-            if (success)
+            if (!IsValidEmail(email))
             {
-                Application.Current.MainPage = IPlatformApplication.Current.Services.GetService<AppShell>();
+                await Application.Current.MainPage.DisplayAlert("Hata", "Geçerli bir e-posta adresi giriniz.", "Tamam");
+                return;
             }
-            else
+
+            IsLoading = true;
+
+            try
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Kullanıcı adı veya şifre hatalı.", "Tamam");
+                var success = await authService.LoginAsync(email, password);
+
+                if (success)
+                {
+                    Application.Current.MainPage = IPlatformApplication.Current.Services.GetService<AppShell>();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Hata", "E-posta veya şifre hatalı.", "Tamam");
+                }
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
+
+        private static bool IsValidEmail(string value) =>
+            Regex.IsMatch(value, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
     }
 }
