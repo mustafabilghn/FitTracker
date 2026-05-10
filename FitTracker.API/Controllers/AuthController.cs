@@ -26,10 +26,18 @@ namespace FitTrackr.API.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto registerRequestDto)
         {
+            var existingEmail = await userManager.FindByEmailAsync(registerRequestDto.Email);
+            if (existingEmail != null)
+                return BadRequest("Bu e-posta adresi zaten kullanılıyor.");
+
+            var existingUsername = await userManager.FindByNameAsync(registerRequestDto.Username);
+            if (existingUsername != null)
+                return BadRequest("Bu kullanıcı adı zaten kullanılıyor.");
+
             var user = new IdentityUser
             {
                 UserName = registerRequestDto.Username,
-                Email = registerRequestDto.Username
+                Email = registerRequestDto.Email
             };
 
             var result = await userManager.CreateAsync(user, registerRequestDto.Password);
@@ -41,20 +49,25 @@ namespace FitTrackr.API.Controllers
                     result = await userManager.AddToRolesAsync(user, registerRequestDto.Roles);
 
                     if (result.Succeeded)
-                    {
-                        return Ok("User was registered,please login");
-                    }
+                        return Ok("Kullanıcı başarıyla oluşturuldu.");
                 }
             }
 
-            return BadRequest("Some error occurred while registering the user");
+            var errors = result.Errors.Select(e => e.Description);
+            return BadRequest(string.Join(" ", errors));
         }
 
         [HttpPost]
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
         {
-            var user = await userManager.FindByEmailAsync(loginRequestDto.Username);
+            // E-posta ile kullanıcı bul
+            var user = await userManager.FindByEmailAsync(loginRequestDto.Email);
+
+            // Geriye dönük uyumluluk: e-posta bulunamazsa kullanıcı adıyla dene
+            // (e-posta alanında kullanıcı adı kaydedilen eski kullanıcılar için)
+            if (user == null)
+                user = await userManager.FindByNameAsync(loginRequestDto.Email);
 
             if (user is not null)
             {
@@ -68,17 +81,12 @@ namespace FitTrackr.API.Controllers
                     {
                         var jwtToken = tokenRepository.CreateJWTToken(user, roles.ToList());
 
-                        var response = new LoginResponseDto
-                        {
-                            JwtToken = jwtToken
-                        };
-
-                        return Ok(response);
+                        return Ok(new LoginResponseDto { JwtToken = jwtToken });
                     }
                 }
             }
 
-            return BadRequest("Invalid login attempt");
+            return BadRequest("E-posta veya şifre hatalı.");
         }
 
         [HttpDelete]
@@ -88,7 +96,7 @@ namespace FitTrackr.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if(userId == null)
+            if (userId == null)
                 return Unauthorized();
 
             var user = await userManager.FindByIdAsync(userId);
@@ -128,8 +136,6 @@ namespace FitTrackr.API.Controllers
             if (user == null)
                 return NotFound();
 
-            // ✅ FİKS: IdentityUser'in profil property'leri yok, sadece Username dönüyoruz
-            // TODO: Custom user entity oluştur ve HeightCm, WeightKg, Gender, Goal ekle
             var profile = new
             {
                 username = user.UserName,
@@ -158,25 +164,22 @@ namespace FitTrackr.API.Controllers
                 return NotFound();
 
             if (string.IsNullOrWhiteSpace(request.Username))
-                return BadRequest("Username cannot be empty");
+                return BadRequest("Kullanıcı adı boş olamaz.");
 
-            // ✅ FİKS: IdentityUser'in profil property'leri yok
-            // TODO: Custom user entity oluştur ve şu property'leri ekle:
-            // user.HeightCm = request.HeightCm;
-            // user.WeightKg = request.WeightKg;
-            // user.Gender = request.Gender;
-            // user.Goal = request.Goal;
+            // Farklı bir kullanıcı bu kullanıcı adını kullanıyor mu kontrol et
+            var existingUser = await userManager.FindByNameAsync(request.Username);
+            if (existingUser != null && existingUser.Id != userId)
+                return BadRequest("Bu kullanıcı adı zaten kullanılıyor.");
 
-            // Şu an sadece username update edebiliriz
+            // Sadece display name (UserName) güncellenir; e-posta (login kimliği) değişmez
             user.UserName = request.Username;
-            user.Email = request.Username;
 
             var result = await userManager.UpdateAsync(user);
 
             if (result.Succeeded)
                 return Ok();
 
-            return BadRequest("Profile update failed");
+            return BadRequest("Profil güncellenirken bir hata oluştu.");
         }
     }
 }

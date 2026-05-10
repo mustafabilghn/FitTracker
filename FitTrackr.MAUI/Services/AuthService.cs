@@ -1,4 +1,5 @@
 using FitTrackr.MAUI.Models.DTO;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Diagnostics;
@@ -16,17 +17,23 @@ namespace FitTrackr.MAUI.Services
             this.jsonSerializerOptions = jsonSerializerOptions;
         }
 
-        public async Task<bool> RegisterAsync(string username, string password)
+        public async Task<bool> RegisterAsync(string username, string email, string password)
         {
-            var request = new { Username = username, Password = password, Roles = new[] { "Reader", "Writer" } };
-            var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+            var request = new
+            {
+                Username = username,
+                Email = email,
+                Password = password,
+                Roles = new[] { "Reader", "Writer" }
+            };
 
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> LoginAsync(string username, string password)
+        public async Task<bool> LoginAsync(string email, string password)
         {
-            var request = new { Username = username, Password = password };
+            var request = new { Email = email, Password = password };
             var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
 
             if (!response.IsSuccessStatusCode)
@@ -41,6 +48,9 @@ namespace FitTrackr.MAUI.Services
 
             _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.JwtToken);
+
+            // JWT'den display name'i çıkar ve yerel önbelleğe kaydet
+            ExtractAndCacheUserInfo(result.JwtToken, email);
 
             return true;
         }
@@ -106,8 +116,7 @@ namespace FitTrackr.MAUI.Services
                 var url = "api/auth/profile";
                 Debug.WriteLine($"[AuthService] URL: {_httpClient.BaseAddress}{url}");
 
-                // Request body'yi log et
-                var json = System.Text.Json.JsonSerializer.Serialize(request, jsonSerializerOptions);
+                var json = JsonSerializer.Serialize(request, jsonSerializerOptions);
                 Debug.WriteLine($"[AuthService] Request body: {json}");
 
                 var response = await _httpClient.PutAsJsonAsync(url, request);
@@ -136,6 +145,8 @@ namespace FitTrackr.MAUI.Services
         public void Logout()
         {
             SecureStorage.Remove("jwt_token");
+            Preferences.Remove("username");
+            Preferences.Remove("user_email");
         }
 
         public async Task<bool> DeleteAccountAsync()
@@ -157,6 +168,29 @@ namespace FitTrackr.MAUI.Services
             catch
             {
                 return false;
+            }
+        }
+
+        // JWT'den "unique_name" claim'ini okuyarak display name ve e-postayı Preferences'a yazar.
+        // Sayfa ilk açılışında Preferences'tan hızla yükleme yapılabilmesi için gereklidir.
+        private static void ExtractAndCacheUserInfo(string jwtToken, string email)
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(jwtToken);
+
+                var displayName = jwt.Claims
+                    .FirstOrDefault(c => c.Type == "unique_name")?.Value;
+
+                if (!string.IsNullOrWhiteSpace(displayName))
+                    Preferences.Set("username", displayName);
+
+                Preferences.Set("user_email", email);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] ExtractAndCacheUserInfo error: {ex.Message}");
             }
         }
     }
