@@ -38,13 +38,21 @@ namespace FitTrackr.MAUI
         {
             var token = await authService.GetTokenAsync();
 
-            if(token == null)
+            if (token == null)
             {
                 MainPage = new NavigationPage(IPlatformApplication.Current.Services.GetService<LoginPage>());
             }
             else
             {
                 await authService.InitializeAsync();
+
+                // 🔥 Azure Free Plan cold-start düzeltmesi:
+                // MainPage verilerini çekmeden önce API'yi arka planda uyandır.
+                // Sonucu beklemiyor, yalnızca HTTP bağlantısını başlatıyoruz.
+                // Böylece MainPage.LoadMainPageDataAsync çalıştığında API zaten
+                // uyanmakta olacak → bekleme süresi belirgin şekilde kısalır.
+                _ = authService.GetProfileAsync();
+
                 MainPage = shell;
             }
         }

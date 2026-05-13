@@ -70,6 +70,8 @@ builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<PasswordResetService>();
 builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(client =>
 {
     client.BaseAddress = new Uri("https://api.groq.com/openai/v1/");
@@ -99,7 +101,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequiredUniqueChars = 1;
     options.User.AllowedUserNameCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ " +
+    "çÇğĞıİöÖşŞüÜ";
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>

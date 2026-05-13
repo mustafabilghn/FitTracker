@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(findstr /i \"error\")",
+      "Bash(Select-String \"error\")"
+    ]
+  }
+}

@@ -1,6 +1,8 @@
 using FitTrackr.API.Data;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
+using FitTrackr.API.Services;
+using FitTrackr.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +17,19 @@ namespace FitTrackr.API.Controllers
     {
         private readonly UserManager<IdentityUser> userManager;
         private readonly ITokenRepository tokenRepository;
+        private readonly IEmailService emailService;
+        private readonly PasswordResetService passwordResetService;
 
-        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository)
+        public AuthController(
+            UserManager<IdentityUser> userManager,
+            ITokenRepository tokenRepository,
+            IEmailService emailService,
+            PasswordResetService passwordResetService)
         {
             this.userManager = userManager;
             this.tokenRepository = tokenRepository;
+            this.emailService = emailService;
+            this.passwordResetService = passwordResetService;
         }
 
         [HttpPost]
@@ -119,6 +129,69 @@ namespace FitTrackr.API.Controllers
                 return Ok();
 
             return BadRequest("Hesap silinirken bir hata oluştu.");
+        }
+
+        /// <summary>
+        /// Kullanıcı e-postasına 6 haneli şifre sıfırlama kodu gönderir.
+        /// E-posta bulunamazsa güvenlik için yine 200 döner (kullanıcı keşfi engellemek için).
+        /// </summary>
+        [HttpPost]
+        [Route("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest("E-posta adresi gerekli.");
+
+            var user = await userManager.FindByEmailAsync(request.Email.Trim());
+
+            // Kullanıcı bulunamasa bile 200 dön — e-posta adresi keşfini engelle
+            if (user == null)
+                return Ok();
+
+            var identityToken = await userManager.GeneratePasswordResetTokenAsync(user);
+            var code = passwordResetService.Store(request.Email.Trim(), identityToken);
+
+            try
+            {
+                await emailService.SendPasswordResetCodeAsync(request.Email.Trim(), code);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"E-posta gönderilemedi: {ex.Message}");
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// 6 haneli kod + yeni şifre ile şifreyi sıfırlar.
+        /// </summary>
+        [HttpPost]
+        [Route("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Code) ||
+                string.IsNullOrWhiteSpace(request.NewPassword))
+                return BadRequest("Tüm alanlar zorunludur.");
+
+            var user = await userManager.FindByEmailAsync(request.Email.Trim());
+            if (user == null)
+                return BadRequest("Geçersiz kod veya e-posta adresi.");
+
+            var identityToken = passwordResetService.Validate(request.Email.Trim(), request.Code.Trim());
+            if (identityToken == null)
+                return BadRequest("Kod hatalı veya süresi dolmuş.");
+
+            var result = await userManager.ResetPasswordAsync(user, identityToken, request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
+                return BadRequest(errors);
+            }
+
+            return Ok();
         }
 
         [HttpGet]

@@ -118,10 +118,10 @@ namespace FitTrackr.MAUI.ViewModels
                 ? $"{Exercises.Count} egzersiz"
                 : "Egzersiz bulunmuyor.";
 
-            if (!HasExercises)
-            {
-                IsExpanded = false;
-            }
+            // Egzersiz varsa kart varsayılan olarak açık gelsin.
+            // Kullanıcı manuel kapatırsa ToggleCardExpansion IsExpanded'ı false yapar
+            // ve bir sonraki RefreshDailyWorkoutCardAsync'a kadar kapalı kalır.
+            IsExpanded = HasExercises;
         }
 
         public void RemoveExercise(Guid exerciseId)

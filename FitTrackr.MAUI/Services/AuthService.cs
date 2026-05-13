@@ -142,6 +142,41 @@ namespace FitTrackr.MAUI.Services
             }
         }
 
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                var request = new { Email = email.Trim() };
+                var response = await _httpClient.PostAsJsonAsync("api/auth/forgot-password", request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] ForgotPasswordAsync error: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<(bool Success, string? Error)> ResetPasswordAsync(string email, string code, string newPassword)
+        {
+            try
+            {
+                var request = new { Email = email.Trim(), Code = code.Trim(), NewPassword = newPassword };
+                var response = await _httpClient.PostAsJsonAsync("api/auth/reset-password", request);
+
+                if (response.IsSuccessStatusCode)
+                    return (true, null);
+
+                var errorText = await response.Content.ReadAsStringAsync();
+                return (false, errorText);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] ResetPasswordAsync error: {ex.Message}");
+                return (false, ex.Message);
+            }
+        }
+
         public void Logout()
         {
             SecureStorage.Remove("jwt_token");

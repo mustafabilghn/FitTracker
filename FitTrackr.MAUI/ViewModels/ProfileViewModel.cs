@@ -121,8 +121,11 @@ namespace FitTrackr.MAUI.ViewModels
             {
                 Debug.WriteLine($"[ProfileVM] Got API profile: Username={apiProfile.Username}, Height={apiProfile.HeightCm}, Weight={apiProfile.WeightKg}, Gender={apiProfile.Gender}, Goal={apiProfile.Goal}");
 
-                // API verisi varsa ve dolu değilse override et
-                if (!string.IsNullOrWhiteSpace(apiProfile.Username))
+                // Kullanıcı adı: Preferences'ta dolu bir değer varsa (kullanıcının değiştirdiği)
+                // onu koru; yoksa API'den gelen değeri kullan.
+                // Bu sayede kullanıcı Türkçe karakterli isim kaydettiğinde API'nin eski
+                // değeri ezlemesi önlenir.
+                if (!string.IsNullOrWhiteSpace(apiProfile.Username) && string.IsNullOrWhiteSpace(Username))
                 {
                     Username = apiProfile.Username;
                 }
