@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  🏋️ FitTracker
+  FitTracker
   <br>
 </h1>
 
