@@ -267,15 +267,15 @@ Jwt__Key            →  jwt_gizli_anahtari
 ## 📸 Ekran Görüntüleri
 
 <p align="center">
-  <img src="docs/screenshots/login.png" width="220"/>
-  <img src="docs/screenshots/workouts.png" width="220"/>
-  <img src="docs/screenshots/progress.png" width="220"/>
+  <img src="docs/screenshots/login.jpg" width="220"/>
+  <img src="docs/screenshots/workouts.jpg" width="220"/>
+  <img src="docs/screenshots/progress.jpg" width="220"/>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/profile.png" width="220"/>
-  <img src="docs/screenshots/fitbot.png" width="220"/>
-  <img src="docs/screenshots/main_page.png" width="220"/>
+  <img src="docs/screenshots/profile.jpg" width="220"/>
+  <img src="docs/screenshots/fitbot.jpg" width="220"/>
+  <img src="docs/screenshots/main_page.jpg" width="220"/>
 </p>
 
 ---
