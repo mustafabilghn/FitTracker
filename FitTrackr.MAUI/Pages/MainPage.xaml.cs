@@ -358,12 +358,12 @@ namespace FitTrackr.MAUI
                 HasBR = maxWeights["BR"] > 0; BRValue = maxWeights["BR"].ToString("0");
                 HasOP = maxWeights["OP"] > 0; OPValue = maxWeights["OP"].ToString("0");
 
-                // Overall: en az 3 egzersiz varsa ortalama, en yakın 10'a yuvarla
+                // Overall: en az 3 egzersiz varsa ortalama, en yakın birliğe yuvarla
                 var activeValues = maxWeights.Values.Where(v => v > 0).ToList();
                 if (activeValues.Count >= 3)
                 {
                     var avg = activeValues.Average();
-                    var rounded = Math.Round(avg / 10.0, MidpointRounding.AwayFromZero) * 10;
+                    var rounded = Math.Round(avg, MidpointRounding.AwayFromZero);
                     TotalMaxKg = rounded.ToString("0");
                 }
                 else
