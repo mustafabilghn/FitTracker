@@ -14,18 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitTrackr.MAUI", "FitTrackr.MAUI\FitTrackr.MAUI.csproj", "{343653C9-C169-97F5-A52B-630DC57AAA9A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{8F397634-D861-48DA-BB7E-9D8AEB9C6961}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "screenshots", "screenshots", "{26B59E9D-0962-4910-9FA7-BD7F37E83102}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\login.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\login.jpg
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\fitbot.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\fitbot.jpg
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\profile.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\profile.jpg
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\main_page.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\main_page.jpg
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\reports.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\reports.jpg
-		..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\workouts.jpg = ..\..\..\AppData\Local\Packages\Microsoft.YourPhone_8wekyb3d8bbwe\TempState\medias\workouts.jpg
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,9 +36,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{26B59E9D-0962-4910-9FA7-BD7F37E83102} = {8F397634-D861-48DA-BB7E-9D8AEB9C6961}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {50F18F94-BB56-4F59-8173-6604DEB5EBAB}
