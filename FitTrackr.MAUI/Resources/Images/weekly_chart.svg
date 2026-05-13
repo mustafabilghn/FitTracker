@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 28">
+
+  <!-- 7 bar: Pzt-Paz, değişen yükseklikler = gerçek aktivite görünümü -->
+
+  <!-- Pzt - aktif -->
+  <rect x="0"  y="10" width="3.2" height="16" rx="1.5" fill="#4CAF50"/>
+  <!-- Sal - aktif, en yüksek -->
+  <rect x="4.3" y="4"  width="3.2" height="22" rx="1.5" fill="#4CAF50"/>
+  <!-- Çar - aktif -->
+  <rect x="8.6" y="13" width="3.2" height="13" rx="1.5" fill="#4CAF50"/>
+  <!-- Per - aktif, vurgulu (bugün tonu) -->
+  <rect x="12.9" y="7" width="3.2" height="19" rx="1.5" fill="#69F0AE"/>
+  <!-- Cum - pasif (henüz geçmedi) -->
+  <rect x="17.2" y="21" width="3.2" height="5"  rx="1.5" fill="#2E7D32" opacity="0.45"/>
+  <!-- Cmt - pasif -->
+  <rect x="21.5" y="21" width="3.2" height="5"  rx="1.5" fill="#2E7D32" opacity="0.45"/>
+  <!-- Paz - pasif -->
+  <rect x="25.8" y="21" width="3.2" height="5"  rx="1.5" fill="#2E7D32" opacity="0.45"/>
+
+  <!-- Taban çizgisi -->
+  <rect x="0" y="26" width="30" height="2" rx="1" fill="#4CAF50" opacity="0.3"/>
+
+</svg>

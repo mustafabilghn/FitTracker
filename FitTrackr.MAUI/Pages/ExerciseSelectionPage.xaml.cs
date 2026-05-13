@@ -1,4 +1,6 @@
-﻿using FitTrackr.MAUI.Models.DTO;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Messages;
+using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.ViewModels;
 
 namespace FitTrackr.MAUI.Pages;
@@ -6,10 +8,11 @@ namespace FitTrackr.MAUI.Pages;
 public partial class ExerciseSelectionPage : ContentPage
 {
     private readonly ExerciseSelectionViewModel _viewModel;
-    private readonly Guid _workoutId;
+    private Guid _workoutId;   // mutable: ilk egzersiz yeni workout oluşturduğunda güncellenir
     private readonly DateTime _workoutDate;
     private readonly string _workoutName;
     private bool _isLoaded;
+    private bool _messageRegistered;
 
     public ExerciseSelectionPage(
         ExerciseSelectionViewModel viewModel,
@@ -30,6 +33,15 @@ public partial class ExerciseSelectionPage : ContentPage
     {
         base.OnAppearing();
 
+        // ExerciseAddedMessage'ı bir kez dinle:
+        // İlk egzersiz Guid.Empty'den yeni bir workout oluşturursa ID'yi öğrenip
+        // sonraki egzersizleri aynı workuta ekleyebiliriz.
+        if (!_messageRegistered)
+        {
+            WeakReferenceMessenger.Default.Register<ExerciseAddedMessage>(this, OnExerciseAdded);
+            _messageRegistered = true;
+        }
+
         if (_isLoaded)
         {
             return;
@@ -37,6 +49,33 @@ public partial class ExerciseSelectionPage : ContentPage
 
         _isLoaded = true;
         await _viewModel.InitializeAsync();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        // Sadece bu sayfa navigation stack'ten tamamen çıktığında unregister et.
+        // ExerciseSetEntryPage push edildiğinde de OnDisappearing çalışır,
+        // ama o zaman hâlâ stack'teyiz — mesajı kaçırmamak için unregister ETME.
+        if (_messageRegistered && !Navigation.NavigationStack.Contains(this))
+        {
+            WeakReferenceMessenger.Default.Unregister<ExerciseAddedMessage>(this);
+            _messageRegistered = false;
+        }
+    }
+
+    /// <summary>
+    /// İlk egzersiz kaydedildiğinde ExerciseSetEntryViewModel bu mesajı gönderir.
+    /// Eğer _workoutId boşsa (yeni gün, henüz workout yok), oluşturulan workout ID'sini sakla.
+    /// Böylece ikinci, üçüncü... egzersizler aynı workout'a eklenir.
+    /// </summary>
+    private void OnExerciseAdded(object recipient, ExerciseAddedMessage message)
+    {
+        if (_workoutId == Guid.Empty)
+        {
+            _workoutId = message.Value;
+        }
     }
 
     private async void OnExerciseTapped(object sender, TappedEventArgs e)
@@ -52,7 +91,7 @@ public partial class ExerciseSelectionPage : ContentPage
         var setEntryPage = ActivatorUtilities.CreateInstance<ExerciseSetEntryPage>(
             services,
             selectedExercise,
-            _workoutId,
+            _workoutId,        // artık güncel: ilk egzersizden sonra doğru workout ID
             _workoutDate,
             _workoutName);
 

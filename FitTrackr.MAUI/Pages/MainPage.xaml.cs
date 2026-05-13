@@ -3,6 +3,7 @@ using FitTrackr.MAUI.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Storage;
 using System.IdentityModel.Tokens.Jwt;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -28,8 +29,33 @@ namespace FitTrackr.MAUI
                 {
                     username = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(FutCardName));
                 }
             }
+        }
+
+        /// <summary>
+        /// FUT kart üzerinde büyük harfle gösterilecek isim.
+        /// TextTransform="Uppercase" ve CultureInfo("tr-TR") Android'de i→İ dönüşümünü
+        /// yapamadığı için her harf elle dönüştürülüyor.
+        /// </summary>
+        public string FutCardName => string.IsNullOrEmpty(username)
+            ? string.Empty
+            : ToTurkishUpper(username);
+
+        private static string ToTurkishUpper(string s)
+        {
+            var sb = new System.Text.StringBuilder(s.Length);
+            foreach (var c in s)
+            {
+                sb.Append(c switch
+                {
+                    'i' => 'İ',   // Türkçe noktalı küçük i → büyük İ
+                    'ı' => 'I',   // Türkçe noktasız küçük ı → büyük I
+                    _ => char.ToUpperInvariant(c)
+                });
+            }
+            return sb.ToString();
         }
 
         public ImageSource? AvatarImageSource
@@ -45,58 +71,51 @@ namespace FitTrackr.MAUI
             }
         }
 
-        private string benchPressMaxWeight = "0";
-        private string squatMaxWeight = "0";
-        private string deadliftMaxWeight = "0";
-        private string barbellRowMaxWeight = "0";
+        private string totalMaxKg = "0";
+        private int streak = 0;
+        private string weeklyWorkouts = "0";
 
-        public string BenchPressMaxWeight
+        public int Streak
         {
-            get => benchPressMaxWeight;
-            set
-            {
-                if (benchPressMaxWeight != value)
-                {
-                    benchPressMaxWeight = value;
-                    OnPropertyChanged();
-                }
-            }
+            get => streak;
+            set { if (streak != value) { streak = value; OnPropertyChanged(); } }
         }
 
-        public string SquatMaxWeight
+        /// <summary>Bu haftaki benzersiz antrenman günü sayısı (Pzt–Paz).</summary>
+        public string WeeklyWorkouts
         {
-            get => squatMaxWeight;
-            set
-            {
-                if (squatMaxWeight != value)
-                {
-                    squatMaxWeight = value;
-                    OnPropertyChanged();
-                }
-            }
+            get => weeklyWorkouts;
+            set { if (weeklyWorkouts != value) { weeklyWorkouts = value; OnPropertyChanged(); } }
         }
 
-        public string DeadliftMaxWeight
-        {
-            get => deadliftMaxWeight;
-            set
-            {
-                if (deadliftMaxWeight != value)
-                {
-                    deadliftMaxWeight = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        // Her egzersiz için sabit pozisyon: BP=R1L, SQ=R1R, DL=R2L, BR=R2R, OP=R3L
+        private bool hasBP, hasSQ, hasDL, hasBR, hasOP;
+        private string bpValue = "0", sqValue = "0", dlValue = "0", brValue = "0", opValue = "0";
 
-        public string BarbellRowMaxWeight
+        public bool HasBP { get => hasBP; set { if (hasBP != value) { hasBP = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasRow1)); } } }
+        public bool HasSQ { get => hasSQ; set { if (hasSQ != value) { hasSQ = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasRow1)); } } }
+        public bool HasDL { get => hasDL; set { if (hasDL != value) { hasDL = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasRow2)); } } }
+        public bool HasBR { get => hasBR; set { if (hasBR != value) { hasBR = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasRow2)); } } }
+        public bool HasOP { get => hasOP; set { if (hasOP != value) { hasOP = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasRow3)); } } }
+
+        public string BPValue { get => bpValue; set { if (bpValue != value) { bpValue = value; OnPropertyChanged(); } } }
+        public string SQValue { get => sqValue; set { if (sqValue != value) { sqValue = value; OnPropertyChanged(); } } }
+        public string DLValue { get => dlValue; set { if (dlValue != value) { dlValue = value; OnPropertyChanged(); } } }
+        public string BRValue { get => brValue; set { if (brValue != value) { brValue = value; OnPropertyChanged(); } } }
+        public string OPValue { get => opValue; set { if (opValue != value) { opValue = value; OnPropertyChanged(); } } }
+
+        public bool HasRow1 => HasBP || HasSQ;
+        public bool HasRow2 => HasDL || HasBR;
+        public bool HasRow3 => HasOP;
+
+        public string TotalMaxKg
         {
-            get => barbellRowMaxWeight;
+            get => totalMaxKg;
             set
             {
-                if (barbellRowMaxWeight != value)
+                if (totalMaxKg != value)
                 {
-                    barbellRowMaxWeight = value;
+                    totalMaxKg = value;
                     OnPropertyChanged();
                 }
             }
@@ -157,34 +176,51 @@ namespace FitTrackr.MAUI
                 LoadingIndicator.IsVisible = true;
                 LoadingIndicator.IsRunning = true;
 
-                // ✅ 1. Username yükle (Preferences → JWT fallback)
+                // ✅ 1. Username yükle: Preferences → JWT → API sıralamasıyla
                 Username = Preferences.Get("username", string.Empty);
+
                 if (string.IsNullOrWhiteSpace(Username))
                 {
+                    // 1a. JWT token'dan oku
                     var token = await authService.GetTokenAsync();
                     if (!string.IsNullOrWhiteSpace(token))
                     {
                         var handler = new JwtSecurityTokenHandler();
                         var jwt = handler.ReadJwtToken(token);
-                        var fullName = jwt.Claims
-                            .FirstOrDefault(c =>
-                                c.Type == "unique_name" ||
-                                c.Type == "email" ||
-                                c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
+                        var uniqueName = jwt.Claims
+                            .FirstOrDefault(c => c.Type == "unique_name")
                             ?.Value;
 
-                        Username = fullName?.Split(' ')[0] ?? "Kullanıcı";
-                    }
-                    else
-                    {
-                        Username = "Kullanıcı";
+                        if (!string.IsNullOrWhiteSpace(uniqueName))
+                        {
+                            Username = uniqueName;
+                            Preferences.Set("username", uniqueName);
+                        }
                     }
                 }
 
-                // ✅ 2. Greeting mesajı güncelle
-                GreetingLabel.Text = GetGreetingMessage();
+                // 1b. Hâlâ boşsa API'den çek (login sonrası Preferences/JWT henüz hazır değilse)
+                if (string.IsNullOrWhiteSpace(Username))
+                {
+                    try
+                    {
+                        var profile = await authService.GetProfileAsync();
+                        if (profile != null && !string.IsNullOrWhiteSpace(profile.Username))
+                        {
+                            Username = profile.Username;
+                            Preferences.Set("username", profile.Username);
+                        }
+                    }
+                    catch
+                    {
+                        // API erişilemiyorsa sessizce geç
+                    }
+                }
 
-                // ✅ 3. Avatar fresh load et
+                if (string.IsNullOrWhiteSpace(Username))
+                    Username = "Kullanıcı";
+
+                // ✅ 2. Avatar fresh load et
                 AvatarImageSource = LoadAvatarImageSourceFresh();
 
                 // ✅ 4. FUT CARD STATS - Dinamik olarak yükle (BP, SQ, DL, BR)
@@ -199,20 +235,6 @@ namespace FitTrackr.MAUI
                 LoadingIndicator.IsVisible = false;
                 LoadingIndicator.IsRunning = false;
             }
-        }
-
-        private string GetGreetingMessage()
-        {
-            var hour = DateTime.Now.Hour;
-            var greeting = hour switch
-            {
-                >= 5 and < 12 => "Günaydın",      // 05:00 - 11:59
-                >= 12 and < 17 => "İyi günler",   // 12:00 - 16:59
-                >= 17 and < 21 => "İyi akşamlar", // 17:00 - 20:59
-                _ => "İyi geceler"                 // 21:00 - 04:59
-            };
-
-            return $"{greeting}, {Username}";
         }
 
         /// <summary>
@@ -262,85 +284,166 @@ namespace FitTrackr.MAUI
         {
             try
             {
-                // 1. Tüm workout'ları getir
                 var workoutSummaries = await workoutService.GetWorkoutsAsync();
 
-                if (workoutSummaries == null || workoutSummaries.Count == 0)
+                // Compound hareketler için max ağırlık tablosu (kart sırasıyla)
+                var maxWeights = new Dictionary<string, double>
                 {
-                    // Veri yoksa default "0" kalır
-                    return;
+                    ["BP"] = 0,   // Bench Press
+                    ["SQ"] = 0,   // Squat
+                    ["DL"] = 0,   // Deadlift
+                    ["BR"] = 0,   // Barbell Row
+                    ["OP"] = 0    // Overhead Press
+                };
+
+                // Yalnızca en az 1 set içeren antrenman günleri sayılır.
+                var activeDates = new HashSet<DateTime>();
+
+                if (workoutSummaries != null && workoutSummaries.Count > 0)
+                {
+                    // ── ADIM 1: Tüm workout detaylarını PARALEL çek ──────────────────
+                    // Eski: N sıralı await → her biri bir öncekini bekler
+                    // Yeni: hepsi aynı anda, toplam süre en yavaş isteğin süresi kadar
+                    var workoutDetailTasks = workoutSummaries
+                        .Select(s => workoutService.GetWorkoutByIdAsync(s.Id));
+                    var workoutDetails = await Task.WhenAll(workoutDetailTasks);
+
+                    // ── ADIM 2: Tüm egzersiz ID'lerini ve tarihlerini topla ──────────
+                    var exerciseRequests = workoutSummaries
+                        .Zip(workoutDetails, (summary, detail) => (summary.WorkoutDate, detail))
+                        .Where(p => p.detail?.Exercises != null)
+                        .SelectMany(p => p.detail.Exercises
+                            .Select(e => (WorkoutDate: p.WorkoutDate, ExerciseId: e.Id)))
+                        .ToList();
+
+                    // ── ADIM 3: Tüm egzersiz detaylarını PARALEL çek ─────────────────
+                    var exerciseDetailTasks = exerciseRequests
+                        .Select(r => exerciseService.GetExerciseByIdAsync(r.ExerciseId));
+                    var exerciseDetails = await Task.WhenAll(exerciseDetailTasks);
+
+                    // ── ADIM 4: Sonuçları işle ───────────────────────────────────────
+                    for (int i = 0; i < exerciseDetails.Length; i++)
+                    {
+                        var exercise = exerciseDetails[i];
+                        var workoutDate = exerciseRequests[i].WorkoutDate;
+
+                        if (exercise?.ExerciseSets == null || exercise.ExerciseSets.Count == 0) continue;
+
+                        activeDates.Add(workoutDate.Date);
+
+                        var maxInSet = exercise.ExerciseSets.Max(s => s.WeightInKg);
+                        var name = exercise.ExerciseName ?? string.Empty;
+
+                        if (name.Contains("Bench Press", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("Bench", StringComparison.OrdinalIgnoreCase))
+                            maxWeights["BP"] = Math.Max(maxWeights["BP"], maxInSet);
+                        else if (name.Contains("Squat", StringComparison.OrdinalIgnoreCase))
+                            maxWeights["SQ"] = Math.Max(maxWeights["SQ"], maxInSet);
+                        else if (name.Contains("Deadlift", StringComparison.OrdinalIgnoreCase))
+                            maxWeights["DL"] = Math.Max(maxWeights["DL"], maxInSet);
+                        else if (name.Contains("Barbell Row", StringComparison.OrdinalIgnoreCase) ||
+                                 name.Contains("Rows", StringComparison.OrdinalIgnoreCase))
+                            maxWeights["BR"] = Math.Max(maxWeights["BR"], maxInSet);
+                        else if (name.Contains("Overhead Press", StringComparison.OrdinalIgnoreCase) ||
+                                 name.Contains("OHP", StringComparison.OrdinalIgnoreCase) ||
+                                 name.Contains("Shoulder Press", StringComparison.OrdinalIgnoreCase))
+                            maxWeights["OP"] = Math.Max(maxWeights["OP"], maxInSet);
+                    }
                 }
 
-                // 2. Her egzersiz kategorisi için en yüksek weight'i sakla
-                var benchPressMax = 0.0;
-                var squatMax = 0.0;
-                var deadliftMax = 0.0;
-                var barbellRowMax = 0.0;
+                // Sabit pozisyonlu property'leri güncelle
+                HasBP = maxWeights["BP"] > 0; BPValue = maxWeights["BP"].ToString("0");
+                HasSQ = maxWeights["SQ"] > 0; SQValue = maxWeights["SQ"].ToString("0");
+                HasDL = maxWeights["DL"] > 0; DLValue = maxWeights["DL"].ToString("0");
+                HasBR = maxWeights["BR"] > 0; BRValue = maxWeights["BR"].ToString("0");
+                HasOP = maxWeights["OP"] > 0; OPValue = maxWeights["OP"].ToString("0");
 
-                // 3. Tüm workout'ları dolaş
-                foreach (var workoutSummary in workoutSummaries)
+                // Overall: en az 3 egzersiz varsa ortalama, en yakın 10'a yuvarla
+                var activeValues = maxWeights.Values.Where(v => v > 0).ToList();
+                if (activeValues.Count >= 3)
                 {
-                    var workout = await workoutService.GetWorkoutByIdAsync(workoutSummary.Id);
-
-                    if (workout?.Exercises == null || workout.Exercises.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    // 4. Her workout'taki exercise'ları dolaş
-                    foreach (var exerciseSummary in workout.Exercises)
-                    {
-                        var exercise = await exerciseService.GetExerciseByIdAsync(exerciseSummary.Id);
-
-                        if (exercise?.ExerciseSets == null || exercise.ExerciseSets.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        // 5. En yüksek WeightInKg'yi bul
-                        var maxWeightInSet = exercise.ExerciseSets.Max(s => s.WeightInKg);
-
-                        // 6. Exercise adına göre categorize et
-                        var exerciseName = exercise.ExerciseName ?? string.Empty;
-
-                        if (exerciseName.Contains("Bench Press", StringComparison.OrdinalIgnoreCase) ||
-                            exerciseName.Contains("Bench", StringComparison.OrdinalIgnoreCase) ||
-                            exerciseName.Contains("BP", StringComparison.OrdinalIgnoreCase))
-                        {
-                            benchPressMax = Math.Max(benchPressMax, maxWeightInSet);
-                        }
-                        else if (exerciseName.Contains("Squat", StringComparison.OrdinalIgnoreCase) ||
-                                 exerciseName.Contains("SQ", StringComparison.OrdinalIgnoreCase))
-                        {
-                            squatMax = Math.Max(squatMax, maxWeightInSet);
-                        }
-                        else if (exerciseName.Contains("Deadlift", StringComparison.OrdinalIgnoreCase) ||
-                                 exerciseName.Contains("DL", StringComparison.OrdinalIgnoreCase))
-                        {
-                            deadliftMax = Math.Max(deadliftMax, maxWeightInSet);
-                        }
-                        else if (exerciseName.Contains("Barbell Row", StringComparison.OrdinalIgnoreCase) ||
-                                 exerciseName.Contains("Rows", StringComparison.OrdinalIgnoreCase) ||
-                                 exerciseName.Contains("BR", StringComparison.OrdinalIgnoreCase))
-                        {
-                            barbellRowMax = Math.Max(barbellRowMax, maxWeightInSet);
-                        }
-                    }
+                    var avg = activeValues.Average();
+                    var rounded = Math.Round(avg / 10.0, MidpointRounding.AwayFromZero) * 10;
+                    TotalMaxKg = rounded.ToString("0");
+                }
+                else
+                {
+                    TotalMaxKg = "0";
                 }
 
-                // ✅ UI'ye güncelle
-                BenchPressMaxWeight = benchPressMax > 0 ? benchPressMax.ToString("0") : "0";
-                SquatMaxWeight = squatMax > 0 ? squatMax.ToString("0") : "0";
-                DeadliftMaxWeight = deadliftMax > 0 ? deadliftMax.ToString("0") : "0";
-                BarbellRowMaxWeight = barbellRowMax > 0 ? barbellRowMax.ToString("0") : "0";
+                System.Diagnostics.Debug.WriteLine($"[MainPage] FUT Stats: {activeValues.Count} egzersiz, Overall={TotalMaxKg}, AktifGün={activeDates.Count}");
 
-                System.Diagnostics.Debug.WriteLine($"[MainPage] FUT Stats Loaded: BP={BenchPressMaxWeight}, SQ={SquatMaxWeight}, DL={DeadliftMaxWeight}, BR={BarbellRowMaxWeight}");
+                // ── Streak ve bu haftaki antrenmanlar (yalnızca aktif günler) ──
+                CalculateStreak(activeDates);
+                CalculateWeeklyWorkouts(activeDates);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainPage] LoadFutCardStatsAsync error: {ex.Message}");
-                // Hata durumunda property'ler default "0" kalır
             }
         }
+
+        /// <summary>
+        /// Bu haftanın Pazartesi–bugün arasındaki aktif günleri sayar.
+        /// "Aktif gün" = en az 1 egzersiz seti olan gün.
+        /// </summary>
+        private void CalculateWeeklyWorkouts(HashSet<DateTime> activeDates)
+        {
+            if (activeDates.Count == 0) { WeeklyWorkouts = "0"; return; }
+
+            var today = DateTime.Today;
+            int daysFromMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
+            var weekStart = today.AddDays(-daysFromMonday);
+
+            var count = activeDates.Count(d => d >= weekStart && d <= today);
+            WeeklyWorkouts = count.ToString();
+            System.Diagnostics.Debug.WriteLine($"[MainPage] Bu hafta: {count} gün ({weekStart:dd.MM} – {today:dd.MM})");
+        }
+
+        /// <summary>
+        /// Ardışık aktif günleri sayar. İki ardışık aktif gün arasındaki boşluk
+        /// 7 günü geçerse zincir kırılır ve streak = 0 olur.
+        /// "Aktif gün" = en az 1 egzersiz seti olan gün.
+        /// </summary>
+        private void CalculateStreak(HashSet<DateTime> activeDates)
+        {
+            if (activeDates.Count == 0) { Streak = 0; return; }
+
+            var today = DateTime.Today;
+            var sorted = activeDates.OrderByDescending(d => d).ToList();
+
+            // Son aktif günden bu yana 7 günden fazla geçtiyse streak sıfır
+            if ((today - sorted[0]).TotalDays > 7)
+            {
+                Streak = 0;
+                return;
+            }
+
+            // Ardışık günleri say; iki ardışık tarih arası > 7 gün → zincir kırılır
+            int count = 1;
+            for (int i = 0; i < sorted.Count - 1; i++)
+            {
+                double gap = (sorted[i] - sorted[i + 1]).TotalDays;
+                if (gap <= 7)
+                    count++;
+                else
+                    break;
+            }
+
+            Streak = count;
+        }
+    }
+
+    public class FutCardStat
+    {
+        public string Label { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class CardStatRow
+    {
+        public FutCardStat? Left { get; set; }
+        public FutCardStat? Right { get; set; }
+        public bool HasRight => Right != null;
     }
 }

@@ -55,6 +55,17 @@
                                Color="#FF7043"
                                HorizontalOptions="Center"/>
 
+            <!-- Şifremi unuttum -->
+            <Label Text="Şifremi unuttum"
+                   TextColor="#FF7043"
+                   FontSize="13"
+                   HorizontalOptions="Center"
+                   Margin="0,-8,0,0">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnForgotPasswordClicked"/>
+                </Label.GestureRecognizers>
+            </Label>
+
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                 <Label Text="Hesabın yok mu?"
                        TextColor="#AAAAAA"
