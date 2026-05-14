@@ -3,7 +3,8 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(findstr /i \"error\")",
-      "Bash(Select-String \"error\")"
+      "Bash(Select-String \"error\")",
+      "PowerShell(Move-Item -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Splash\\\\indir.svg\" -Destination \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Images\\\\indir.svg\")"
     ]
   }
 }
