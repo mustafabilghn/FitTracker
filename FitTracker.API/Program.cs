@@ -71,6 +71,9 @@ builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+// IHttpClientFactory'yi GoogleAuthService için kaydet (zaten AiWorkoutCoachService de kullanıyor)
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<PasswordResetService>();
 builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(client =>
 {

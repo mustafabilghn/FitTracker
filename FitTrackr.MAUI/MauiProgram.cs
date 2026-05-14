@@ -47,6 +47,7 @@ namespace FitTrackr.MAUI
             builder.Services.AddSingleton<ExerciseService>();
             builder.Services.AddSingleton<ExerciseSetService>();
             builder.Services.AddSingleton<AuthService>();
+            builder.Services.AddSingleton<IGoogleAuthService, GoogleAuthService>();
             builder.Services.AddSingleton<ExerciseCatalogProvider>();
 
             builder.Services.AddTransient<WorkoutListPage>();

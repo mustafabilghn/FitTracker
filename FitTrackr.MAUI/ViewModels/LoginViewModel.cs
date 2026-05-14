@@ -8,6 +8,7 @@ namespace FitTrackr.MAUI.ViewModels
     public partial class LoginViewModel : ObservableObject
     {
         private readonly AuthService authService;
+        private readonly IGoogleAuthService googleAuthService;
 
         [ObservableProperty]
         private string email = string.Empty;
@@ -19,11 +20,17 @@ namespace FitTrackr.MAUI.ViewModels
         [NotifyPropertyChangedFor(nameof(IsNotLoading))]
         private bool isLoading = false;
 
-        public bool IsNotLoading => !IsLoading;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsNotLoading))]
+        private bool isGoogleLoading = false;
 
-        public LoginViewModel(AuthService authService)
+        /// <summary>Her iki yükleme durumu da false olduğunda butonlar aktif olur.</summary>
+        public bool IsNotLoading => !IsLoading && !IsGoogleLoading;
+
+        public LoginViewModel(AuthService authService, IGoogleAuthService googleAuthService)
         {
             this.authService = authService;
+            this.googleAuthService = googleAuthService;
         }
 
         [RelayCommand]
@@ -59,6 +66,52 @@ namespace FitTrackr.MAUI.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task LoginWithGoogleAsync()
+        {
+            IsGoogleLoading = true;
+
+            try
+            {
+                // 1. WebAuthenticator ile Google akışını başlat — authorization code al
+                var oauthResult = await googleAuthService.GetAuthorizationCodeAsync();
+
+                // Kullanıcı iptal ettiyse ya da hata oluştuysa — sessizce çık
+                if (oauthResult == null)
+                    return;
+
+                // 2. Backend'e code + code_verifier gönder — JWT al
+                var success = await authService.GoogleLoginAsync(
+                    oauthResult.Code,
+                    oauthResult.CodeVerifier,
+                    oauthResult.RedirectUri);
+
+                if (success)
+                {
+                    Application.Current.MainPage = IPlatformApplication.Current.Services.GetService<AppShell>();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Hata",
+                        "Google ile giriş yapılamadı. Lütfen tekrar deneyin.",
+                        "Tamam");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Google login hatası: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Hata",
+                    "Bir hata oluştu. Lütfen tekrar deneyin.",
+                    "Tamam");
+            }
+            finally
+            {
+                IsGoogleLoading = false;
             }
         }
 
