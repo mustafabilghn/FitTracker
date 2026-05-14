@@ -3,6 +3,7 @@ using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
 using FitTrackr.API.Services;
 using FitTrackr.API.Services.Interfaces;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -253,6 +254,139 @@ namespace FitTrackr.API.Controllers
                 return Ok();
 
             return BadRequest("Profil güncellenirken bir hata oluştu.");
+        }
+
+        /// <summary>
+        /// Google, tarayıcı üzerinden bu endpoint'e authorization code gönderir.
+        /// Backend kodu doğrudan işlemek yerine fittrackr:// deep link ile MAUI'ye iletir.
+        /// Bu sayede Web OAuth client ile HTTPS redirect kullanılabilir.
+        /// </summary>
+        [HttpGet]
+        [Route("google-callback")]
+        public IActionResult GoogleCallback(
+            [FromQuery] string? code,
+            [FromQuery] string? state,
+            [FromQuery] string? error)
+        {
+            if (!string.IsNullOrEmpty(error))
+            {
+                return Redirect(
+                    $"fittrackr://auth?error={Uri.EscapeDataString(error)}");
+            }
+
+            if (string.IsNullOrEmpty(code))
+                return BadRequest("Authorization code eksik.");
+
+            // Kodu ve state'i MAUI deep link'ine aktar — WebAuthenticator yakalar
+            var deepLink = $"fittrackr://auth?code={Uri.EscapeDataString(code)}";
+            if (!string.IsNullOrEmpty(state))
+                deepLink += $"&state={Uri.EscapeDataString(state)}";
+
+            return Redirect(deepLink);
+        }
+
+        /// <summary>
+        /// Google OAuth PKCE akışından gelen authorization code'u backend'de token exchange ile doğrular.
+        /// client_secret yalnızca backend'de tutulur; MAUI uygulaması kodu görmez.
+        /// </summary>
+        [HttpPost]
+        [Route("google-login")]
+        public async Task<IActionResult> GoogleLogin(
+            [FromBody] GoogleLoginRequestDto request,
+            [FromServices] IGoogleAuthService googleAuthService)
+        {
+            if (string.IsNullOrWhiteSpace(request.Code) ||
+                string.IsNullOrWhiteSpace(request.CodeVerifier) ||
+                string.IsNullOrWhiteSpace(request.RedirectUri))
+                return BadRequest("Code, CodeVerifier ve RedirectUri zorunludur.");
+
+            // 1. Kodu backend'de id_token ile değiştir ve Google key'leriyle doğrula
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                payload = await googleAuthService.ExchangeAndValidateCodeAsync(
+                    request.Code,
+                    request.CodeVerifier,
+                    request.RedirectUri);
+            }
+            catch (InvalidJwtException)
+            {
+                return BadRequest("Geçersiz veya süresi dolmuş Google token.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            var email = payload.Email;
+            var googleUserId = payload.Subject; // Google'ın kalıcı kullanıcı kimliği
+            var displayName = payload.Name ?? payload.GivenName ?? email.Split('@')[0];
+
+            // 2. Bu Google hesabına bağlı mevcut kullanıcıyı ara
+            var user = await userManager.FindByLoginAsync("Google", googleUserId);
+
+            if (user == null)
+            {
+                // 3. Aynı e-posta ile normal hesap açılmış olabilir — var mı kontrol et
+                user = await userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    // 4. Tamamen yeni kullanıcı — oluştur
+                    var username = await GenerateUniqueUsernameAsync(displayName);
+
+                    user = new IdentityUser
+                    {
+                        UserName = username,
+                        Email = email,
+                        // Google zaten e-postayı doğrulamıştır
+                        EmailConfirmed = true
+                    };
+
+                    var createResult = await userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                    {
+                        var errors = string.Join(" ", createResult.Errors.Select(e => e.Description));
+                        return BadRequest(errors);
+                    }
+
+                    await userManager.AddToRolesAsync(user, new[] { "Reader", "Writer" });
+                }
+
+                // 5. Google login bilgisini hesaba bağla (mevcut veya yeni hesap)
+                await userManager.AddLoginAsync(
+                    user,
+                    new UserLoginInfo("Google", googleUserId, "Google"));
+            }
+
+            // 6. Mevcut JWT altyapısını kullanarak token üret
+            var roles = await userManager.GetRolesAsync(user);
+            var jwtToken = tokenRepository.CreateJWTToken(user, roles.ToList());
+
+            return Ok(new LoginResponseDto { JwtToken = jwtToken });
+        }
+
+        /// <summary>
+        /// Google display name'inden benzersiz bir kullanıcı adı üretir.
+        /// Çakışma durumunda sonuna sayı ekler: "JohnDoe", "JohnDoe1", "JohnDoe2" ...
+        /// </summary>
+        private async Task<string> GenerateUniqueUsernameAsync(string displayName)
+        {
+            // Sadece Identity'nin izin verdiği karakterleri tut
+            var sanitized = new string(displayName
+                .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_')
+                .ToArray());
+
+            if (string.IsNullOrWhiteSpace(sanitized))
+                sanitized = "user";
+
+            var candidate = sanitized;
+            var counter = 1;
+
+            while (await userManager.FindByNameAsync(candidate) != null)
+                candidate = $"{sanitized}{counter++}";
+
+            return candidate;
         }
     }
 }

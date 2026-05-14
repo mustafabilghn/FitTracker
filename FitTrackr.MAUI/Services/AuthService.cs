@@ -177,11 +177,40 @@ namespace FitTrackr.MAUI.Services
             }
         }
 
+        /// <summary>
+        /// Google PKCE akışından gelen code + code_verifier'ı backend'e gönderir.
+        /// Backend token exchange'i yapıp JWT döner; bu JWT SecureStorage'a kaydedilir.
+        /// </summary>
+        public async Task<bool> GoogleLoginAsync(string code, string codeVerifier, string redirectUri)
+        {
+            var request = new { Code = code, CodeVerifier = codeVerifier, RedirectUri = redirectUri };
+            var response = await _httpClient.PostAsJsonAsync("api/auth/google-login", request);
+
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            var result = await response.Content.ReadFromJsonAsync<LoginResponseDto>(jsonSerializerOptions);
+
+            if (result?.JwtToken == null)
+                return false;
+
+            await SecureStorage.SetAsync("jwt_token", result.JwtToken);
+
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.JwtToken);
+
+            // E-posta dahil tüm bilgileri JWT'den çıkar (Google login'de e-posta parametre değil JWT'den gelir)
+            ExtractAndCacheUserInfo(result.JwtToken, string.Empty);
+
+            return true;
+        }
+
         public void Logout()
         {
             SecureStorage.Remove("jwt_token");
             Preferences.Remove("username");
             Preferences.Remove("user_email");
+            _httpClient.DefaultRequestHeaders.Authorization = null;
         }
 
         public async Task<bool> DeleteAccountAsync()
@@ -206,8 +235,8 @@ namespace FitTrackr.MAUI.Services
             }
         }
 
-        // JWT'den "unique_name" claim'ini okuyarak display name ve e-postayı Preferences'a yazar.
-        // Sayfa ilk açılışında Preferences'tan hızla yükleme yapılabilmesi için gereklidir.
+        // JWT claim'lerinden display name ve e-postayı Preferences'a yazar.
+        // email parametresi boşsa (Google login) e-posta JWT'den okunur.
         private static void ExtractAndCacheUserInfo(string jwtToken, string email)
         {
             try
@@ -221,7 +250,18 @@ namespace FitTrackr.MAUI.Services
                 if (!string.IsNullOrWhiteSpace(displayName))
                     Preferences.Set("username", displayName);
 
-                Preferences.Set("user_email", email);
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    Preferences.Set("user_email", email);
+                }
+                else
+                {
+                    // Google login: e-postayı JWT'deki "email" claim'inden çıkar
+                    var jwtEmail = jwt.Claims
+                        .FirstOrDefault(c => c.Type == "email")?.Value;
+                    if (!string.IsNullOrWhiteSpace(jwtEmail))
+                        Preferences.Set("user_email", jwtEmail);
+                }
             }
             catch (Exception ex)
             {

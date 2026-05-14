@@ -66,6 +66,68 @@
                 </Label.GestureRecognizers>
             </Label>
 
+            <!-- ──── Ayırıcı ──── -->
+            <Grid Margin="0,4,0,4">
+                <BoxView HeightRequest="1"
+                         BackgroundColor="#2E2E2E"
+                         VerticalOptions="Center"/>
+                <Frame BackgroundColor="#121212"
+                       Padding="12,0"
+                       HasShadow="False"
+                       BorderColor="Transparent"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center">
+                    <Label Text="veya"
+                           TextColor="#666666"
+                           FontSize="12"/>
+                </Frame>
+            </Grid>
+
+            <!-- ──── Google ile Devam Et ──── -->
+            <!--
+                NOT: Google logo görselini aşağıdaki adımlarla ekleyin:
+                1. https://developers.google.com/identity/branding-guidelines adresinden
+                   resmi Google "G" logosunu indirin.
+                2. Dosyayı "google_logo.png" adıyla Resources/Images/ klasörüne kopyalayın.
+                3. .csproj'da <MauiImage Include="Resources\Images\*" /> zaten tanımlı,
+                   ek işlem gerekmez.
+            -->
+            <Frame CornerRadius="10"
+                   BackgroundColor="White"
+                   Padding="0"
+                   HasShadow="True"
+                   BorderColor="#DADCE0"
+                   IsEnabled="{Binding IsNotLoading}">
+                <Grid ColumnDefinitions="44,*,44"
+                      HeightRequest="52">
+
+                    <!-- Google "G" logosu -->
+                    <Image Grid.Column="0"
+                           Source="google_logo.png"
+                           HeightRequest="22"
+                           WidthRequest="22"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+
+                    <Label Grid.Column="1"
+                           Text="Google ile devam et"
+                           TextColor="#3C4043"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Grid>
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding LoginWithGoogleCommand}"/>
+                </Frame.GestureRecognizers>
+            </Frame>
+
+            <!-- Google yükleniyor göstergesi -->
+            <ActivityIndicator IsRunning="{Binding IsGoogleLoading}"
+                               IsVisible="{Binding IsGoogleLoading}"
+                               Color="#4285F4"
+                               HorizontalOptions="Center"/>
+
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
                 <Label Text="Hesabın yok mu?"
                        TextColor="#AAAAAA"
