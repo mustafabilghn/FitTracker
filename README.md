@@ -269,7 +269,7 @@ Jwt__Key            →  jwt_gizli_anahtari
 <p align="center">
   <img src="docs/screenshots/login.jpg" width="220"/>
   <img src="docs/screenshots/workouts.jpg" width="220"/>
-  <img src="docs/screenshots/progress.jpg" width="220"/>
+  <img src="docs/screenshots/reports.jpg" width="220"/>
 </p>
 
 <p align="center">
