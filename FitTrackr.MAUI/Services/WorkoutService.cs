@@ -1,4 +1,7 @@
+using FitTrackr.MAUI.Models;
 using FitTrackr.MAUI.Models.DTO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -72,6 +75,33 @@ namespace FitTrackr.MAUI.Services
 
             return await response.Content.ReadFromJsonAsync<AiWorkoutInsightDto>(_jsonOptions)
                 ?? new AiWorkoutInsightDto();
+        }
+
+        public async Task<FitBotChatResponseDto> SendFitBotMessageAsync(
+            string message,
+            string actionType,
+            IEnumerable<FitBotChatMessage> history)
+        {
+            var conversationHistory = history
+                .Select(m => new FitBotConversationMessage
+                {
+                    Role = m.IsFromUser ? "user" : "assistant",
+                    Content = m.Text
+                })
+                .ToList();
+
+            var request = new FitBotChatRequestDto
+            {
+                Message = message,
+                ActionType = actionType,
+                ConversationHistory = conversationHistory
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("api/workout/fitbot/chat", request, _jsonOptions);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<FitBotChatResponseDto>(_jsonOptions)
+                ?? new FitBotChatResponseDto();
         }
     }
 }

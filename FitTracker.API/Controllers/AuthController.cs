@@ -1,4 +1,5 @@
 using FitTrackr.API.Data;
+using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
 using FitTrackr.API.Services;
@@ -16,13 +17,13 @@ namespace FitTrackr.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly ITokenRepository tokenRepository;
         private readonly IEmailService emailService;
         private readonly PasswordResetService passwordResetService;
 
         public AuthController(
-            UserManager<IdentityUser> userManager,
+            UserManager<ApplicationUser> userManager,
             ITokenRepository tokenRepository,
             IEmailService emailService,
             PasswordResetService passwordResetService)
@@ -45,7 +46,7 @@ namespace FitTrackr.API.Controllers
             if (existingUsername != null)
                 return BadRequest("Bu kullanıcı adı zaten kullanılıyor.");
 
-            var user = new IdentityUser
+            var user = new ApplicationUser
             {
                 UserName = registerRequestDto.Username,
                 Email = registerRequestDto.Email
@@ -335,7 +336,7 @@ namespace FitTrackr.API.Controllers
                     // 4. Tamamen yeni kullanıcı — oluştur
                     var username = await GenerateUniqueUsernameAsync(displayName);
 
-                    user = new IdentityUser
+                    user = new ApplicationUser
                     {
                         UserName = username,
                         Email = email,

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.StreakDetailPage"
+             BackgroundColor="#121212"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Üst navigasyon -->
+            <Grid Padding="16,52,16,8"
+                  ColumnDefinitions="Auto,*,Auto">
+                <ImageButton Grid.Column="0"
+                             Source="arrow_left"
+                             HeightRequest="24"
+                             WidthRequest="24"
+                             BackgroundColor="Transparent"
+                             Clicked="OnBackClicked" />
+            </Grid>
+
+            <!-- Alev ve Sayı -->
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 Spacing="0"
+                                 Padding="0,8,0,0">
+                <Grid HorizontalOptions="Center">
+                    <Image Source="streak_flame"
+                           HeightRequest="180"
+                           WidthRequest="140"
+                           HorizontalOptions="Center" />
+                    <Label x:Name="StreakNumberLabel"
+                           FontSize="64"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           Margin="0,20,0,0" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Başlık -->
+            <Label Text="HAFTALIK SERİ"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   Margin="0,16,0,4" />
+
+            <Label x:Name="RecordLabel"
+                   FontSize="15"
+                   TextColor="#AAAAAA"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,24" />
+
+            <!-- Bilgi Kartı -->
+            <Frame Margin="24,0,24,16"
+                   CornerRadius="16"
+                   BackgroundColor="#1E1E1E"
+                   BorderColor="#333"
+                   Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="HAFTALIK SERİ NASIL ÇALIŞIR?"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="#FF7043" />
+                    <Label Text="• Her hafta en az 1 egzersiz kaydet → seri +1"
+                           FontSize="14"
+                           TextColor="#CCCCCC" />
+                    <Label Text="• Bir hafta boyunca hiç kayıt yapmazsan seri sıfırlanır"
+                           FontSize="14"
+                           TextColor="#CCCCCC" />
+                    <Label Text="• Haftalar Pazartesi–Pazar döngüsüyle hesaplanır"
+                           FontSize="14"
+                           TextColor="#CCCCCC" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Motivasyon Mesajı -->
+            <Frame Margin="24,0,24,32"
+                   CornerRadius="16"
+                   BackgroundColor="#1E1E1E"
+                   BorderColor="#333"
+                   Padding="20">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="🔥"
+                           FontSize="28"
+                           HorizontalOptions="Center" />
+                    <Label x:Name="MotivationLabel"
+                           FontSize="15"
+                           TextColor="#DDDDDD"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

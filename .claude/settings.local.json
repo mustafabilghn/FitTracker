@@ -4,7 +4,15 @@
       "Bash(dotnet build *)",
       "Bash(findstr /i \"error\")",
       "Bash(Select-String \"error\")",
-      "PowerShell(Move-Item -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Splash\\\\indir.svg\" -Destination \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Images\\\\indir.svg\")"
+      "PowerShell(Move-Item -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Splash\\\\indir.svg\" -Destination \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.MAUI\\\\Resources\\\\Images\\\\indir.svg\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(findstr /i \"error hata\")",
+      "Bash(Select-String \" Error\")",
+      "Bash(dotnet ef *)",
+      "Bash(dir \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\Migrations\\\\FitTrackrAuthDb\\\\\" 2>&1)",
+      "Bash(dotnet user-secrets *)",
+      "PowerShell([System.Environment]::GetEnvironmentVariables\\(\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List; [System.Environment]::GetEnvironmentVariables\\('User'\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List)"
     ]
   }
 }

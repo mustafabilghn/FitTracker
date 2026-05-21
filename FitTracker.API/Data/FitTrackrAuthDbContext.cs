@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FitTrackr.API.Models.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitTrackr.API.Data
 {
-    public class FitTrackrAuthDbContext : IdentityDbContext
+    public class FitTrackrAuthDbContext : IdentityDbContext<ApplicationUser>
     {
         public FitTrackrAuthDbContext(DbContextOptions<FitTrackrAuthDbContext> options) : base(options)
         {
