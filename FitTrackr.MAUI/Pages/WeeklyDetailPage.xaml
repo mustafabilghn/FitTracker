@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FitTrackr.MAUI.Pages.WeeklyDetailPage"
+             BackgroundColor="#121212"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Üst navigasyon -->
+            <Grid Padding="16,52,16,8"
+                  ColumnDefinitions="Auto,*,Auto">
+                <ImageButton Grid.Column="0"
+                             Source="arrow_left"
+                             HeightRequest="24"
+                             WidthRequest="24"
+                             BackgroundColor="Transparent"
+                             Clicked="OnBackClicked" />
+            </Grid>
+
+            <!-- İkon ve Sayı -->
+            <VerticalStackLayout HorizontalOptions="Center"
+                                 Spacing="0"
+                                 Padding="0,16,0,0">
+                <Label Text="📊"
+                       FontSize="80"
+                       HorizontalOptions="Center" />
+                <Label x:Name="CountLabel"
+                       FontSize="64"
+                       FontAttributes="Bold"
+                       TextColor="#4CAF50"
+                       HorizontalOptions="Center"
+                       Margin="0,8,0,0" />
+            </VerticalStackLayout>
+
+            <!-- Başlık -->
+            <Label Text="BU HAFTA"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   Margin="0,12,0,4" />
+
+            <Label x:Name="DateRangeLabel"
+                   FontSize="14"
+                   TextColor="#AAAAAA"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,24" />
+
+            <!-- Günler Kartı -->
+            <Frame Margin="24,0,24,16"
+                   CornerRadius="16"
+                   BackgroundColor="#1E1E1E"
+                   BorderColor="#333"
+                   Padding="20">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="HAFTALIK HEDEF"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="#4CAF50" />
+
+                    <!-- Gün göstergeleri -->
+                    <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+                          ColumnSpacing="6">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DayMon" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="S" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DayTue" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="Ç" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DayWed" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DayThu" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="4" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="C" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DayFri" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="5" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="C" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DaySat" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="6" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label x:Name="DaySun" Text="○" FontSize="18" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="✔ = Antrenman yapılan gün"
+                           FontSize="12"
+                           TextColor="#666666"
+                           Margin="0,4,0,0" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Bilgi Kartı -->
+            <Frame Margin="24,0,24,16"
+                   CornerRadius="16"
+                   BackgroundColor="#1E1E1E"
+                   BorderColor="#333"
+                   Padding="20">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="HAFTALIK ANTRENMAN SAYISI NASIL ÇALIŞIR?"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="#4CAF50" />
+                    <Label Text="Haftada kaç farklı gün antrenman yaptığını gösterir. Bir günde birden fazla antrenman kaydetsen bile o gün tek sayılır."
+                           FontSize="14"
+                           TextColor="#CCCCCC"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Motivasyon -->
+            <Frame Margin="24,0,24,32"
+                   CornerRadius="16"
+                   BackgroundColor="#1E1E1E"
+                   BorderColor="#333"
+                   Padding="20">
+                <Label x:Name="MotivationLabel"
+                       FontSize="15"
+                       TextColor="#DDDDDD"
+                       HorizontalTextAlignment="Center"
+                       LineBreakMode="WordWrap" />
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

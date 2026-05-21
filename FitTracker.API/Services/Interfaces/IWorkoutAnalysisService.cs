@@ -6,6 +6,7 @@ namespace FitTrackr.API.Services.Interfaces
     public interface IWorkoutAnalysisService
     {
         Task<WorkoutAnalysisDto> GetAnalysisAsync(string userId);
+        Task<FitBotContextDto> GetFitBotContextAsync(string userId);
     }
 }
 

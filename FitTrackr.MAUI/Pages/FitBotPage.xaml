@@ -137,7 +137,8 @@
             ColumnSpacing="10">
             <Entry
                 Grid.Column="0"
-                Placeholder="Bir mesaj yaz"
+                Keyboard="Default"
+                Placeholder="Bir mesaj yaz..."
                 PlaceholderColor="#888888"
                 ReturnCommand="{Binding SendMessageCommand}"
                 ReturnType="Send"

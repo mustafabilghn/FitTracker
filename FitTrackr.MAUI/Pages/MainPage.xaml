@@ -26,7 +26,10 @@
                            Padding="16"
                            HasShadow="True"
                            BorderColor="#333">
-                        <VerticalStackLayout Spacing="6">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnStreakCardTapped" />
+                        </Frame.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
                             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                                 <Image Source="streak_flame"
                                        HeightRequest="38"
@@ -38,9 +41,12 @@
                                        TextColor="#FF7043"
                                        VerticalOptions="Center" />
                             </HorizontalStackLayout>
-                            <Label Text="Günlük Seri"
+                            <Label Text="Haftalık Seri"
                                    FontSize="13"
                                    TextColor="#AAAAAA" />
+                            <Label Text="{Binding StreakRecord, StringFormat='Rekor: {0} Hafta'}"
+                                   FontSize="11"
+                                   TextColor="#666666" />
                         </VerticalStackLayout>
                     </Frame>
 
@@ -51,7 +57,10 @@
                            Padding="16"
                            HasShadow="True"
                            BorderColor="#333">
-                        <VerticalStackLayout Spacing="6">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnWeeklyCardTapped" />
+                        </Frame.GestureRecognizers>
+                        <VerticalStackLayout Spacing="4">
                             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                                 <Image Source="weekly_chart"
                                        HeightRequest="38"
@@ -66,6 +75,9 @@
                             <Label Text="Bu Hafta"
                                    FontSize="13"
                                    TextColor="#AAAAAA" />
+                            <Label Text="Antrenman günü"
+                                   FontSize="11"
+                                   TextColor="#666666" />
                         </VerticalStackLayout>
                     </Frame>
                 </Grid>

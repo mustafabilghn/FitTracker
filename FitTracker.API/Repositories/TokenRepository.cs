@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using FitTrackr.API.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,7 +15,7 @@ namespace FitTrackr.API.Repositories
             this.configuration = configuration;
         }
 
-        public string CreateJWTToken(IdentityUser user, List<string> roles)
+        public string CreateJWTToken(ApplicationUser user, List<string> roles)
         {
             var claims = new List<Claim>
             {

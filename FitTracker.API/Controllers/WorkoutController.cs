@@ -95,6 +95,29 @@ namespace FitTrackr.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("fitbot/chat")]
+        [Authorize]
+        public async Task<IActionResult> FitBotChat(
+            [FromBody] FitBotChatRequestDto requestDto,
+            [FromServices] IAiWorkoutCoachService aiWorkoutCoachService,
+            [FromServices] ISubscriptionService subscriptionService,
+            [FromServices] IValidator<FitBotChatRequestDto> validator)
+        {
+            var validationError = await ValidateAsync(validator, requestDto);
+            if (validationError is not null)
+                return validationError;
+
+            var userId = getUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            if (!await subscriptionService.IsPremiumAsync(userId))
+                return StatusCode(403, "Bu özellik premium abonelere özeldir.");
+
+            var result = await aiWorkoutCoachService.ChatAsync(userId, requestDto);
+            return Ok(result);
+        }
+
         [HttpPut]
         [Route("{id:guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateWorkoutRequestDto requestDto, [FromServices] IValidator<UpdateWorkoutRequestDto> validator)

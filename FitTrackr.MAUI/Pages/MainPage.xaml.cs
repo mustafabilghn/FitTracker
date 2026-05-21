@@ -1,5 +1,6 @@
 using FitTrackr.MAUI.Services;
 using FitTrackr.MAUI.Messages;
+using FitTrackr.MAUI.Pages;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Storage;
 using System.IdentityModel.Tokens.Jwt;
@@ -73,12 +74,20 @@ namespace FitTrackr.MAUI
 
         private string totalMaxKg = "0";
         private int streak = 0;
+        private int streakRecord = 0;
         private string weeklyWorkouts = "0";
+        private int weeklyWorkoutsCount = 0;
 
         public int Streak
         {
             get => streak;
             set { if (streak != value) { streak = value; OnPropertyChanged(); } }
+        }
+
+        public int StreakRecord
+        {
+            get => streakRecord;
+            set { if (streakRecord != value) { streakRecord = value; OnPropertyChanged(); } }
         }
 
         /// <summary>Bu haftaki benzersiz antrenman günü sayısı (Pzt–Paz).</summary>
@@ -392,45 +401,89 @@ namespace FitTrackr.MAUI
             if (activeDates.Count == 0) { WeeklyWorkouts = "0"; return; }
 
             var today = DateTime.Today;
-            int daysFromMonday = ((int)today.DayOfWeek - 1 + 7) % 7;
-            var weekStart = today.AddDays(-daysFromMonday);
+            var weekStart = GetWeekMonday(today);
 
             var count = activeDates.Count(d => d >= weekStart && d <= today);
+            weeklyWorkoutsCount = count;
             WeeklyWorkouts = count.ToString();
             System.Diagnostics.Debug.WriteLine($"[MainPage] Bu hafta: {count} gün ({weekStart:dd.MM} – {today:dd.MM})");
         }
 
         /// <summary>
-        /// Ardışık aktif günleri sayar. İki ardışık aktif gün arasındaki boşluk
-        /// 7 günü geçerse zincir kırılır ve streak = 0 olur.
-        /// "Aktif gün" = en az 1 egzersiz seti olan gün.
+        /// Haftalık seriyi hesaplar (Pazartesi–Pazar haftası bazlı).
+        /// O hafta içinde en az 1 egzersiz seti varsa o hafta "aktif" sayılır.
+        /// Tamamlanmış bir hafta boyunca hiçbir kayıt yoksa zincir kırılır.
+        /// Cari hafta henüz bitmediği için, bu hafta kayıt yoksa geçen haftaya bakılır;
+        /// geçen hafta da boşsa streak = 0.
         /// </summary>
         private void CalculateStreak(HashSet<DateTime> activeDates)
         {
             if (activeDates.Count == 0) { Streak = 0; return; }
 
-            var today = DateTime.Today;
-            var sorted = activeDates.OrderByDescending(d => d).ToList();
+            // Her aktif tarihi o haftanın Pazartesisi ile eşle
+            var activeWeeks = new HashSet<DateTime>(
+                activeDates.Select(d => GetWeekMonday(d))
+            );
 
-            // Son aktif günden bu yana 7 günden fazla geçtiyse streak sıfır
-            if ((today - sorted[0]).TotalDays > 7)
+            var thisWeekMonday = GetWeekMonday(DateTime.Today);
+            var lastWeekMonday = thisWeekMonday.AddDays(-7);
+
+            // Başlangıç haftasını belirle:
+            // Bu hafta aktifse buradan başla; yoksa geçen haftaya bak.
+            // Geçen hafta da aktif değilse streak = 0 (tamamlanmış bir hafta kaçırıldı).
+            DateTime startWeek;
+            if (activeWeeks.Contains(thisWeekMonday))
+                startWeek = thisWeekMonday;
+            else if (activeWeeks.Contains(lastWeekMonday))
+                startWeek = lastWeekMonday;
+            else
             {
                 Streak = 0;
                 return;
             }
 
-            // Ardışık günleri say; iki ardışık tarih arası > 7 gün → zincir kırılır
-            int count = 1;
-            for (int i = 0; i < sorted.Count - 1; i++)
+            // startWeek'ten geriye doğru ardışık aktif haftaları say
+            int count = 0;
+            var checkWeek = startWeek;
+            while (activeWeeks.Contains(checkWeek))
             {
-                double gap = (sorted[i] - sorted[i + 1]).TotalDays;
-                if (gap <= 7)
-                    count++;
-                else
-                    break;
+                count++;
+                checkWeek = checkWeek.AddDays(-7);
             }
 
             Streak = count;
+
+            // Rekoru güncelle
+            var savedRecord = Preferences.Get("streak_record", 0);
+            if (count > savedRecord)
+            {
+                savedRecord = count;
+                Preferences.Set("streak_record", savedRecord);
+            }
+            StreakRecord = savedRecord;
+
+            System.Diagnostics.Debug.WriteLine($"[MainPage] Haftalık seri: {count}, Rekor: {savedRecord} (başlangıç: {startWeek:dd.MM.yyyy})");
+        }
+
+        /// <summary>
+        /// Verilen tarihin bulunduğu haftanın Pazartesisini döndürür.
+        /// </summary>
+        private static DateTime GetWeekMonday(DateTime date)
+        {
+            int daysFromMonday = ((int)date.DayOfWeek - 1 + 7) % 7;
+            return date.AddDays(-daysFromMonday).Date;
+        }
+
+        private async void OnStreakCardTapped(object sender, EventArgs e)
+        {
+            var page = new StreakDetailPage(Streak, StreakRecord);
+            await Navigation.PushModalAsync(page, animated: true);
+        }
+
+        private async void OnWeeklyCardTapped(object sender, EventArgs e)
+        {
+            var page = new WeeklyDetailPage(weeklyWorkoutsCount);
+            await Navigation.PushModalAsync(page, animated: true);
         }
     }
 

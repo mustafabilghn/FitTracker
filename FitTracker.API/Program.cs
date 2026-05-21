@@ -1,6 +1,7 @@
 using FitTrackr.API.Data;
 using FitTrackr.API.Mappings;
 using FitTrackr.API.Middlewares;
+using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Repositories;
 using FitTrackr.API.Validations;
 using FitTrackr.API.Services;
@@ -18,10 +19,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var logger = new LoggerConfiguration()
+var logConfig = new LoggerConfiguration()
     .WriteTo.Console()
-    .MinimumLevel.Information()
-    .CreateLogger();
+    .MinimumLevel.Information();
+
+var logger = logConfig.CreateLogger();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
@@ -70,6 +72,7 @@ builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
+builder.Services.AddScoped<ISubscriptionService, AlwaysPremiumSubscriptionService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 // IHttpClientFactory'yi GoogleAuthService için kaydet (zaten AiWorkoutCoachService de kullanıyor)
@@ -80,6 +83,7 @@ builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(cl
     client.BaseAddress = new Uri("https://api.groq.com/openai/v1/");
 });
 
+builder.Services.AddMemoryCache();
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
@@ -89,9 +93,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-builder.Services.AddIdentityCore<IdentityUser>()
+builder.Services.AddIdentityCore<ApplicationUser>()
     .AddRoles<IdentityRole>()
-    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("FitTrackr")
+    .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("FitTrackr")
     .AddEntityFrameworkStores<FitTrackrAuthDbContext>()
     .AddDefaultTokenProviders();
 

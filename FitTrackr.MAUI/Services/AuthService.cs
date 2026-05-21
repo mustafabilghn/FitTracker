@@ -1,8 +1,9 @@
 using FitTrackr.MAUI.Models.DTO;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Diagnostics;
 
 namespace FitTrackr.MAUI.Services
 {
@@ -208,9 +209,30 @@ namespace FitTrackr.MAUI.Services
         public void Logout()
         {
             SecureStorage.Remove("jwt_token");
+            ClearLocalUserData();
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+
+        private static void ClearLocalUserData()
+        {
+            Preferences.Remove("user_id");
             Preferences.Remove("username");
             Preferences.Remove("user_email");
-            _httpClient.DefaultRequestHeaders.Authorization = null;
+            Preferences.Remove("height");
+            Preferences.Remove("weight");
+            Preferences.Remove("gender");
+            Preferences.Remove("goal");
+
+            try
+            {
+                var avatarDirectory = Path.Combine(FileSystem.AppDataDirectory, "profile");
+                if (Directory.Exists(avatarDirectory))
+                    Directory.Delete(avatarDirectory, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[AuthService] Avatar temizleme hatası: {ex.Message}");
+            }
         }
 
         public async Task<bool> DeleteAccountAsync()
@@ -235,7 +257,8 @@ namespace FitTrackr.MAUI.Services
             }
         }
 
-        // JWT claim'lerinden display name ve e-postayı Preferences'a yazar.
+        // JWT claim'lerinden userId, display name ve e-postayı Preferences'a yazar.
+        // Farklı bir kullanıcı giriş yaparsa önceki veriler otomatik temizlenir.
         // email parametresi boşsa (Google login) e-posta JWT'den okunur.
         private static void ExtractAndCacheUserInfo(string jwtToken, string email)
         {
@@ -243,6 +266,22 @@ namespace FitTrackr.MAUI.Services
             {
                 var handler = new JwtSecurityTokenHandler();
                 var jwt = handler.ReadJwtToken(jwtToken);
+
+                var newUserId = jwt.Claims
+                    .FirstOrDefault(c => c.Type == "nameid")?.Value ?? string.Empty;
+
+                // Farklı hesap giriş yapıyorsa önceki kullanıcının yerel verilerini temizle
+                var storedUserId = Preferences.Get("user_id", string.Empty);
+                if (!string.IsNullOrWhiteSpace(newUserId) &&
+                    !string.IsNullOrWhiteSpace(storedUserId) &&
+                    storedUserId != newUserId)
+                {
+                    Debug.WriteLine("[AuthService] Farklı kullanıcı tespit edildi, yerel veriler temizleniyor.");
+                    ClearLocalUserData();
+                }
+
+                if (!string.IsNullOrWhiteSpace(newUserId))
+                    Preferences.Set("user_id", newUserId);
 
                 var displayName = jwt.Claims
                     .FirstOrDefault(c => c.Type == "unique_name")?.Value;
