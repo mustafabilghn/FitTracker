@@ -15,7 +15,6 @@ namespace FitTrackr.MAUI
     {
         private readonly AuthService authService;
         private readonly WorkoutService workoutService;
-        private readonly ExerciseService exerciseService;
 
         private string username = string.Empty;
         private ImageSource? avatarImageSource;
@@ -130,13 +129,12 @@ namespace FitTrackr.MAUI
             }
         }
 
-        public MainPage(WorkoutService workoutService, AuthService authService, ExerciseService exerciseService)
+        public MainPage(WorkoutService workoutService, AuthService authService)
         {
             InitializeComponent();
             BindingContext = this;
             this.authService = authService;
             this.workoutService = workoutService;
-            this.exerciseService = exerciseService;
         }
 
         protected override void OnAppearing()
@@ -278,111 +276,37 @@ namespace FitTrackr.MAUI
         }
 
         /// <summary>
-        /// ✅ FUT CARD STATS: Tüm antrenmanları tarayıp her egzersiz için en yüksek ağırlığı bul
-        /// 
-        /// Mantık:
-        /// 1. Tüm workout'ları çek
-        /// 2. Her workout'ta exercise'ları dolaş
-        /// 3. Exercise adına göre filtrele (Bench Press, Squat, Deadlift, Barbell Row)
-        /// 4. Her exercise'ın SetNumber'lara göre sırala ve beste WeightInKg bul
-        /// 5. Property'lere ata
-        /// 
-        /// NOT: ProgressViewModel ile aynı mantık kullanılıyor (best weight detection)
+        /// FUT CARD STATS: Tek bir dashboard endpoint'i ile tüm home screen verisini çeker.
+        /// Eski implementasyon: 1 + N + N×M API çağrısı (paralel olsa bile çok fazla round-trip).
+        /// Yeni implementasyon: 1 API çağrısı — backend hesaplayıp döndürüyor.
         /// </summary>
         private async Task LoadFutCardStatsAsync()
         {
             try
             {
-                var workoutSummaries = await workoutService.GetWorkoutsAsync();
+                var dashboard = await workoutService.GetDashboardAsync();
 
-                // Compound hareketler için max ağırlık tablosu (kart sırasıyla)
-                var maxWeights = new Dictionary<string, double>
-                {
-                    ["BP"] = 0,   // Bench Press
-                    ["SQ"] = 0,   // Squat
-                    ["DL"] = 0,   // Deadlift
-                    ["BR"] = 0,   // Barbell Row
-                    ["OP"] = 0    // Overhead Press
-                };
+                // Compound PR'ları güncelle
+                HasBP = dashboard.BenchPressMaxKg > 0; BPValue = dashboard.BenchPressMaxKg.ToString("0");
+                HasSQ = dashboard.SquatMaxKg > 0;      SQValue = dashboard.SquatMaxKg.ToString("0");
+                HasDL = dashboard.DeadliftMaxKg > 0;   DLValue = dashboard.DeadliftMaxKg.ToString("0");
+                HasBR = dashboard.BarbellRowMaxKg > 0; BRValue = dashboard.BarbellRowMaxKg.ToString("0");
+                HasOP = dashboard.OhpMaxKg > 0;        OPValue = dashboard.OhpMaxKg.ToString("0");
 
-                // Yalnızca en az 1 set içeren antrenman günleri sayılır.
-                var activeDates = new HashSet<DateTime>();
+                // Overall rating
+                var activeValues = new[] {
+                    dashboard.BenchPressMaxKg, dashboard.SquatMaxKg,
+                    dashboard.DeadliftMaxKg, dashboard.BarbellRowMaxKg, dashboard.OhpMaxKg
+                }.Where(v => v > 0).ToList();
 
-                if (workoutSummaries != null && workoutSummaries.Count > 0)
-                {
-                    // ── ADIM 1: Tüm workout detaylarını PARALEL çek ──────────────────
-                    // Eski: N sıralı await → her biri bir öncekini bekler
-                    // Yeni: hepsi aynı anda, toplam süre en yavaş isteğin süresi kadar
-                    var workoutDetailTasks = workoutSummaries
-                        .Select(s => workoutService.GetWorkoutByIdAsync(s.Id));
-                    var workoutDetails = await Task.WhenAll(workoutDetailTasks);
+                TotalMaxKg = activeValues.Count >= 3
+                    ? Math.Round(activeValues.Average(), MidpointRounding.AwayFromZero).ToString("0")
+                    : "0";
 
-                    // ── ADIM 2: Tüm egzersiz ID'lerini ve tarihlerini topla ──────────
-                    var exerciseRequests = workoutSummaries
-                        .Zip(workoutDetails, (summary, detail) => (summary.WorkoutDate, detail))
-                        .Where(p => p.detail?.Exercises != null)
-                        .SelectMany(p => p.detail.Exercises
-                            .Select(e => (WorkoutDate: p.WorkoutDate, ExerciseId: e.Id)))
-                        .ToList();
+                // Streak ve haftalık antrenman sayısı
+                var activeDates = new HashSet<DateTime>(
+                    dashboard.ActiveDates.Select(d => d.Date));
 
-                    // ── ADIM 3: Tüm egzersiz detaylarını PARALEL çek ─────────────────
-                    var exerciseDetailTasks = exerciseRequests
-                        .Select(r => exerciseService.GetExerciseByIdAsync(r.ExerciseId));
-                    var exerciseDetails = await Task.WhenAll(exerciseDetailTasks);
-
-                    // ── ADIM 4: Sonuçları işle ───────────────────────────────────────
-                    for (int i = 0; i < exerciseDetails.Length; i++)
-                    {
-                        var exercise = exerciseDetails[i];
-                        var workoutDate = exerciseRequests[i].WorkoutDate;
-
-                        if (exercise?.ExerciseSets == null || exercise.ExerciseSets.Count == 0) continue;
-
-                        activeDates.Add(workoutDate.Date);
-
-                        var maxInSet = exercise.ExerciseSets.Max(s => s.WeightInKg);
-                        var name = exercise.ExerciseName ?? string.Empty;
-
-                        if (name.Contains("Bench Press", StringComparison.OrdinalIgnoreCase) ||
-                            name.Contains("Bench", StringComparison.OrdinalIgnoreCase))
-                            maxWeights["BP"] = Math.Max(maxWeights["BP"], maxInSet);
-                        else if (name.Contains("Squat", StringComparison.OrdinalIgnoreCase))
-                            maxWeights["SQ"] = Math.Max(maxWeights["SQ"], maxInSet);
-                        else if (name.Contains("Deadlift", StringComparison.OrdinalIgnoreCase))
-                            maxWeights["DL"] = Math.Max(maxWeights["DL"], maxInSet);
-                        else if (name.Contains("Barbell Row", StringComparison.OrdinalIgnoreCase) ||
-                                 name.Contains("Rows", StringComparison.OrdinalIgnoreCase))
-                            maxWeights["BR"] = Math.Max(maxWeights["BR"], maxInSet);
-                        else if (name.Contains("Overhead Press", StringComparison.OrdinalIgnoreCase) ||
-                                 name.Contains("OHP", StringComparison.OrdinalIgnoreCase) ||
-                                 name.Contains("Shoulder Press", StringComparison.OrdinalIgnoreCase))
-                            maxWeights["OP"] = Math.Max(maxWeights["OP"], maxInSet);
-                    }
-                }
-
-                // Sabit pozisyonlu property'leri güncelle
-                HasBP = maxWeights["BP"] > 0; BPValue = maxWeights["BP"].ToString("0");
-                HasSQ = maxWeights["SQ"] > 0; SQValue = maxWeights["SQ"].ToString("0");
-                HasDL = maxWeights["DL"] > 0; DLValue = maxWeights["DL"].ToString("0");
-                HasBR = maxWeights["BR"] > 0; BRValue = maxWeights["BR"].ToString("0");
-                HasOP = maxWeights["OP"] > 0; OPValue = maxWeights["OP"].ToString("0");
-
-                // Overall: en az 3 egzersiz varsa ortalama, en yakın birliğe yuvarla
-                var activeValues = maxWeights.Values.Where(v => v > 0).ToList();
-                if (activeValues.Count >= 3)
-                {
-                    var avg = activeValues.Average();
-                    var rounded = Math.Round(avg, MidpointRounding.AwayFromZero);
-                    TotalMaxKg = rounded.ToString("0");
-                }
-                else
-                {
-                    TotalMaxKg = "0";
-                }
-
-                System.Diagnostics.Debug.WriteLine($"[MainPage] FUT Stats: {activeValues.Count} egzersiz, Overall={TotalMaxKg}, AktifGün={activeDates.Count}");
-
-                // ── Streak ve bu haftaki antrenmanlar (yalnızca aktif günler) ──
                 CalculateStreak(activeDates);
                 CalculateWeeklyWorkouts(activeDates);
             }
@@ -453,16 +377,38 @@ namespace FitTrackr.MAUI
 
             Streak = count;
 
-            // Rekoru güncelle
-            var savedRecord = Preferences.Get("streak_record", 0);
-            if (count > savedRecord)
-            {
-                savedRecord = count;
-                Preferences.Set("streak_record", savedRecord);
-            }
-            StreakRecord = savedRecord;
+            // Rekor: tüm geçmiş haftalara bakarak en uzun ardışık seriyi hesapla
+            StreakRecord = CalculateMaxStreak(activeWeeks);
 
-            System.Diagnostics.Debug.WriteLine($"[MainPage] Haftalık seri: {count}, Rekor: {savedRecord} (başlangıç: {startWeek:dd.MM.yyyy})");
+            System.Diagnostics.Debug.WriteLine($"[MainPage] Haftalık seri: {count}, Rekor: {StreakRecord} (başlangıç: {startWeek:dd.MM.yyyy})");
+        }
+
+        /// <summary>
+        /// Tüm aktif haftalar içindeki en uzun ardışık hafta serisini döndürür.
+        /// Her hafta kendi geçmişiyle dinamik olarak hesaplanır — Preferences'a bağımlılık yok.
+        /// </summary>
+        private static int CalculateMaxStreak(HashSet<DateTime> activeWeeks)
+        {
+            if (activeWeeks.Count == 0) return 0;
+
+            var sorted = activeWeeks.OrderBy(w => w).ToList();
+            int maxStreak = 1;
+            int current = 1;
+
+            for (int i = 1; i < sorted.Count; i++)
+            {
+                if ((sorted[i] - sorted[i - 1]).TotalDays == 7)
+                {
+                    current++;
+                    if (current > maxStreak) maxStreak = current;
+                }
+                else
+                {
+                    current = 1;
+                }
+            }
+
+            return maxStreak;
         }
 
         /// <summary>

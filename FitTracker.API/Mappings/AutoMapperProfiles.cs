@@ -15,7 +15,9 @@ namespace FitTrackr.API.Mappings
 
             CreateMap<WorkoutRequestDto, Workout>().ReverseMap();
             CreateMap<Workout, WorkoutDto>().ReverseMap();
-            CreateMap<Workout, WorkoutSummaryDto>().ReverseMap();
+            CreateMap<Workout, WorkoutSummaryDto>()
+                .ForMember(dest => dest.ExerciseCount, opt => opt.MapFrom(src => src.Exercises != null ? src.Exercises.Count : 0))
+                .ReverseMap();
             CreateMap<UpdateWorkoutRequestDto, Workout>().ReverseMap();
 
             CreateMap<Location, LocationDto>().ReverseMap();

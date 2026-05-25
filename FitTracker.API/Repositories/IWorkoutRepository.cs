@@ -1,4 +1,5 @@
 ﻿using FitTrackr.API.Models.Domain;
+using FitTrackr.API.Models.DTO;
 
 namespace FitTrackr.API.Repositories
 {
@@ -13,5 +14,7 @@ namespace FitTrackr.API.Repositories
         Task<Workout?> UpdateAsync(Guid id, Workout workout);
 
         Task<Workout?> DeleteAsync(Guid id);
+
+        Task<DashboardSummaryDto> GetDashboardAsync(string userId);
     }
 }

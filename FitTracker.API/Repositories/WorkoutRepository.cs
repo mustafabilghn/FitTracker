@@ -1,5 +1,6 @@
 using FitTrackr.API.Data;
 using FitTrackr.API.Models.Domain;
+using FitTrackr.API.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitTrackr.API.Repositories
@@ -45,6 +46,7 @@ namespace FitTrackr.API.Repositories
         {
             return await dbContext.Workouts
                 .Where(w => w.userId == userId)
+                .Include(w => w.Exercises)
                 .ToListAsync();
         }
 
@@ -54,6 +56,58 @@ namespace FitTrackr.API.Repositories
                 .Include(e => e.Exercises)
                 .ThenInclude(i => i.Intensity)
                 .FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        public async Task<DashboardSummaryDto> GetDashboardAsync(string userId)
+        {
+            var workouts = await dbContext.Workouts
+                .Where(w => w.userId == userId)
+                .Include(w => w.Exercises)
+                    .ThenInclude(e => e.ExerciseSets)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var activeDates = new HashSet<DateTime>();
+            double maxBP = 0, maxSQ = 0, maxDL = 0, maxBR = 0, maxOP = 0;
+
+            foreach (var workout in workouts)
+            {
+                foreach (var exercise in workout.Exercises ?? Enumerable.Empty<Exercise>())
+                {
+                    if (exercise?.ExerciseSets == null || exercise.ExerciseSets.Count == 0)
+                        continue;
+
+                    activeDates.Add(workout.WorkoutDate.Date);
+
+                    var maxWeight = exercise.ExerciseSets.Max(s => s.WeightInKg);
+                    var name = exercise.ExerciseName ?? string.Empty;
+
+                    if (name.Contains("Bench Press", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Bench", StringComparison.OrdinalIgnoreCase))
+                        maxBP = Math.Max(maxBP, maxWeight);
+                    else if (name.Contains("Squat", StringComparison.OrdinalIgnoreCase))
+                        maxSQ = Math.Max(maxSQ, maxWeight);
+                    else if (name.Contains("Deadlift", StringComparison.OrdinalIgnoreCase))
+                        maxDL = Math.Max(maxDL, maxWeight);
+                    else if (name.Contains("Barbell Row", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("Rows", StringComparison.OrdinalIgnoreCase))
+                        maxBR = Math.Max(maxBR, maxWeight);
+                    else if (name.Contains("Overhead Press", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("OHP", StringComparison.OrdinalIgnoreCase) ||
+                             name.Contains("Shoulder Press", StringComparison.OrdinalIgnoreCase))
+                        maxOP = Math.Max(maxOP, maxWeight);
+                }
+            }
+
+            return new DashboardSummaryDto
+            {
+                ActiveDates = activeDates.OrderBy(d => d).ToList(),
+                BenchPressMaxKg = maxBP,
+                SquatMaxKg = maxSQ,
+                DeadliftMaxKg = maxDL,
+                BarbellRowMaxKg = maxBR,
+                OhpMaxKg = maxOP
+            };
         }
 
         public async Task<Workout?> UpdateAsync(Guid id, Workout workout)
