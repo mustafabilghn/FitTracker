@@ -68,6 +68,15 @@ namespace FitTrackr.MAUI.Services
             return await response.Content.ReadFromJsonAsync<WorkoutDto>(_jsonOptions) ?? new WorkoutDto();
         }
 
+        public async Task<DashboardSummaryDto> GetDashboardAsync()
+        {
+            var response = await _httpClient.GetAsync("api/workout/dashboard");
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<DashboardSummaryDto>(_jsonOptions)
+                ?? new DashboardSummaryDto();
+        }
+
         public async Task<AiWorkoutInsightDto> GetAiInsightsAsync()
         {
             var response = await _httpClient.GetAsync("api/workout/ai-insights");

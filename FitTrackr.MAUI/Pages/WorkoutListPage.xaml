@@ -196,7 +196,20 @@
                                         FontAttributes="Bold"
                                         HorizontalOptions="Center"
                                         TextColor="White" />
-                                    
+                                    <BoxView
+                                        IsVisible="{Binding HasWorkout}"
+                                        Color="#4CAF50"
+                                        WidthRequest="18"
+                                        HeightRequest="3"
+                                        CornerRadius="2"
+                                        HorizontalOptions="Center"
+                                        Margin="0,2,0,0">
+                                        <BoxView.Triggers>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Color" Value="White" />
+                                            </DataTrigger>
+                                        </BoxView.Triggers>
+                                    </BoxView>
                                 </VerticalStackLayout>
                             </Border>
                         </DataTemplate>

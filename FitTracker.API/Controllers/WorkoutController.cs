@@ -66,6 +66,17 @@ namespace FitTrackr.API.Controllers
             return Ok(mapper.Map<List<WorkoutSummaryDto>>(workout));
         }
 
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboard()
+        {
+            var userId = getUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var result = await repository.GetDashboardAsync(userId);
+            return Ok(result);
+        }
+
         [HttpGet("analysis")]
         public async Task<IActionResult> GetAnalysis([FromServices] IWorkoutAnalysisService analysisService)
         {

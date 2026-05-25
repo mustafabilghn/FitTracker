@@ -24,6 +24,12 @@ namespace FitTrackr.MAUI.ViewModels
         private Guid? _selectedWorkoutId;
         private DateTime _selectedDate;
 
+        /// <summary>
+        /// ExerciseAddedMessage geldiğinde true olur. WorkoutListPage OnAppearing'de
+        /// tam reload'u atlamak için kullanılır — kart zaten güncellendi.
+        /// </summary>
+        private volatile bool _skipNextFullRefresh;
+
         public DateTime SelectedDate
         {
             get => _selectedDate;
@@ -34,6 +40,7 @@ namespace FitTrackr.MAUI.ViewModels
                     OnPropertyChanged(nameof(SelectedDateDisplay));
                     BuildWeekStrip();
                     _ = RefreshDailyWorkoutCardAsync();
+                    _ = RefreshWeekWorkoutIndicatorsAsync();
                 }
             }
         }
@@ -80,7 +87,93 @@ namespace FitTrackr.MAUI.ViewModels
             RenameWorkoutCommand = new AsyncRelayCommand<DailyWorkoutCardViewModel>(RenameWorkoutAsync);
             DeleteExerciseCommand = new AsyncRelayCommand<WorkoutExerciseItemViewModel>(DeleteExerciseAsync);
 
+            WeakReferenceMessenger.Default.Register<ExerciseAddedMessage>(this, OnExerciseAdded);
+
             SelectedDate = DateTime.Today;
+        }
+
+        /// <summary>
+        /// Egzersiz kaydedildiğinde arka planda kart güncellenir; tam reload atlanır.
+        /// </summary>
+        private async void OnExerciseAdded(object recipient, ExerciseAddedMessage message)
+        {
+            // 1. Tam reload'u atla — bu metod zaten kartı güncelleyecek
+            _skipNextFullRefresh = true;
+
+            var date = message.WorkoutDate; // zaten local date
+
+            // 2. O günün pill'ini hemen aç
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var dayItem = WeekDays.FirstOrDefault(d => d.Date == date);
+                if (dayItem != null) dayItem.HasWorkout = true;
+            });
+
+            try
+            {
+                // 3. Sadece etkilenen workout'ın detayını çek (tüm GetAll yerine tek çağrı)
+                var workoutDetail = await _workoutService.GetWorkoutByIdAsync(message.Value);
+                var detailedExercises = new List<ExerciseDto>();
+
+                foreach (var ex in workoutDetail.Exercises ?? [])
+                {
+                    try { detailedExercises.Add(await _exerciseService.GetExerciseByIdAsync(ex.Id)); }
+                    catch { detailedExercises.Add(ex); }
+                }
+
+                // 4. _workoutsByDate'i güncelle (sonraki BuildWeekStrip için)
+                if (_workoutsByDate.TryGetValue(date, out var dateWorkouts))
+                {
+                    var summary = dateWorkouts.FirstOrDefault(w => w.Id == message.Value);
+                    if (summary != null)
+                        summary.ExerciseCount = detailedExercises.Count;
+                    else if (!dateWorkouts.Any(w => w.Id == message.Value))
+                        dateWorkouts.Add(new WorkoutSummaryDto { Id = message.Value, WorkoutDate = workoutDetail.WorkoutDate, ExerciseCount = detailedExercises.Count });
+                }
+                else
+                {
+                    _workoutsByDate[date] = new List<WorkoutSummaryDto>
+                    {
+                        new() { Id = message.Value, WorkoutDate = workoutDetail.WorkoutDate, ExerciseCount = detailedExercises.Count }
+                    };
+                }
+
+                // 5. Kartı güncelle (seçili gün bu tarihse)
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (SelectedDate.Date != date) return;
+
+                    var card = DailyWorkouts.FirstOrDefault();
+                    if (card == null) return;
+
+                    if (!card.WorkoutId.HasValue || card.WorkoutId == Guid.Empty)
+                        card.UpdateWorkoutId(message.Value);
+
+                    card.SetExercises(detailedExercises);
+
+                    // Seçili günün pill'ini kart durumuna göre kesinleştir
+                    var dayItem = WeekDays.FirstOrDefault(d => d.Date == date);
+                    if (dayItem != null) dayItem.HasWorkout = card.HasExercises;
+                });
+            }
+            catch
+            {
+                // Hata olursa bir sonraki OnAppearing tam reload yapar
+                _skipNextFullRefresh = false;
+            }
+        }
+
+        /// <summary>
+        /// OnAppearing'den çağrılır. true dönerse tam reload atlanmalı.
+        /// </summary>
+        public bool ConsumeSkipNextFullRefresh()
+        {
+            if (_skipNextFullRefresh)
+            {
+                _skipNextFullRefresh = false;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -115,6 +208,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             BuildWeekStrip();
             await RefreshDailyWorkoutCardAsync();
+            _ = RefreshWeekWorkoutIndicatorsAsync();
         }
 
         private void OnDateSelected(WeekDayItem? day)
@@ -171,13 +265,41 @@ namespace FitTrackr.MAUI.ViewModels
                 return;
             }
 
+            // OPTİMİSTİK SİLME: Önce UI'dan kaldır, sonra API'ye gönder
+            card.RemoveExercise(exercise.ExerciseId);
+
+            // _workoutsByDate ExerciseCount güncelle
+            if (card.WorkoutId.HasValue &&
+                _workoutsByDate.TryGetValue(card.WorkoutDate.Date, out var dateWorkouts))
+            {
+                var summary = dateWorkouts.FirstOrDefault(w => w.Id == card.WorkoutId.Value);
+                if (summary != null && summary.ExerciseCount > 0)
+                    summary.ExerciseCount--;
+            }
+
+            // Egzersiz kalmadıysa pill'i kaldır
+            if (!card.HasExercises)
+            {
+                var anyLeft = DailyWorkouts
+                    .Where(c => c.WorkoutDate.Date == card.WorkoutDate.Date)
+                    .Any(c => c.HasExercises);
+
+                if (!anyLeft)
+                {
+                    var dayItem = WeekDays.FirstOrDefault(d => d.Date == card.WorkoutDate.Date);
+                    if (dayItem != null) dayItem.HasWorkout = false;
+                }
+            }
+
             try
             {
                 await _exerciseService.DeleteExerciseAsync(exercise.ExerciseId);
-                card.RemoveExercise(exercise.ExerciseId);
             }
             catch (Exception ex)
             {
+                // Rollback: API başarısız oldu, kartı yenile
+                await RefreshDailyWorkoutCardAsync();
+                _ = RefreshWeekWorkoutIndicatorsAsync();
                 await Shell.Current.DisplayAlert("Hata", $"Egzersiz silinemedi: {ex.Message}", "Tamam");
             }
         }
@@ -272,7 +394,8 @@ namespace FitTrackr.MAUI.ViewModels
                     Date = day,
                     DayLabel = culture.DateTimeFormat.GetAbbreviatedDayName(day.DayOfWeek),
                     DayNumber = day.Day.ToString(culture),
-                    IsSelected = day.Date == SelectedDate.Date
+                    IsSelected = day.Date == SelectedDate.Date,
+                    HasWorkout = _workoutsByDate.TryGetValue(day.Date, out var dayWorkouts) && dayWorkouts.Any(w => w.ExerciseCount > 0)
                 });
             }
         }
@@ -335,11 +458,50 @@ namespace FitTrackr.MAUI.ViewModels
                 }
 
                 card.SetExercises(detailedExercises);
+
+                // Seçili günün pill indikatörünü gerçek egzersiz sayısına göre güncelle
+                var dayItem = WeekDays.FirstOrDefault(d => d.Date == selectedDate);
+                if (dayItem != null)
+                    dayItem.HasWorkout = card.HasExercises;
             }
             catch
             {
                 card.SetExercises([]);
             }
+        }
+
+        /// <summary>
+        /// Haftalık şeritteki tüm günler için egzersiz varlığını arka planda kontrol eder.
+        /// Backend summary'de ExerciseCount olmasa da doğru çalışır (GetById ile doğrular).
+        /// </summary>
+        private async Task RefreshWeekWorkoutIndicatorsAsync()
+        {
+            var tasks = WeekDays
+                .Where(d => _workoutsByDate.ContainsKey(d.Date) && _workoutsByDate[d.Date].Count > 0)
+                .Select(async dayItem =>
+                {
+                    var workoutsForDay = _workoutsByDate[dayItem.Date];
+                    var hasExercises = false;
+
+                    foreach (var workout in workoutsForDay)
+                    {
+                        try
+                        {
+                            var detail = await _workoutService.GetWorkoutByIdAsync(workout.Id);
+                            if (detail.Exercises != null && detail.Exercises.Count > 0)
+                            {
+                                hasExercises = true;
+                                break;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    MainThread.BeginInvokeOnMainThread(() => dayItem.HasWorkout = hasExercises);
+                })
+                .ToList();
+
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
@@ -356,6 +518,8 @@ namespace FitTrackr.MAUI.ViewModels
     public class WeekDayItem : ObservableObject
     {
         private bool _isSelected;
+        private bool _hasWorkout;
+
         public DateTime Date { get; set; }
         public string DayLabel { get; set; } = string.Empty;
         public string DayNumber { get; set; } = string.Empty;
@@ -364,6 +528,12 @@ namespace FitTrackr.MAUI.ViewModels
         {
             get => _isSelected;
             set => SetProperty(ref _isSelected, value);
+        }
+
+        public bool HasWorkout
+        {
+            get => _hasWorkout;
+            set => SetProperty(ref _hasWorkout, value);
         }
     }
 }

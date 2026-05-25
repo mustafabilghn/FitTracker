@@ -14,6 +14,8 @@ namespace FitTrackr.MAUI.Models.DTO
 
         public LocationDto Location { get; set; }
 
+        public int ExerciseCount { get; set; }
+
         public string WorkoutDateText => WorkoutDateDisplay.FormatDateAndWeekday(WorkoutDate);
     }
 }

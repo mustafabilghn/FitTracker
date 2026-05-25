@@ -159,6 +159,13 @@ public partial class WorkoutListPage : ContentPage
 
         try
         {
+            // Egzersiz eklendiyse ViewModel zaten kartı güncelledi — tam reload atla
+            if (_viewModel.ConsumeSkipNextFullRefresh())
+            {
+                SyncCalendarToSelectedDate();
+                return;
+            }
+
             await RefreshWorkoutDataAsync();
             _ = EnsureCalendarPrelayoutAsync();
         }
