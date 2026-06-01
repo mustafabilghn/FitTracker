@@ -34,16 +34,32 @@ namespace FitTrackr.API.Repositories
 
         public async Task<Exercise?> DeleteAsync(Guid id)
         {
-            var exercise = await dbContext.Exercises.Include(i => i.Intensity).FirstOrDefaultAsync(x => x.Id == id);
+            var exercise = await dbContext.Exercises
+                .Include(i => i.Intensity)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (exercise is null)
-            {
                 return null;
-            }
+
+            var workoutId = exercise.WorkoutId;
 
             dbContext.Remove(exercise);
-
             await dbContext.SaveChangesAsync();
+
+            // Son exercise silindiyse workout'u da sil
+            if (workoutId != default)
+            {
+                var remaining = await dbContext.Exercises.CountAsync(e => e.WorkoutId == workoutId);
+                if (remaining == 0)
+                {
+                    var workout = await dbContext.Workouts.FindAsync(workoutId);
+                    if (workout is not null)
+                    {
+                        dbContext.Workouts.Remove(workout);
+                        await dbContext.SaveChangesAsync();
+                    }
+                }
+            }
 
             return exercise;
         }

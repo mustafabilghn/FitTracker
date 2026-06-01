@@ -224,11 +224,12 @@ namespace FitTrackr.API.Services
 
         private static string DetermineTrend(List<WeeklyMaxWeightDto> weeklyMaxes)
         {
-            var oldest = weeklyMaxes.First().MaxKg;
-            var newest = weeklyMaxes.Last().MaxKg;
+            // weeklyMaxes OrderBy(WeeksAgo) ile sıralı: First()=WeeksAgo=0=bu hafta (en güncel), Last()=en eski
+            var mostRecent = weeklyMaxes.First().MaxKg;
+            var oldestInRange = weeklyMaxes.Last().MaxKg;
 
-            if (newest > oldest + 0.5) return "artıyor";
-            if (oldest > newest + 0.5) return "düşüyor";
+            if (mostRecent > oldestInRange + 0.5) return "artıyor";
+            if (oldestInRange > mostRecent + 0.5) return "düşüyor";
             return "sabit";
         }
 

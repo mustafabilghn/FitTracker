@@ -180,8 +180,9 @@ namespace FitTrackr.MAUI
         {
             try
             {
-                LoadingIndicator.IsVisible = true;
-                LoadingIndicator.IsRunning = true;
+                var hasPreloaded = workoutService.PreloadedDashboard != null;
+                LoadingIndicator.IsVisible = !hasPreloaded;
+                LoadingIndicator.IsRunning = !hasPreloaded;
 
                 // ✅ 1. Username yükle: Preferences → JWT → API sıralamasıyla
                 Username = Preferences.Get("username", string.Empty);
@@ -284,7 +285,10 @@ namespace FitTrackr.MAUI
         {
             try
             {
-                var dashboard = await workoutService.GetDashboardAsync();
+                // Splash screen'de ön yüklendiyse cache'i kullan, sonra temizle
+                var dashboard = workoutService.PreloadedDashboard
+                    ?? await workoutService.GetDashboardAsync();
+                workoutService.InvalidateDashboardCache();
 
                 // Compound PR'ları güncelle
                 HasBP = dashboard.BenchPressMaxKg > 0; BPValue = dashboard.BenchPressMaxKg.ToString("0");

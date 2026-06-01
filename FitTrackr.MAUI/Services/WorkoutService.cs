@@ -12,11 +12,31 @@ namespace FitTrackr.MAUI.Services
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
 
+        /// <summary>Splash screen sırasında ön yüklenen dashboard verisi. MainPage bunu kullanır.</summary>
+        public DashboardSummaryDto? PreloadedDashboard { get; private set; }
+
         public WorkoutService(HttpClient httpClient, JsonSerializerOptions jsonOptions)
         {
             _httpClient = httpClient;
             _jsonOptions = jsonOptions;
         }
+
+        /// <summary>Splash screen'de çağrılır. Veriyi çekip cache'e yazar.</summary>
+        public async Task PreloadDashboardAsync()
+        {
+            try
+            {
+                PreloadedDashboard = await GetDashboardAsync();
+            }
+            catch
+            {
+                // Ön yükleme başarısız olursa MainPage normal akışla çeker
+                PreloadedDashboard = null;
+            }
+        }
+
+        /// <summary>Cache'i temizler — logout veya yenileme gerektiğinde çağrılır.</summary>
+        public void InvalidateDashboardCache() => PreloadedDashboard = null;
 
         public async Task<List<WorkoutSummaryDto>> GetWorkoutsAsync()
         {

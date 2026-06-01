@@ -232,12 +232,30 @@ namespace FitTrackr.MAUI.ViewModels
                 return;
             }
 
-            var addedExercise = await _exerciseService.AddExerciseAsync(new ExerciseRequestDto
+            ExerciseDto addedExercise;
+            try
             {
-                ExerciseName = _selectedExercise!.Name,
-                WorkoutId = resolvedWorkoutId,
-                IntensityId = intensityId
-            });
+                addedExercise = await _exerciseService.AddExerciseAsync(new ExerciseRequestDto
+                {
+                    ExerciseName = _selectedExercise!.Name,
+                    WorkoutId = resolvedWorkoutId,
+                    IntensityId = intensityId
+                });
+            }
+            catch (HttpRequestException)
+            {
+                // Workout cascade ile silinmiş olabilir; yeni workout oluşturup tekrar dene
+                _workoutId = null;
+                resolvedWorkoutId = await EnsureWorkoutIdAsync();
+                if (resolvedWorkoutId == Guid.Empty) return;
+
+                addedExercise = await _exerciseService.AddExerciseAsync(new ExerciseRequestDto
+                {
+                    ExerciseName = _selectedExercise!.Name,
+                    WorkoutId = resolvedWorkoutId,
+                    IntensityId = intensityId
+                });
+            }
 
             for (var i = 0; i < PendingSets.Count; i++)
             {
