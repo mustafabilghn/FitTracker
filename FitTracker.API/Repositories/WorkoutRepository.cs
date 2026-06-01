@@ -82,19 +82,16 @@ namespace FitTrackr.API.Repositories
                     var maxWeight = exercise.ExerciseSets.Max(s => s.WeightInKg);
                     var name = exercise.ExerciseName ?? string.Empty;
 
-                    if (name.Contains("Bench Press", StringComparison.OrdinalIgnoreCase) ||
-                        name.Contains("Bench", StringComparison.OrdinalIgnoreCase))
+                    if (name.Equals("Bench Press", StringComparison.OrdinalIgnoreCase))
                         maxBP = Math.Max(maxBP, maxWeight);
-                    else if (name.Contains("Squat", StringComparison.OrdinalIgnoreCase))
+                    else if (name.Equals("Squat", StringComparison.OrdinalIgnoreCase))
                         maxSQ = Math.Max(maxSQ, maxWeight);
-                    else if (name.Contains("Deadlift", StringComparison.OrdinalIgnoreCase))
+                    else if (name.Equals("Deadlift", StringComparison.OrdinalIgnoreCase))
                         maxDL = Math.Max(maxDL, maxWeight);
-                    else if (name.Contains("Barbell Row", StringComparison.OrdinalIgnoreCase) ||
-                             name.Contains("Rows", StringComparison.OrdinalIgnoreCase))
+                    else if (name.Equals("Barbell Row", StringComparison.OrdinalIgnoreCase))
                         maxBR = Math.Max(maxBR, maxWeight);
-                    else if (name.Contains("Overhead Press", StringComparison.OrdinalIgnoreCase) ||
-                             name.Contains("OHP", StringComparison.OrdinalIgnoreCase) ||
-                             name.Contains("Shoulder Press", StringComparison.OrdinalIgnoreCase))
+                    else if (name.Equals("Overhead Press", StringComparison.OrdinalIgnoreCase) ||
+                             name.Equals("Barbell Overhead Press", StringComparison.OrdinalIgnoreCase))
                         maxOP = Math.Max(maxOP, maxWeight);
                 }
             }

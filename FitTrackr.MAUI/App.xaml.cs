@@ -8,8 +8,9 @@ namespace FitTrackr.MAUI
     {
         private readonly AppShell shell;
         private readonly AuthService authService;
+        private readonly WorkoutService workoutService;
 
-        public App(AppShell shell, AuthService authService)
+        public App(AppShell shell, AuthService authService, WorkoutService workoutService)
         {
             InitializeComponent();
 
@@ -23,15 +24,10 @@ namespace FitTrackr.MAUI
 
             this.authService = authService;
             this.shell = shell;
+            this.workoutService = workoutService;
 
             MainPage = new ContentPage();
             _ = InitializeApp();
-        }
-
-        protected override async void OnStart()
-        {
-            base.OnStart();
-            await InitializeApp();
         }
 
         private async Task InitializeApp()
@@ -46,12 +42,9 @@ namespace FitTrackr.MAUI
             {
                 await authService.InitializeAsync();
 
-                // 🔥 Azure Free Plan cold-start düzeltmesi:
-                // MainPage verilerini çekmeden önce API'yi arka planda uyandır.
-                // Sonucu beklemiyor, yalnızca HTTP bağlantısını başlatıyoruz.
-                // Böylece MainPage.LoadMainPageDataAsync çalıştığında API zaten
-                // uyanmakta olacak → bekleme süresi belirgin şekilde kısalır.
-                _ = authService.GetProfileAsync();
+                // Splash screen'deyken dashboard verisini ön yükle.
+                // MainPage açıldığında veri hazır olacak → loading indicator gerekmez.
+                await workoutService.PreloadDashboardAsync();
 
                 MainPage = shell;
             }

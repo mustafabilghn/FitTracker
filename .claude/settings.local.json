@@ -12,7 +12,8 @@
       "Bash(dotnet ef *)",
       "Bash(dir \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\Migrations\\\\FitTrackrAuthDb\\\\\" 2>&1)",
       "Bash(dotnet user-secrets *)",
-      "PowerShell([System.Environment]::GetEnvironmentVariables\\(\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List; [System.Environment]::GetEnvironmentVariables\\('User'\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List)"
+      "PowerShell([System.Environment]::GetEnvironmentVariables\\(\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List; [System.Environment]::GetEnvironmentVariables\\('User'\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\" -Recurse -Name)"
     ]
   }
 }

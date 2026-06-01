@@ -22,7 +22,7 @@ namespace FitTrackr.API.Services
         private readonly string _groqApiKey;
         private readonly string _groqModel;
 
-        private static readonly TimeSpan ContextCacheDuration = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan ContextCacheDuration = TimeSpan.FromMinutes(1);
         private const string ContextCacheKeyPrefix = "fitbot:ctx:";
 
         public AiWorkoutCoachService(
@@ -157,7 +157,7 @@ namespace FitTrackr.API.Services
             var messages = new List<object> { new { role = "system", content = systemPrompt } };
 
             var history = (request.ConversationHistory ?? new List<FitBotConversationMessageDto>())
-                .TakeLast(10);
+                .TakeLast(6);
 
             foreach (var msg in history)
             {
@@ -188,11 +188,21 @@ namespace FitTrackr.API.Services
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    return new FitBotChatResponseDto
+                    {
+                        Reply = "Şu an çok fazla istek var, biraz bekleyip tekrar dene.",
+                        PlateauAlerts = new List<string>()
+                    };
+
                 throw new InvalidOperationException($"Groq API hatası {response.StatusCode}: {responseContent}");
+            }
 
             var chatResponse = JsonSerializer.Deserialize<GroqChatResponse>(responseContent);
             var rawReply = chatResponse?.Choices?[0]?.Message?.Content ?? string.Empty;
             var reply = SanitizeForeignWords(rawReply);
+            reply = SanitizeOutputPatterns(reply);
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
                 reply = TruncateToSentences(reply, 4);
 
@@ -207,6 +217,35 @@ namespace FitTrackr.API.Services
         {
             var sb = new StringBuilder();
 
+            // Veri yoksa sade, kısa ve uydurmasız yanıt ver
+            if (context.TotalWorkouts == 0)
+            {
+                sb.AppendLine("Sen FitBot'sun — kullanıcının kişisel AI fitness koçu.");
+                sb.AppendLine("Kullanıcının henüz hiç antrenman kaydı yok.");
+                sb.AppendLine("KURAL: Olmayan veriyi UYDURMA. Geçmiş antrenman, ağırlık, kas grubu veya trend hakkında HİÇBİR spesifik bilgi verme.");
+                sb.AppendLine("KURAL: 'sen', 'seni', 'senin' kullan. 'siz' YASAK.");
+                sb.AppendLine();
+
+                switch ((actionType ?? "free").ToLowerInvariant())
+                {
+                    case "analyze":
+                    case "program":
+                        sb.AppendLine("1-2 cümleyle 'henüz kayıt yok, antrenman eklemeye başla' de ve dur. Öneri veya analiz ekleme.");
+                        break;
+                    case "today":
+                        sb.AppendLine("Kayıt olmadığı için herhangi bir kas grubunu öner. 2-3 hareket, her biri ayrı satırda, tam olarak bu formatta: 'HareketAdı: 3 set × 10 tekrar'. 'Hareket:' ön eki KULLANMA, doğrudan hareket adıyla başla.");
+                        break;
+                    case "motivation":
+                        sb.AppendLine("Tam olarak 3 kısa cümle. İlk cümle doğrudan aksiyona odaklan. Spesifik ağırlık veya egzersiz ismi UYDURMA. Genel ama enerjik bir başlangıç motivasyonu yap.");
+                        break;
+                    default:
+                        sb.AppendLine("Kullanıcının sorusuna kısa ve doğal yanıt ver. Olmayan veri uydurma.");
+                        break;
+                }
+
+                return sb.ToString().Trim();
+            }
+
             sb.AppendLine("Sen FitBot'sun — kullanıcının kişisel AI fitness koçu.");
             sb.AppendLine();
             sb.AppendLine("DİL KURALI — EN ÖNCELİKLİ KURAL:");
@@ -215,9 +254,16 @@ namespace FitTrackr.API.Services
             sb.AppendLine();
             sb.AppendLine("ZORUNLU KURALLAR:");
             sb.AppendLine("- Kullanıcıya HER ZAMAN 'sen/seni/senin' ile hitap et. 'Siz/sizin' YASAK.");
-            sb.AppendLine("- Doğal Türkçe konuş. Aynı cümleyi veya ifadeyi birden fazla kez KULLANMA.");
+            sb.AppendLine("- BİZ FORMU KESİNLİKLE YASAK: 'görüyoruz', 'konuşabiliriz', 'yapabiliriz', 'izleyebiliriz', 'düşünüyoruz', 'değerlendirebiliriz' gibi TÜM çoğul fiiller YASAK. SADECE tekil: 'görüyorum', 'yapabilirsin', 'izleyebilirsin'.");
+            sb.AppendLine("- SORU SORMAK YASAK: 'ister misin?', 'hakkında konuşmak ister misin?' gibi kullanıcıya soru yöneltme. Doğrudan analiz yap ve bitir.");
+            sb.AppendLine("- AĞIRLIK SAYILARINDAN KİŞİLİK ÇIKARIMI YAPMA: '100→80→50 kg' gibi serilerden 'farklı zorluk seviyelerine alışkınsın', 'motivasyonun yüksek' gibi yorumlar YASAK. Sayılar sadece ağırlık kaydı.");
+            sb.AppendLine("- Doğal Türkçe konuş. Aynı cümleyi veya ifadeyi birden fazla kez KULLANMA. Her paragraf/madde FARKLI bir fikir içermeli.");
             sb.AppendLine("- Yalnızca aşağıdaki verilere dayan. Uydurma, tahmin yürütme.");
-            sb.AppendLine("- 'TREND' etiketleri kesindir; sayılara bakıp kendi yorumunu yapma.");
+            sb.AppendLine("- TREND KURALI: Yalnızca aşağıdaki 'Ağırlık trendleri' bölümünde adı geçen egzersizler için trend yaz. Bu bölüm BOŞ ise — konuşmada hiçbir egzersiz için 'ağırlık düştü/arttı/artış/düşüş' gibi trend ifadesi KESİNLİKLE KULLANMA. Son antrenman listesindeki ağırlık sayılarından kendi trend hesabını YAPMA.");
+            sb.AppendLine("- AKTİVİTE KURALI: Veri satırında '← DÜŞÜK/ORTA' uyarısı olan antrenman sayısı için 'düzenli' veya 'düzenli antrenman yapıyorsun' DEME.");
+            sb.AppendLine("- KARŞILAŞTIRMA KURALI: 'Sıklık arttı', 'gelişim gösteriyor', 'ilerleme var' gibi ifadeler için önceki döneme ait karşılaştırma verisi gerekir. Bu hafta ve son 30 gün sayısı eşit ya da yakınsa (tüm antrenmanlar bu haftada demektir) — 'arttı/gelişti' İFADELERİNİ KULLANMA.");
+            sb.AppendLine("- ELİNDE OLMAYAN VERİYE İHTİYAÇ DUYDUĞUNU ASLA SÖYLEME. 'Daha fazla bilgiye/veriye ihtiyaç duyuluyor', 'analiz edilebilmesi için daha fazla veri gerekli', 'yoğunluk hakkında bilgim yok' gibi ifadeler KESİNLİKLE YASAK. Sadece mevcut veriyle çalış.");
+            sb.AppendLine("- KURALLARI AÇIKLAMA: Neden bir konudan bahsetmediğini açıklama. 'Takılma noktası listesi boş olduğu için girilmeyecektir' gibi meta-yorumlar YASAK. Sadece bahsetme, açıklama yapma.");
             sb.AppendLine($"- Takılma noktası listesi {(context.PlateauExercises.Count == 0 ? "BOŞ — 'plato/takılma' kelimesini KULLANMA." : "dolu — yalnızca listede olan egzersizler için kullan.")}");
             sb.AppendLine("- Veride olmayan bir başarı veya ilerlemeyi olumlu şekilde sunma.");
             sb.AppendLine("- Uygulamada haftalık antrenman hedefi YOKTUR. 'Bu hafta hedefini tamamladın', 'tüm antrenmanlarını tamamladın' gibi hedef başarısı ifadeleri YASAK.");
@@ -232,12 +278,15 @@ namespace FitTrackr.API.Services
                 sb.AppendLine("Son antrenman: Hiç kayıt yok.");
 
             sb.AppendLine($"Bu hafta yapılan antrenman: {context.WorkoutsThisWeek}");
-            sb.AppendLine($"Son 30 günde yapılan antrenman: {context.WorkoutsLast30Days}");
+            var activityNote = context.WorkoutsLast30Days <= 8 ? " ← DÜŞÜK/ORTA — 'düzenli', 'sık aralıklarla', 'düzenli olarak' DEME" : "";
+            sb.AppendLine($"Son 30 günde yapılan antrenman: {context.WorkoutsLast30Days}{activityNote}");
 
-            if (context.MuscleGroupFrequency.Count > 0)
+            // Yalnızca birden fazla farklı antrenman adı varsa göster — tek tip isimde (ör. hepsi "Antrenman") model yanıltıcı çıkarım yapıyor
+            var uniqueWorkoutNames = context.MuscleGroupFrequency.Keys.ToList();
+            if (uniqueWorkoutNames.Count > 1)
             {
                 sb.AppendLine();
-                sb.AppendLine("Kas grubu çalışma sıklığı (son 30 gün):");
+                sb.AppendLine("Antrenman türü dağılımı (son 30 gün):");
                 foreach (var kv in context.MuscleGroupFrequency.OrderByDescending(kv => kv.Value))
                     sb.AppendLine($"  {kv.Key}: {kv.Value} antrenman");
             }
@@ -265,7 +314,7 @@ namespace FitTrackr.API.Services
             if (context.WeightTrends.Count > 0)
             {
                 sb.AppendLine();
-                sb.AppendLine("Ağırlık trendleri (TREND etiketi kesin, değiştirme):");
+                sb.AppendLine("Ağırlık trendleri — bu satırlardaki bilgiyi olduğu gibi aktar, yorum ekleme:");
                 foreach (var trend in context.WeightTrends)
                 {
                     var ordered = trend.WeeklyMaxWeights.OrderByDescending(w => w.WeeksAgo).ToList();
@@ -273,7 +322,14 @@ namespace FitTrackr.API.Services
                     var newest = ordered.Last();
                     var delta = newest.MaxKg - oldest.MaxKg;
                     var deltaStr = delta >= 0 ? $"+{delta:F1}" : $"{delta:F1}";
-                    sb.AppendLine($"  {trend.ExerciseName}: {oldest.MaxKg:F1} kg'dan {newest.MaxKg:F1} kg'a ({deltaStr} kg) — TREND: {trend.Trend.ToUpperInvariant()}");
+                    var trendDesc = trend.Trend.ToUpperInvariant() switch
+                    {
+                        "UP" => "son haftalarda ağırlık artıyor",
+                        "DOWN" => "son haftalarda ağırlık düşüyor",
+                        "STABLE" => "son haftalarda ağırlık sabit",
+                        _ => trend.Trend.ToLowerInvariant()
+                    };
+                    sb.AppendLine($"  {trend.ExerciseName}: {oldest.MaxKg:F1} kg → {newest.MaxKg:F1} kg ({deltaStr} kg), {trendDesc}");
                 }
             }
 
@@ -293,8 +349,8 @@ namespace FitTrackr.API.Services
             {
                 case "analyze":
                     sb.AppendLine("Antrenman verisini analiz et. Her noktayı FARKLI bir cümle yapısıyla anlat — tekrar etme.");
-                    sb.AppendLine("Güçlü yönler: sadece veriden desteklenen gerçek gelişmeler. Gelişim alanları: eksik kas grupları, düşük frekans.");
-                    sb.AppendLine("Takılma noktası listesi boşsa bu konuya GİRME. 4-5 farklı madde veya paragraf yeterli.");
+                    sb.AppendLine("Güçlü yönler: sadece veriden desteklenen gerçek gelişmeler. Toplam antrenman sayısı 5'ten azsa güçlü yön listesi OLUŞTURMA — 'veri henüz yetersiz' de.");
+                    sb.AppendLine("Gelişim alanları: eksik kas grupları, düşük frekans. Takılma noktası listesi boşsa bu konuya GİRME. 3-4 farklı madde veya paragraf yeterli.");
                     break;
                 case "today":
                     if (context.RecentWorkouts.Count > 0)
@@ -305,26 +361,28 @@ namespace FitTrackr.API.Services
                         sb.AppendLine("Bu egzersizlerle AYNI kas grubuna giren hareketleri ÖNERME. Tamamen farklı bir kas grubunu seç.");
                     }
                     sb.AppendLine("TAM OLARAK 1 kas grubu seç ve commit et. 'Omuz veya sırt' gibi seçenek sunma.");
-                    sb.AppendLine("Seçtiğin kas grubu için 2-3 hareket öner. Her harekete set ve tekrar sayısı ekle (örn: 'Squat: 3 set × 10 tekrar').");
-                    sb.AppendLine("Hareket adlarını orijinal fitness terminolojisiyle yaz (örn: Pull-up, Cable Row, T-bar Row). Türkçe karşılık UYDURMA.");
-                    sb.AppendLine("Birinci şahıs kullanma. 'Bugün X çalıştırmayı düşünüyorum' DEĞİL, 'Bugün X çalıştırmanı öneririm' şeklinde yaz.");
-                    sb.AppendLine("Öneriyi sun ve DUR. Egzersiz listesinden sonra ek açıklama, teşvik veya paragraf YAZMA.");
+                    sb.AppendLine("FORMAT: 1 kısa giriş cümlesi ('Bugün X çalıştırmanı öneririm.'), ardından TAM OLARAK 2-3 hareket, her biri ayrı satırda: 'HareketAdı: X set × Y tekrar'. 4 veya daha fazla hareket YAZMA. Listeden sonra EK CÜMLE YAZMA.");
+                    sb.AppendLine("'Birkaç egzersiz önerisi yapabilirim', 'bazı egzersizler önerebilirim' gibi belirsiz giriş cümleleri YASAK — direkt kas grubunu söyle.");
+                    sb.AppendLine("Hareket adlarını orijinal fitness terminolojisiyle yaz (Pull-up, Cable Row, T-bar Row). Türkçe karşılık UYDURMA.");
                     break;
                 case "program":
                     sb.AppendLine("Haftalık frekans, kas grubu dengesi ve ağırlık trendini değerlendir.");
-                    sb.AppendLine("Çalışılmayan kas gruplarını ve somut iyileştirme adımlarını belirt. 3-4 paragraf.");
+                    sb.AppendLine("Her paragraf FARKLI bir konu içermeli: 1.paragraf frekans, 2.paragraf kas dengesi, 3.paragraf trend, 4.paragraf somut öneri. Aynı fikri iki paragrafta tekrarlama.");
+                    sb.AppendLine("SON PARAGRAF KURALI: 'Sonuç olarak', 'özetle', 'bu nedenle' ile BAŞLAMA. Son paragraf öncekini tekrarlamamalı — veriden desteklenen tek somut adımı içermeli.");
+                    sb.AppendLine("EGZERSİZ LİSTESİ YASAK: 'Squat: 3 set × 10 tekrar' gibi set/tekrar içeren egzersiz planı program değerlendirmesine EKLEME.");
                     sb.AppendLine("MARKDOWN YASAK: **, *, #, numaralı liste (1. 2. 3.), madde imi (- veya •) KULLANMA. Düz paragraf yaz.");
-                    sb.AppendLine("HER ZAMAN ikinci tekil şahısla yaz: 'öneririm', 'yapabilirsin'. 'Sunabiliriz', 'yapabiliriz' gibi çoğul ifadeler YASAK.");
+                    sb.AppendLine("HER ZAMAN ikinci tekil şahısla yaz: 'öneririm', 'yapabilirsin', 'izleyebilirsin'. 'Sunabiliriz', 'yapabiliriz', 'izleyebiliriz', 'seviyenizi' gibi çoğul/resmi ifadeler YASAK.");
                     sb.AppendLine("VERİ OKUMA KURALI: 'Son 30 günde X antrenman' ifadesi haftada değil 30 günlük toplamı gösterir. 'Haftada X antrenman yapıyorsun' gibi yanlış çıkarım YAPMA.");
+                    sb.AppendLine("TREND KURALI: Yalnızca ağırlık trendleri bölümünde yer alan egzersizler için trend yorumu yap. Listede olmayan egzersizler için 'trendini izle', 'takip et' gibi öneriler YAPMA.");
                     break;
                 case "motivation":
-                    sb.AppendLine("AMAÇ: Kullanıcıyı bugün antrenmana gitmeye isteklendirmek. Veri raporu veya analiz YAZMA.");
-                    sb.AppendLine("YAPI: Tek blok düz metin. BAŞLIK, MADDE İŞARETİ, HEADER YASAK.");
-                    sb.AppendLine("UZUNLUK: Tam olarak 3-4 CÜMLE. Cümleleri say, 4'ten fazlasını yazma.");
-                    sb.AppendLine("TON: Sıcak, enerjik, doğrudan — sanki yanında duran bir koç gibi.");
-                    sb.AppendLine("VERİ KULLANIMI: Veriden 1 somut gerçeği (kg artışı veya antrenman sıklığı) en fazla 1 cümlede geç, ama amacın rapor vermek değil bu gerçeği motivasyon için yakıt olarak kullanmak.");
-                    sb.AppendLine("Kalan cümleler ileriye bak: bugün, bu hafta, bir sonraki adım.");
-                    sb.AppendLine("YASAK: 'Sen yapabilirsin', 'potansiyelin sınırsız', 'katkıda bulunmuş olmalı', 'bir göstergesi' — analitik ve belirsiz dil YASAK.");
+                    sb.AppendLine("AMAÇ: Kullanıcıyı bugün antrenmana gitmeye isteklendirmek.");
+                    sb.AppendLine("YAPI: Tam olarak 3 KISA CÜMLE. Her cümle tek fikir. Düz metin.");
+                    sb.AppendLine("TON: Koç tonu — kısa, sert, enerjik.");
+                    sb.AppendLine("İLK KELİME: Yanıt 'Hadi', 'Bugün', doğrudan bir eylem veya somut sayı ile başlamalı. 'Seni', 'Senin', 'Beni', 'Sizi' ile BAŞLAMA.");
+                    sb.AppendLine("VERİ: Veriden 1 somut sayı kullan (kg veya gün sayısı).");
+                    sb.AppendLine("YASAK: '...istiyorum', '...çağırmak', '...etmeli/etmelidir', 'hatırla' (nostalji tonu).");
+                    sb.AppendLine("ÖRNEK: 'Hadi salona git, kasların hazır. 100 kg'a ulaştın, bugün üstüne koy. Hareket et.'");
                     break;
                 default:
                     sb.AppendLine("Kullanıcının sorusuna kısa ve doğal yanıt ver. Gerektiğinde veriye başvur.");
@@ -333,9 +391,10 @@ namespace FitTrackr.API.Services
 
             sb.AppendLine();
             sb.AppendLine("=== YAZI ÖNCESİ SON KONTROL ===");
-            sb.AppendLine("Yanıtını yazmadan önce şunu kendinle kontrol et:");
-            sb.AppendLine("Türkçe olmayan TEK BİR kelime bile var mı? (Örn: 'siguientes', 'wichtig', 'beberapa', '主要', 'already', herhangi bir yabancı dil kelimesi)");
-            sb.AppendLine("Varsa o kelimeyi Türkçesiyle DEĞIŞTIR. Yabancı kelimeyle hiçbir şekilde gönderme.");
+            sb.AppendLine("Yanıtını göndermeden önce şu üç soruyu sor:");
+            sb.AppendLine("1. Türkçe olmayan TEK BİR kelime var mı? Varsa Türkçesiyle değiştir.");
+            sb.AppendLine("2. 'Daha fazla bilgiye ihtiyacım var' veya benzer bir ifade var mı? Varsa sil — eldeki veriyle çalış.");
+            sb.AppendLine("3. Aynı fikri iki farklı cümleyle mi tekrarladım? Varsa birini sil.");
 
             return sb.ToString().Trim();
         }
@@ -369,6 +428,45 @@ namespace FitTrackr.API.Services
             return text;
         }
 
+        // Prompt kurallarına rağmen modelin ürettiği kalıp ifadeleri çıktı tarafında temizler.
+        private static string SanitizeOutputPatterns(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+
+            var patterns = new (string Pattern, string Replacement)[]
+            {
+                (@"(?i)sonuç olarak[,.]?\s*", ""),
+                (@"(?i)özetle[,.]?\s*", ""),
+                (@"(?i)bu bilgiler ışığında[,.]?\s*", ""),
+                (@"(?i)bu nedenle[,.]?\s*", ""),
+                (@"(?i)düzenli olarak antrenman yap\w*", "antrenman sıklığını artır"),
+                (@"(?i)düzenli olarak çalış\w*", "daha sık çalış"),
+                // "daha fazla veri/antrenman gerekiyor" kalıpları
+                (@"(?i)daha fazla (antrenman |veri |veriye |bilgiye )?(verisi?|ihtiyaç|gerekli)[^\n.]*[.\n]?\s*", ""),
+                (@"(?i)(analiz edilebilmesi|değerlendirilebilmesi) için daha fazla[^\n.]*[.\n]?\s*", ""),
+                // Model kendi kurallarını açıklamasın
+                (@"(?i)(takılma noktası listesi|plato listesi) boş[^\n.]*[.\n]?\s*", ""),
+                (@"(?i)bu konuya (daha derinlemesine |)girilmeyecektir[^\n.]*[.\n]?\s*", ""),
+                // Ağırlık sayılarından kişilik/alışkanlık çıkarımı
+                (@"(?i)farklı zorluk seviyeleriy?le? çalış\w*", "farklı ağırlıklarla çalışmışsın"),
+                (@"(?i)farklı zorluk seviyelerinin? bir göstergesi", ""),
+                // Biz formu → tekil dönüşümü
+                (@"\bkonuşabiliriz\b", "konuşabilirsin"),
+                (@"\bdeğerlendirebiliriz\b", "değerlendirebilirsin"),
+                (@"\bçalışabiliriz\b", "çalışabilirsin"),
+                (@"\bbakabiliriz\b", "bakabilirsin"),
+                (@"\byapabiliriz\b", "yapabilirsin"),
+                (@"\bsöyleyebiliriz\b", "söyleyebilirim"),
+                (@"\bgörebiliriz\b", "görebilirsin"),
+                (@"\bincleyebiliriz\b", "inceleyebilirsin"),
+            };
+
+            foreach (var (pattern, replacement) in patterns)
+                text = System.Text.RegularExpressions.Regex.Replace(text, pattern, replacement);
+
+            return text.Trim();
+        }
+
         // Bilinen yabancı bağlaç/dolgu kelimeleri için güvenli kelime sınırı kontrollü değiştirme.
         // Fitness terimleri (Pull-up, T-bar Row vb.) tam kelime eşleşmesi olmadığı için etkilenmez.
         private static string SanitizeForeignWords(string text)
@@ -385,16 +483,18 @@ namespace FitTrackr.API.Services
                 (@"\bauch\b", "da/de"),
                 (@"\baber\b", "ancak"),
                 // İspanyolca / Portekizce
-                (@"\bsiguientes\b", "aşağıdaki"),
-                (@"\bsiguiente\b", "aşağıdaki"),
-                (@"\bseguinte\b", "aşağıdaki"),
-                (@"\bseguintes\b", "aşağıdaki"),
-                (@"\bnecessário\b", "gerekli"),
-                (@"\bnecessario\b", "gerekli"),
-                (@"\bnécessaire\b", "gerekli"),
-                (@"\btambién\b", "de/da"),
-                (@"\bpero\b", "ancak"),
-                (@"\bes decir\b", "yani"),
+                (@"(?<!\w)siguientes\w*", "aşağıdaki"),
+                (@"(?<!\w)siguiente\w*", "aşağıdaki"),
+                (@"(?<!\w)seguinte\w*", "aşağıdaki"),
+                (@"(?<!\w)realizado\w*", "yapıldı"),
+                (@"(?<!\w)realiz[ae]\w*", "yapıldı"),
+                (@"(?<!\w)necessário\w*", "gerekli"),
+                (@"(?<!\w)necessario\w*", "gerekli"),
+                (@"(?<!\w)nécessaire\w*", "gerekli"),
+                (@"(?<!\w)también\w*", "de/da"),
+                (@"(?<!\w)tambien\w*", "de/da"),
+                (@"(?<!\w)pero\b", "ancak"),
+                (@"(?<!\w)es decir\b", "yani"),
                 // Fransızca
                 (@"\baussi\b", "de/da"),
                 (@"\bdonc\b", "bu nedenle"),
@@ -407,16 +507,22 @@ namespace FitTrackr.API.Services
                 (@"\bseperti\b", "gibi"),
                 (@"\bjuga\b", "de/da"),
                 (@"\buntuk\b", "için"),
-                // İngilizce dolgu kelimeleri (hareket isimleri değil)
-                (@"\balready\b", "zaten"),
-                (@"\bmostly\b", "çoğunlukla"),
-                (@"\bhowever\b", "ancak"),
-                (@"\btherefore\b", "bu nedenle"),
-                (@"\boverall\b", "genel olarak"),
-                (@"\bregularly\b", "düzenli olarak"),
-                (@"\bnecessary\b", "gerekli"),
-                (@"\bimportant\b", "önemli"),
-                (@"\bessential\b", "gerekli"),
+                // İngilizce dolgu kelimeleri — Türkçe ek alabilir (already→alreadyi gibi), bu yüzden \w* ile yakalanıyor
+                (@"(?<!\w)already\w*", "zaten"),
+                (@"(?<!\w)mostly\w*", "çoğunlukla"),
+                (@"(?<!\w)however\w*", "ancak"),
+                (@"(?<!\w)therefore\w*", "bu nedenle"),
+                (@"(?<!\w)overall\w*", "genel olarak"),
+                (@"(?<!\w)regularly\w*", "düzenli olarak"),
+                (@"(?<!\w)necessary\w*", "gerekli"),
+                (@"(?<!\w)important(e|es)?\w*", "önemli"),
+                (@"(?<!\w)essential\w*", "gerekli"),
+                (@"(?<!\w)slightly\w*", "biraz"),
+                (@"(?<!\w)actually\w*", "aslında"),
+                (@"(?<!\w)basically\w*", "temelde"),
+                (@"(?<!\w)specifically\w*", "özellikle"),
+                (@"(?<!\w)currently\w*", "şu an"),
+                (@"(?<!\w)potentially\w*", "potansiyel olarak"),
                 // Slavik diller (Çekçe, Slovakça, Lehçe vb.)
                 (@"\bpostupně\b", "kademeli olarak"),
                 (@"\bpomalu\b", "yavaş yavaş"),
