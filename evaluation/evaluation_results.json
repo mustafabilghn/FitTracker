@@ -1,0 +1,164 @@
+{
+  "corpus_bleu4": 0.0045,
+  "avg_rougeL": 0.1494,
+  "by_goal": {
+    "strength": {
+      "bleu4": 0.0087,
+      "rougeL": 0.1463
+    },
+    "hypertrophy": {
+      "bleu4": 0.0082,
+      "rougeL": 0.1293
+    },
+    "weight_loss": {
+      "bleu4": 0.0104,
+      "rougeL": 0.1528
+    },
+    "endurance": {
+      "bleu4": 0.008,
+      "rougeL": 0.1691
+    }
+  },
+  "per_plan": [
+    {
+      "id": "strength_1",
+      "goal": "strength",
+      "bleu4": 0.019,
+      "rougeL": 0.1614,
+      "hyp_preview": "Kullanıcının güç geliştirme hedefi doğrultusunda, son 4 haftadaki antrenman geçmişi analiz edilmiştir. Squat ve Deadlift..."
+    },
+    {
+      "id": "strength_2",
+      "goal": "strength",
+      "bleu4": 0.0078,
+      "rougeL": 0.1882,
+      "hyp_preview": "Kullanıcının güç antrenmanı geçmişi düzenli progresyon göstermektedir. Squat, Bench ve Deadlift hareketlerinde ilerleme ..."
+    },
+    {
+      "id": "strength_3",
+      "goal": "strength",
+      "bleu4": 0.0053,
+      "rougeL": 0.1191,
+      "hyp_preview": "Kullanıcının güç antrenman geçmişine göre, düzenli progresyon göstererek squat, bench ve deadlift hareketlerinde ilerlem..."
+    },
+    {
+      "id": "strength_4",
+      "goal": "strength",
+      "bleu4": 0.0067,
+      "rougeL": 0.1567,
+      "hyp_preview": "Kullanıcının güç antrenman geçmişine göre, düzenli progresyon göstererek squat, bench ve deadlift hareketlerinde ilerlem..."
+    },
+    {
+      "id": "strength_5",
+      "goal": "strength",
+      "bleu4": 0.0048,
+      "rougeL": 0.106,
+      "hyp_preview": "Kullanıcının son 4 haftalık antrenman geçmişi incelendiğinde, squat ve deadlift hareketlerinde düzenli ilerleme gözlemle..."
+    },
+    {
+      "id": "hypertrophy_1",
+      "goal": "hypertrophy",
+      "bleu4": 0.0077,
+      "rougeL": 0.1338,
+      "hyp_preview": "Kullanıcının kas kütlesi artırma hedefi doğrultusunda, mevcut antrenman programı ve güvenlik önlemleri değerlendirilmişt..."
+    },
+    {
+      "id": "hypertrophy_2",
+      "goal": "hypertrophy",
+      "bleu4": 0.0056,
+      "rougeL": 0.1107,
+      "hyp_preview": "Kullanıcının kas kütlesi artırma hedefi doğrultusunda, mevcut antrenman programı ve güvenlik önlemleri değerlendirilmişt..."
+    },
+    {
+      "id": "hypertrophy_3",
+      "goal": "hypertrophy",
+      "bleu4": 0.0145,
+      "rougeL": 0.1362,
+      "hyp_preview": "Kullanıcının kas kütlesi artırma hedefi doğrultusunda, bölünmüş antrenman programı ile iyi bir başlangıç yapmış görünüyo..."
+    },
+    {
+      "id": "hypertrophy_4",
+      "goal": "hypertrophy",
+      "bleu4": 0.0076,
+      "rougeL": 0.1449,
+      "hyp_preview": "Kullanıcının kas kütlesi artırma hedefi doğrultusunda, PPL programı ile haftada 6 gün antrenman yapıyor. Mevcut rep aral..."
+    },
+    {
+      "id": "hypertrophy_5",
+      "goal": "hypertrophy",
+      "bleu4": 0.0056,
+      "rougeL": 0.1208,
+      "hyp_preview": "Kullanıcının kas kütlesi artırma hedefi doğrultusunda, PPL programı ile haftada 6 gün antrenman yapıyor. Mevcut rep aral..."
+    },
+    {
+      "id": "weight_loss_1",
+      "goal": "weight_loss",
+      "bleu4": 0.0077,
+      "rougeL": 0.1758,
+      "hyp_preview": "Kullanıcının kilo verme hedefi doğrultusunda, son 1 ayda 2 kg kayıp elde edilmiştir. Haftalık 4-5 seans antrenman ile bi..."
+    },
+    {
+      "id": "weight_loss_2",
+      "goal": "weight_loss",
+      "bleu4": 0.017,
+      "rougeL": 0.1765,
+      "hyp_preview": "Kullanıcının kilo verme hedefi doğrultusunda, son 1 ayda 2 kg kayıp elde edilmiştir. Haftalık 4-5 seans antrenman ile bi..."
+    },
+    {
+      "id": "weight_loss_3",
+      "goal": "weight_loss",
+      "bleu4": 0.0104,
+      "rougeL": 0.1481,
+      "hyp_preview": "Kullanıcının kilo verme hedefi doğrultusunda, full body devreler ve HIIT antrenmanları ile kalori açığı programı uygulan..."
+    },
+    {
+      "id": "weight_loss_4",
+      "goal": "weight_loss",
+      "bleu4": 0.0073,
+      "rougeL": 0.1465,
+      "hyp_preview": "Kullanıcının kilo verme hedefi doğrultusunda, son 1 ayda 2 kg kayıp elde edilmiştir. Haftalık 4-5 seans antrenman ile bi..."
+    },
+    {
+      "id": "weight_loss_5",
+      "goal": "weight_loss",
+      "bleu4": 0.0095,
+      "rougeL": 0.1172,
+      "hyp_preview": "Kullanıcının son 1 aydaki 2 kg'lık kilo kaybı, hedefine doğru ilerlediğini gösteriyor. Ancak, kilo kaybı hızının yavaşla..."
+    },
+    {
+      "id": "endurance_1",
+      "goal": "endurance",
+      "bleu4": 0.0087,
+      "rougeL": 0.1983,
+      "hyp_preview": "Kullanıcının dayanıklılık geliştirme hedefi doğrultusunda, bisiklet ve koşu çapraz antrenmanı ile kardiyovasküler kapasi..."
+    },
+    {
+      "id": "endurance_2",
+      "goal": "endurance",
+      "bleu4": 0.0107,
+      "rougeL": 0.1707,
+      "hyp_preview": "Kullanıcının son aydaki 72km'lik toplam koşu mesafesi, kardiyovasküler kapasitesinde önemli bir artış olduğunu gösteriyo..."
+    },
+    {
+      "id": "endurance_3",
+      "goal": "endurance",
+      "bleu4": 0.0066,
+      "rougeL": 0.1434,
+      "hyp_preview": "Kullanıcının dayanıklılık geliştirme hedefi doğrultusunda, haftada 3-4 kez koşu antrenmanı yapmaktadır. Haftalık 30km me..."
+    },
+    {
+      "id": "endurance_4",
+      "goal": "endurance",
+      "bleu4": 0.0096,
+      "rougeL": 0.1712,
+      "hyp_preview": "Kullanıcının dayanıklılık geliştirme hedefi doğrultusunda, bisiklet ve koşu çapraz antrenmanları ile kardiyovasküler kap..."
+    },
+    {
+      "id": "endurance_5",
+      "goal": "endurance",
+      "bleu4": 0.0043,
+      "rougeL": 0.1617,
+      "hyp_preview": "Kullanıcının dayanıklılık geliştirme hedefi doğrultusunda, bisiklet ve koşu çapraz antrenmanları ile kardiyovasküler kap..."
+    }
+  ]
+}
