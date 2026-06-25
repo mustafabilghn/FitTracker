@@ -13,7 +13,15 @@
       "Bash(dir \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\Migrations\\\\FitTrackrAuthDb\\\\\" 2>&1)",
       "Bash(dotnet user-secrets *)",
       "PowerShell([System.Environment]::GetEnvironmentVariables\\(\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List; [System.Environment]::GetEnvironmentVariables\\('User'\\) | Where-Object { $_.Keys -match 'Connection|FitTrack|SQL|Database' } | Format-List)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\" -Recurse -Name)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\" -Recurse -Name)",
+      "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\FitTrackr.API.csproj\" --no-restore -v minimal 2>&1)",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\" -Force)",
+      "PowerShell(dotnet sln \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTrackr.sln\" add \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" 2>&1)",
+      "PowerShell(dotnet restore \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" 2>&1)",
+      "PowerShell(dotnet test \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" --no-restore -v normal 2>&1)",
+      "PowerShell(dotnet test \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" --no-build 2>&1)",
+      "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\FitTrackr.API.csproj\" -c Debug --no-incremental -v quiet 2>&1)",
+      "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" -v quiet 2>&1)"
     ]
   }
 }

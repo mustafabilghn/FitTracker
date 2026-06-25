@@ -72,6 +72,7 @@ builder.Services.AddScoped<IWorkoutRepository, WorkoutRepository>();
 builder.Services.AddScoped<IExerciseSetRepository, ExerciseSetRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IWorkoutAnalysisService, WorkoutAnalysisService>();
+builder.Services.AddSingleton<IAcsmGuardrailService, AcsmGuardrailService>();
 builder.Services.AddScoped<ISubscriptionService, AlwaysPremiumSubscriptionService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
