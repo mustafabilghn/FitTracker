@@ -18,6 +18,7 @@ namespace FitTrackr.API.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IWorkoutAnalysisService _workoutAnalysisService;
+        private readonly IAcsmGuardrailService _guardrailService;
         private readonly IMemoryCache _cache;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
@@ -28,11 +29,13 @@ namespace FitTrackr.API.Services
         public AiWorkoutCoachService(
             HttpClient httpClient,
             IWorkoutAnalysisService workoutAnalysisService,
+            IAcsmGuardrailService guardrailService,
             IMemoryCache cache,
             IConfiguration configuration)
         {
             _httpClient = httpClient;
             _workoutAnalysisService = workoutAnalysisService;
+            _guardrailService = guardrailService;
             _cache = cache;
             _groqApiKey = configuration["Groq:ApiKey"] ?? string.Empty;
             _groqModel = configuration["Groq:Model"] ?? "llama-3.1-8b-instant";
@@ -206,10 +209,15 @@ namespace FitTrackr.API.Services
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
                 reply = TruncateToSentences(reply, 4);
 
+            // ACSM progressive overload guardrail: cap any weight recommendation exceeding 10% of recent max
+            var guardrailResult = _guardrailService.Validate(reply, context);
+
             return new FitBotChatResponseDto
             {
-                Reply = reply,
-                PlateauAlerts = context.PlateauExercises
+                Reply = guardrailResult.SanitizedReply,
+                PlateauAlerts = context.PlateauExercises,
+                GuardrailTriggered = guardrailResult.Triggered,
+                InterceptedProgressions = guardrailResult.InterceptedProgressions.ToList()
             };
         }
 
@@ -361,7 +369,9 @@ namespace FitTrackr.API.Services
                         sb.AppendLine("Bu egzersizlerle AYNI kas grubuna giren hareketleri ÖNERME. Tamamen farklı bir kas grubunu seç.");
                     }
                     sb.AppendLine("TAM OLARAK 1 kas grubu seç ve commit et. 'Omuz veya sırt' gibi seçenek sunma.");
-                    sb.AppendLine("FORMAT: 1 kısa giriş cümlesi ('Bugün X çalıştırmanı öneririm.'), ardından TAM OLARAK 2-3 hareket, her biri ayrı satırda: 'HareketAdı: X set × Y tekrar'. 4 veya daha fazla hareket YAZMA. Listeden sonra EK CÜMLE YAZMA.");
+                    sb.AppendLine("FORMAT: 1 kısa giriş cümlesi ('Bugün X çalıştırmanı öneririm.'), ardından TAM OLARAK 2-3 hareket, her biri ayrı satırda. 4 veya daha fazla hareket YAZMA. Listeden sonra EK CÜMLE YAZMA.");
+                    sb.AppendLine("AĞIRLIK FORMATI: Eğer egzersiz için 'Ağırlık trendleri' bölümünde geçmiş veri mevcutsa, satırı şu formatta yaz: 'HareketAdı: X set × Y tekrar @ Z kg'. Ağırlık verisi yoksa sadece: 'HareketAdı: X set × Y tekrar'.");
+                    sb.AppendLine("ACSM GÜVENLİK KURALI: Önerilen ağırlık (Z kg), o egzersizin son haftaki maksimum ağırlığının %110'unu geçmemeli (ACSM progressive overload ≤10%/hafta).");
                     sb.AppendLine("'Birkaç egzersiz önerisi yapabilirim', 'bazı egzersizler önerebilirim' gibi belirsiz giriş cümleleri YASAK — direkt kas grubunu söyle.");
                     sb.AppendLine("Hareket adlarını orijinal fitness terminolojisiyle yaz (Pull-up, Cable Row, T-bar Row). Türkçe karşılık UYDURMA.");
                     break;
