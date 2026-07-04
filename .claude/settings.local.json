@@ -21,7 +21,8 @@
       "PowerShell(dotnet test \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" --no-restore -v normal 2>&1)",
       "PowerShell(dotnet test \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" --no-build 2>&1)",
       "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API\\\\FitTrackr.API.csproj\" -c Debug --no-incremental -v quiet 2>&1)",
-      "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" -v quiet 2>&1)"
+      "PowerShell(dotnet build \"C:\\\\Users\\\\musta\\\\source\\\\repos\\\\FitTracker\\\\FitTracker.API.Tests\\\\FitTracker.API.Tests.csproj\" -v quiet 2>&1)",
+      "Bash(dotnet test *)"
     ]
   }
 }
