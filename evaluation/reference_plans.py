@@ -1,6 +1,11 @@
-# FitTracker-AI — 20 Expert Reference Coaching Plans
+# FitTracker-AI — 20 Constructed Reference Coaching Plans
 # 5 plans per goal type: strength, hypertrophy, weight_loss, endurance
 # Format mirrors AiWorkoutInsightDto: ozet, guclu_yonler, gelisim_alanlari, sonraki_antrenman
+#
+# These plans are constructed scenarios with corresponding reference responses,
+# written to exercise FitBot's four coaching goal categories. They are not
+# authored or validated by a certified trainer and are not a clinical or
+# professional coaching benchmark.
 
 REFERENCE_PLANS = [
 
