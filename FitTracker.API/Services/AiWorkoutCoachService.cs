@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,8 +11,10 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace FitTrackr.API.Services
 {
@@ -20,23 +24,35 @@ namespace FitTrackr.API.Services
         private readonly IWorkoutAnalysisService _workoutAnalysisService;
         private readonly IAcsmGuardrailService _guardrailService;
         private readonly IMemoryCache _cache;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<AiWorkoutCoachService> _logger;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
 
         private static readonly TimeSpan ContextCacheDuration = TimeSpan.FromMinutes(1);
         private const string ContextCacheKeyPrefix = "fitbot:ctx:";
 
+        // Ölçüm amaçlı response header adları. Yalnızca timing/telemetri taşır;
+        // yanıt gövdesini veya iş mantığını etkilemez. Bkz. evaluation/benchmark/README.md.
+        private const string ContextMsHeader = "X-FitBot-Context-Ms";
+        private const string ContextCacheHeader = "X-FitBot-Context-Cache";
+        private const string GroqMsHeader = "X-FitBot-Groq-Ms";
+
         public AiWorkoutCoachService(
             HttpClient httpClient,
             IWorkoutAnalysisService workoutAnalysisService,
             IAcsmGuardrailService guardrailService,
             IMemoryCache cache,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<AiWorkoutCoachService> logger,
             IConfiguration configuration)
         {
             _httpClient = httpClient;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
             _cache = cache;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
             _groqApiKey = configuration["Groq:ApiKey"] ?? string.Empty;
             _groqModel = configuration["Groq:Model"] ?? "llama-3.1-8b-instant";
         }
@@ -149,11 +165,14 @@ namespace FitTrackr.API.Services
                 throw new InvalidOperationException("Groq yapılandırması eksik.");
 
             var cacheKey = $"{ContextCacheKeyPrefix}{userId}";
-            if (!_cache.TryGetValue(cacheKey, out FitBotContextDto context))
+            var contextStopwatch = Stopwatch.StartNew();
+            var contextCacheHit = _cache.TryGetValue(cacheKey, out FitBotContextDto context);
+            if (!contextCacheHit)
             {
                 context = await _workoutAnalysisService.GetFitBotContextAsync(userId);
                 _cache.Set(cacheKey, context, ContextCacheDuration);
             }
+            contextStopwatch.Stop();
 
             var systemPrompt = BuildSystemPrompt(request.ActionType, context);
 
@@ -187,17 +206,22 @@ namespace FitTrackr.API.Services
             };
             httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
 
+            var groqStopwatch = Stopwatch.StartNew();
             var response = await _httpClient.SendAsync(httpRequest);
             var responseContent = await response.Content.ReadAsStringAsync();
+            groqStopwatch.Stop();
 
             if (!response.IsSuccessStatusCode)
             {
                 if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
                     return new FitBotChatResponseDto
                     {
                         Reply = "Şu an çok fazla istek var, biraz bekleyip tekrar dene.",
                         PlateauAlerts = new List<string>()
                     };
+                }
 
                 throw new InvalidOperationException($"Groq API hatası {response.StatusCode}: {responseContent}");
             }
@@ -212,6 +236,8 @@ namespace FitTrackr.API.Services
             // ACSM progressive overload guardrail: cap any weight recommendation exceeding 10% of recent max
             var guardrailResult = _guardrailService.Validate(reply, context);
 
+            RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+
             return new FitBotChatResponseDto
             {
                 Reply = guardrailResult.SanitizedReply,
@@ -219,6 +245,31 @@ namespace FitTrackr.API.Services
                 GuardrailTriggered = guardrailResult.Triggered,
                 InterceptedProgressions = guardrailResult.InterceptedProgressions.ToList()
             };
+        }
+
+        // Ölçüm/logging amaçlı: context ve Groq çağrı sürelerini response header'ları ve
+        // yapılandırılmış bir log satırı olarak yayınlar. Yanıt gövdesini, durum kodunu veya
+        // herhangi bir iş kuralını DEĞİŞTİRMEZ; header yazımı başarısız olursa sessizce yutulur.
+        private void RecordTimingTelemetry(long contextMs, bool contextCacheHit, long groqMs)
+        {
+            _logger.LogInformation(
+                "FitBotChat timing: cache={CacheStatus} contextMs={ContextMs} groqMs={GroqMs}",
+                contextCacheHit ? "hit" : "miss", contextMs, groqMs);
+
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+                if (httpContext == null || httpContext.Response.HasStarted)
+                    return;
+
+                httpContext.Response.Headers[ContextMsHeader] = contextMs.ToString(CultureInfo.InvariantCulture);
+                httpContext.Response.Headers[ContextCacheHeader] = contextCacheHit ? "hit" : "miss";
+                httpContext.Response.Headers[GroqMsHeader] = groqMs.ToString(CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                // Timing header'ları best-effort'tur; hiçbir koşulda API yanıtını bozmamalı.
+            }
         }
 
         private static string BuildSystemPrompt(string actionType, FitBotContextDto context)

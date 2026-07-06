@@ -84,6 +84,7 @@ builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(cl
     client.BaseAddress = new Uri("https://api.groq.com/openai/v1/");
 });
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 

@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitTracker.API.Tests", "Fit
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FitTracker.API", "FitTracker.API", "{0B656F86-36B1-C09A-1D14-442F347862AC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitTracker.Benchmark", "FitTracker.Benchmark\FitTracker.Benchmark.csproj", "{A595F7D9-8D95-45A1-AF13-A707E81EBE58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,18 @@ Global
 		{B08984EB-DEF2-4251-9BD5-A95AF92F0FC7}.Release|x64.Build.0 = Release|Any CPU
 		{B08984EB-DEF2-4251-9BD5-A95AF92F0FC7}.Release|x86.ActiveCfg = Release|Any CPU
 		{B08984EB-DEF2-4251-9BD5-A95AF92F0FC7}.Release|x86.Build.0 = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|x64.Build.0 = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Debug|x86.Build.0 = Debug|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|x64.ActiveCfg = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|x64.Build.0 = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|x86.ActiveCfg = Release|Any CPU
+		{A595F7D9-8D95-45A1-AF13-A707E81EBE58}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

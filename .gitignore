@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Local development config (contains dev secrets)
 appsettings.Development.json
+
+# Benchmark run output (ephemeral, machine/environment-specific)
+FitTracker.Benchmark/results/
