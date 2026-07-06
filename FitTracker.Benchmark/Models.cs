@@ -62,7 +62,18 @@ public class StatSummary
 public class BenchmarkOptions
 {
     public string BaseUrl { get; set; } = "https://localhost:7100";
+
+    // Target number of SUCCESSFUL measured requests to collect (not raw attempts).
     public int Requests { get; set; } = 20;
+
+    // Requests fired before measurement starts, to absorb cold-start effects
+    // (first DB query, JIT warm-up, TLS handshake). Never included in the report.
+    public int WarmupRequests { get; set; } = 0;
+
+    // Safety cap on total measured-phase attempts, so a persistently failing endpoint
+    // can't loop forever trying to reach `Requests` successes. 0 = auto (Requests * 3, min +5).
+    public int MaxAttempts { get; set; } = 0;
+
     public string Message { get; set; } = "Bugün için önerin nedir?";
     public string ActionType { get; set; } = "free";
     public string? Token { get; set; }
@@ -72,6 +83,8 @@ public class BenchmarkOptions
     public int IntervalMs { get; set; } = 250;
     public bool Insecure { get; set; }
     public string OutDir { get; set; } = "results";
+
+    public int ResolvedMaxAttempts => MaxAttempts > 0 ? MaxAttempts : Math.Max(Requests * 3, Requests + 5);
 }
 
 public class BenchmarkReport
@@ -82,6 +95,10 @@ public class BenchmarkReport
     public string Message { get; set; } = "";
     public bool FreshUserEveryRequest { get; set; }
 
+    public int WarmupRequests { get; set; }
+    public int WarmupFailureCount { get; set; }
+
+    // Attempts/successes/failures below refer only to the measured phase (post-warmup).
     public int RequestsAttempted { get; set; }
     public int SuccessCount { get; set; }
     public int FailureCount { get; set; }

@@ -28,7 +28,8 @@ public static class Reporting
         sb.AppendLine($"- Action type: `{report.ActionType}`");
         sb.AppendLine($"- Fixed message: `{report.Message}`");
         sb.AppendLine($"- Fresh user per request: {report.FreshUserEveryRequest}");
-        sb.AppendLine($"- Requests attempted: {report.RequestsAttempted}");
+        sb.AppendLine($"- Warm-up requests (excluded from all stats below): {report.WarmupRequests} ({report.WarmupFailureCount} failed)");
+        sb.AppendLine($"- Requests attempted (measured phase only): {report.RequestsAttempted}");
         sb.AppendLine($"- Successful: {report.SuccessCount}  |  Failed: {report.FailureCount}");
         sb.AppendLine($"- Error rate: {report.ErrorRatePercent.ToString("F2", culture)}%");
         sb.AppendLine();

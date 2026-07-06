@@ -47,14 +47,16 @@ durumlarda exception) ve JSON response şeması **aynen korunmuştur**. `Program
 ## Kullanım
 
 ```bash
-dotnet run --project FitTracker.Benchmark -- --base-url https://localhost:7100 --requests 20 --insecure
+dotnet run --project FitTracker.Benchmark -- --base-url https://localhost:7100 --requests 20 --warmup 2 --insecure
 ```
 
 Yaygın seçenekler:
 
 ```
 --base-url <url>                  API base URL (varsayılan: https://localhost:7100)
---requests <n>                    Deneme sayısı (varsayılan: 20)
+--requests <n>                    Toplanacak BAŞARILI ölçüm sayısı (varsayılan: 20) — raporlanan istatistikler bunlara dayanır
+--warmup <n>                      Ölçümden önce atılan, rapora ASLA dahil edilmeyen warm-up isteği sayısı (varsayılan: 0)
+--max-attempts <n>                Ölçüm aşamasında toplam deneme üst sınırı (varsayılan: requests × 3)
 --message <text>                  Sabit FitBot mesajı (karşılaştırılabilirlik için sabit tutulur)
 --action-type <type>               free|analyze|today|program|motivation (varsayılan: free)
 --token <jwt>                     Hazır JWT kullan
@@ -64,6 +66,28 @@ Yaygın seçenekler:
 --insecure                        TLS sertifika doğrulamasını atla (yerel https dev sertifikası için)
 --out-dir <path>                  Rapor klasörü (varsayılan: results)
 ```
+
+## Warm-up ve "en az 20 başarılı ölçüm" garantisi
+
+`--requests` bir deneme sayısı değil, **toplanacak başarılı ölçüm hedefidir**. Araç, hedefe
+ulaşana kadar (veya `--max-attempts` güvenlik sınırına çarpana kadar) istek atmaya devam eder;
+başarısız denemeler ayrıca sayılır ve error rate hesabına girer, ama hedef sayıya dahil edilmez.
+
+`--warmup <n>` ile belirtilen istekler, ölçüm döngüsünden ÖNCE ve TAMAMEN AYRI çalışır:
+sonuçları konsola loglanır ama `samples` listesine hiç eklenmez, dolayısıyla JSON/Markdown
+raporundaki hiçbir istatistiğe (mean/median/min/max/p95, cache hit/miss, error rate) katkıda
+bulunmaz. Bu, ilk isteklerdeki soğuk-başlangıç gürültüsünü (ilk DB sorgusu, JIT ısınması, TLS
+handshake) ölçümden dışlamak için kullanılır.
+
+Örnek: en az 20 temiz ölçüm için 2 warm-up + 20 ölçüm hedefiyle çalıştırma:
+
+```bash
+dotnet run --project FitTracker.Benchmark -- --token <JWT> --warmup 2 --requests 20
+```
+
+Konsol çıktısında warm-up istekleri `[warmup n/N]` öneki ile, ölçüm istekleri `[deneme n, başarılı m/M]`
+formatıyla ayrı ayrı görünür; rapor dosyalarının başlığında da warm-up sayısı ve kaçının
+başarısız olduğu ayrıca belirtilir.
 
 ## Cache hit/miss ayrımı nasıl elde edilir
 

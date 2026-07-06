@@ -14,7 +14,9 @@ Console.WriteLine("=".PadRight(60, '='));
 Console.WriteLine("FitBot Chat Endpoint — Latency Benchmark");
 Console.WriteLine("=".PadRight(60, '='));
 Console.WriteLine($"Base URL           : {options.BaseUrl}");
-Console.WriteLine($"Requests           : {options.Requests}");
+Console.WriteLine($"Warm-up requests   : {options.WarmupRequests} (rapora dahil edilmez)");
+Console.WriteLine($"Measured requests  : {options.Requests} (hedef: bu kadar BAŞARILI istek)");
+Console.WriteLine($"Max attempts       : {options.ResolvedMaxAttempts} (hedefe ulaşılamazsa güvenlik sınırı)");
 Console.WriteLine($"Action type        : {options.ActionType}");
 Console.WriteLine($"Fresh user/request : {options.FreshUserEveryRequest}");
 Console.WriteLine($"Interval           : {options.IntervalMs} ms");
@@ -49,13 +51,45 @@ catch (Exception ex)
     return 1;
 }
 
-var samples = new List<RequestSample>();
-
-for (var i = 1; i <= options.Requests; i++)
+// ── Warm-up phase: absorbs cold-start effects (first DB query, JIT, TLS handshake).
+// These requests are logged but never added to `samples`, so they never reach the report.
+var warmupFailures = 0;
+if (options.WarmupRequests > 0)
 {
+    Console.WriteLine($"-- Warm-up ({options.WarmupRequests} istek, rapora dahil edilmeyecek) --");
+    for (var w = 1; w <= options.WarmupRequests; w++)
+    {
+        var warmupSample = await apiClient.SendChatAsync(w, sharedToken, options.Message, options.ActionType);
+        if (warmupSample.Success)
+        {
+            Console.WriteLine($"[warmup {w,3}/{options.WarmupRequests}] OK   end-to-end={warmupSample.EndToEndMs:F0}ms");
+        }
+        else
+        {
+            warmupFailures++;
+            Console.WriteLine($"[warmup {w,3}/{options.WarmupRequests}] FAIL {warmupSample.Error}");
+        }
+
+        if (w < options.WarmupRequests && options.IntervalMs > 0)
+            await Task.Delay(options.IntervalMs);
+    }
+    Console.WriteLine();
+}
+
+// ── Measured phase: keep attempting until `Requests` SUCCESSFUL samples are collected,
+// or the safety cap on total attempts is hit (so a broken endpoint can't loop forever).
+Console.WriteLine("-- Ölçüm --");
+var samples = new List<RequestSample>();
+var maxAttempts = options.ResolvedMaxAttempts;
+var attempt = 0;
+var successCount = 0;
+
+while (successCount < options.Requests && attempt < maxAttempts)
+{
+    attempt++;
     var token = sharedToken;
 
-    if (options.FreshUserEveryRequest && i > 1)
+    if (options.FreshUserEveryRequest && attempt > 1)
     {
         try
         {
@@ -65,37 +99,48 @@ for (var i = 1; i <= options.Requests; i++)
         {
             samples.Add(new RequestSample
             {
-                Index = i,
+                Index = attempt,
                 TimestampUtc = DateTime.UtcNow,
                 Success = false,
                 Error = $"Kullanıcı oluşturma/login hatası: {ex.Message}"
             });
-            Console.WriteLine($"[{i,3}/{options.Requests}] KULLANICI HATASI: {ex.Message}");
+            Console.WriteLine($"[{attempt,3}, başarılı {successCount}/{options.Requests}] KULLANICI HATASI: {ex.Message}");
+            if (attempt < maxAttempts && options.IntervalMs > 0)
+                await Task.Delay(options.IntervalMs);
             continue;
         }
     }
 
-    var sample = await apiClient.SendChatAsync(i, token, options.Message, options.ActionType);
+    var sample = await apiClient.SendChatAsync(attempt, token, options.Message, options.ActionType);
     samples.Add(sample);
 
     if (sample.Success)
     {
+        successCount++;
         var cache = sample.CacheStatus ?? "unknown";
         var ctx = sample.ContextMs?.ToString("F0") ?? "n/a";
         var groq = sample.GroqMs?.ToString("F0") ?? "n/a";
         Console.WriteLine(
-            $"[{i,3}/{options.Requests}] OK   end-to-end={sample.EndToEndMs:F0}ms  context={ctx}ms ({cache})  groq={groq}ms");
+            $"[deneme {attempt,3}, başarılı {successCount,3}/{options.Requests}] OK   end-to-end={sample.EndToEndMs:F0}ms  context={ctx}ms ({cache})  groq={groq}ms");
     }
     else
     {
-        Console.WriteLine($"[{i,3}/{options.Requests}] FAIL {sample.Error}");
+        Console.WriteLine($"[deneme {attempt,3}, başarılı {successCount,3}/{options.Requests}] FAIL {sample.Error}");
     }
 
-    if (i < options.Requests && options.IntervalMs > 0)
+    if (successCount < options.Requests && attempt < maxAttempts && options.IntervalMs > 0)
         await Task.Delay(options.IntervalMs);
 }
 
-var report = BuildReport(options, samples);
+var report = BuildReport(options, samples, options.WarmupRequests, warmupFailures);
+
+if (successCount < options.Requests)
+{
+    report.Notes.Add(
+        $"Hedeflenen {options.Requests} başarılı ölçüm, {maxAttempts} deneme sınırına ulaşılmadan önce " +
+        $"toplanamadı (yalnızca {successCount} başarılı istek elde edildi). --max-attempts değerini artırıp " +
+        "tekrar deneyin veya API/Groq tarafındaki hata oranını inceleyin.");
+}
 
 Directory.CreateDirectory(options.OutDir);
 var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
@@ -107,9 +152,10 @@ Reporting.WriteMarkdown(report, mdPath);
 
 Console.WriteLine();
 Console.WriteLine("=".PadRight(60, '='));
-Console.WriteLine($"Başarılı: {report.SuccessCount}/{report.RequestsAttempted}  |  Hata oranı: {report.ErrorRatePercent:F2}%");
+Console.WriteLine($"Warm-up (rapora dahil değil): {report.WarmupRequests} istek, {report.WarmupFailureCount} hata");
+Console.WriteLine($"Başarılı (ölçülen): {report.SuccessCount}/{report.RequestsAttempted} deneme  |  Hata oranı: {report.ErrorRatePercent:F2}%");
 if (report.SuccessCount < 20)
-    Console.WriteLine("UYARI: Başarılı istek sayısı 20'nin altında. İstatistikler daha az güvenilir olabilir; --requests değerini artırıp tekrar çalıştırmayı düşünün.");
+    Console.WriteLine("UYARI: Başarılı ölçülen istek sayısı 20'nin altında. İstatistikler daha az güvenilir olabilir; --requests/--max-attempts değerlerini artırıp tekrar çalıştırmayı düşünün.");
 Console.WriteLine($"JSON rapor : {Path.GetFullPath(jsonPath)}");
 Console.WriteLine($"Markdown   : {Path.GetFullPath(mdPath)}");
 Console.WriteLine("=".PadRight(60, '='));
@@ -127,7 +173,7 @@ static async Task<string> ResolveTokenAsync(ApiClient apiClient, BenchmarkOption
     return await apiClient.RegisterAndLoginAsync();
 }
 
-static BenchmarkReport BuildReport(BenchmarkOptions options, List<RequestSample> samples)
+static BenchmarkReport BuildReport(BenchmarkOptions options, List<RequestSample> samples, int warmupRequests, int warmupFailures)
 {
     var successes = samples.Where(s => s.Success).ToList();
     var failures = samples.Where(s => !s.Success).ToList();
@@ -139,6 +185,8 @@ static BenchmarkReport BuildReport(BenchmarkOptions options, List<RequestSample>
         ActionType = options.ActionType,
         Message = options.Message,
         FreshUserEveryRequest = options.FreshUserEveryRequest,
+        WarmupRequests = warmupRequests,
+        WarmupFailureCount = warmupFailures,
         RequestsAttempted = samples.Count,
         SuccessCount = successes.Count,
         FailureCount = failures.Count,
@@ -220,6 +268,12 @@ static BenchmarkOptions? ParseArgs(string[] args)
             case "--requests":
                 options.Requests = int.Parse(RequireValue(args, ref i, "--requests"));
                 break;
+            case "--warmup":
+                options.WarmupRequests = int.Parse(RequireValue(args, ref i, "--warmup"));
+                break;
+            case "--max-attempts":
+                options.MaxAttempts = int.Parse(RequireValue(args, ref i, "--max-attempts"));
+                break;
             case "--message":
                 options.Message = RequireValue(args, ref i, "--message");
                 break;
@@ -264,6 +318,12 @@ static BenchmarkOptions? ParseArgs(string[] args)
         return null;
     }
 
+    if (options.WarmupRequests < 0)
+    {
+        Console.WriteLine("--warmup negatif olamaz.");
+        return null;
+    }
+
     return options;
 }
 
@@ -281,7 +341,9 @@ static void PrintUsage()
         Kullanım: dotnet run --project FitTracker.Benchmark -- [seçenekler]
 
           --base-url <url>              API base URL (varsayılan: https://localhost:7100)
-          --requests <n>                Deneme sayısı (varsayılan: 20)
+          --requests <n>                Toplanacak BAŞARILI ölçüm sayısı (varsayılan: 20)
+          --warmup <n>                  Ölçümden önce atılacak, rapora dahil edilmeyecek warm-up isteği sayısı (varsayılan: 0)
+          --max-attempts <n>            Ölçüm aşamasında toplam deneme üst sınırı (varsayılan: requests × 3)
           --message <text>              Sabit FitBot mesajı (karşılaştırılabilirlik için sabit tutulur)
           --action-type <type>          free|analyze|today|program|motivation (varsayılan: free)
           --token <jwt>                 Hazır JWT kullan (register/login atlanır) — production için önerilir
