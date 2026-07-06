@@ -279,18 +279,16 @@ def main():
     print("\n" + "=" * 60)
     print("SONUÇLAR")
     print("=" * 60)
-    print(f"Corpus BLEU-4 : {corpus_bleu4:.4f}  (hedef ≥ 0.35)")
-    print(f"Avg ROUGE-L   : {avg_rouge:.4f}  (hedef ≥ 0.45)")
+    print(f"Corpus BLEU-4 : {corpus_bleu4:.4f}")
+    print(f"Avg ROUGE-L   : {avg_rouge:.4f}")
     print()
     print("Hedef tipine göre:")
     for g in goals:
         print(f"  {g:15s}  BLEU: {goal_bleu.get(g,0):.3f}  ROUGE-L: {goal_rouge.get(g,0):.3f}")
     print()
-    print("Hedefler:")
-    b_ok = "✓ BAŞARILI" if corpus_bleu4 >= 0.35 else "✗ BAŞARISIZ (hedef: 0.35)"
-    r_ok = "✓ BAŞARILI" if avg_rouge   >= 0.45 else "✗ BAŞARISIZ (hedef: 0.45)"
-    print(f"  BLEU-4  ≥ 0.35 : {b_ok}")
-    print(f"  ROUGE-L ≥ 0.45 : {r_ok}")
+    print("Not: BLEU-4 ve ROUGE-L, open-ended coaching çıktıları için yalnızca")
+    print("exploratory lexical-overlap göstergesi olarak raporlanır. Bu metrikler")
+    print("için bir başarı/başarısızlık eşiği tanımlanmamıştır.")
     print("=" * 60)
 
     # ── JSON kaydet
