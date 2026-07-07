@@ -1,0 +1,275 @@
+{
+  "GeneratedAtUtc": "2026-07-07T14:52:50.2706677Z",
+  "BaseUrl": "https://fittracker-api-achkb5c8csdncph2.germanywestcentral-01.azurewebsites.net",
+  "ActionType": "free",
+  "Message": "Bug\u00FCn i\u00E7in \u00F6nerin nedir?",
+  "FreshUserEveryRequest": false,
+  "WarmupRequests": 2,
+  "WarmupFailureCount": 0,
+  "RequestsAttempted": 20,
+  "SuccessCount": 20,
+  "FailureCount": 0,
+  "ErrorRatePercent": 0,
+  "EndToEndMs": {
+    "Count": 20,
+    "Mean": 256.539985,
+    "Median": 91.8328,
+    "Min": 76.9341,
+    "Max": 810.675,
+    "P95": 709.9538
+  },
+  "ContextMs": {
+    "Count": 20,
+    "Mean": 0,
+    "Median": 0,
+    "Min": 0,
+    "Max": 0,
+    "P95": 0
+  },
+  "GroqMs": {
+    "Count": 20,
+    "Mean": 82.6,
+    "Median": 20,
+    "Min": 15,
+    "Max": 436,
+    "P95": 369
+  },
+  "CacheHitCount": 20,
+  "CacheMissCount": 0,
+  "CacheUnknownCount": 0,
+  "EndToEndMsCacheHit": {
+    "Count": 20,
+    "Mean": 256.539985,
+    "Median": 91.8328,
+    "Min": 76.9341,
+    "Max": 810.675,
+    "P95": 709.9538
+  },
+  "EndToEndMsCacheMiss": null,
+  "Notes": [
+    "Hi\u00E7 cache MISS \u00F6rne\u011Fi toplanamad\u0131 (varsay\u0131lan \u00E7al\u0131\u015Ft\u0131rmada context cache\u0027in 1 dakikal\u0131k TTL\u0027i i\u00E7inde ayn\u0131 kullan\u0131c\u0131 tekrar kullan\u0131ld\u0131\u011F\u0131nda bu beklenir). Cache MISS davran\u0131\u015F\u0131n\u0131 izole \u00F6l\u00E7mek i\u00E7in --fresh-user-every-request bayra\u011F\u0131yla ayr\u0131 bir \u00E7al\u0131\u015Ft\u0131rma yap\u0131n."
+  ],
+  "FailureMessages": [],
+  "Samples": [
+    {
+      "Index": 1,
+      "TimestampUtc": "2026-07-07T14:52:40.2149215Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 409.0831,
+      "ContextMs": 0,
+      "GroqMs": 285,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 2,
+      "TimestampUtc": "2026-07-07T14:52:40.8804207Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 289.3276,
+      "ContextMs": 0,
+      "GroqMs": 227,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 3,
+      "TimestampUtc": "2026-07-07T14:52:41.4259287Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 527.5565,
+      "ContextMs": 0,
+      "GroqMs": 436,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 4,
+      "TimestampUtc": "2026-07-07T14:52:42.2057183Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 96.9374,
+      "ContextMs": 0,
+      "GroqMs": 20,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 5,
+      "TimestampUtc": "2026-07-07T14:52:42.5663714Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 106.1933,
+      "ContextMs": 0,
+      "GroqMs": 37,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 6,
+      "TimestampUtc": "2026-07-07T14:52:42.9250304Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 87.1896,
+      "ContextMs": 0,
+      "GroqMs": 18,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 7,
+      "TimestampUtc": "2026-07-07T14:52:43.2703404Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 89.7637,
+      "ContextMs": 0,
+      "GroqMs": 20,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 8,
+      "TimestampUtc": "2026-07-07T14:52:43.6138491Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 397.7015,
+      "ContextMs": 0,
+      "GroqMs": 20,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 9,
+      "TimestampUtc": "2026-07-07T14:52:44.2701492Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 91.8328,
+      "ContextMs": 0,
+      "GroqMs": 21,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 10,
+      "TimestampUtc": "2026-07-07T14:52:44.6135391Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 406.2382,
+      "ContextMs": 0,
+      "GroqMs": 18,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 11,
+      "TimestampUtc": "2026-07-07T14:52:45.2853421Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 90.7312,
+      "ContextMs": 0,
+      "GroqMs": 21,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 12,
+      "TimestampUtc": "2026-07-07T14:52:45.6312158Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 521.0305,
+      "ContextMs": 0,
+      "GroqMs": 25,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 13,
+      "TimestampUtc": "2026-07-07T14:52:46.4201419Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 709.9538,
+      "ContextMs": 0,
+      "GroqMs": 16,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 14,
+      "TimestampUtc": "2026-07-07T14:52:47.3857492Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 81.7028,
+      "ContextMs": 0,
+      "GroqMs": 20,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 15,
+      "TimestampUtc": "2026-07-07T14:52:47.7326906Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 81.6248,
+      "ContextMs": 0,
+      "GroqMs": 18,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 16,
+      "TimestampUtc": "2026-07-07T14:52:48.0796377Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 76.9341,
+      "ContextMs": 0,
+      "GroqMs": 15,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 17,
+      "TimestampUtc": "2026-07-07T14:52:48.4135108Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 810.675,
+      "ContextMs": 0,
+      "GroqMs": 369,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 18,
+      "TimestampUtc": "2026-07-07T14:52:49.4845543Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 82.9286,
+      "ContextMs": 0,
+      "GroqMs": 25,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 19,
+      "TimestampUtc": "2026-07-07T14:52:49.831315Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 84.0574,
+      "ContextMs": 0,
+      "GroqMs": 21,
+      "CacheStatus": "hit"
+    },
+    {
+      "Index": 20,
+      "TimestampUtc": "2026-07-07T14:52:50.1753791Z",
+      "Success": true,
+      "HttpStatus": 200,
+      "Error": null,
+      "EndToEndMs": 89.3378,
+      "ContextMs": 0,
+      "GroqMs": 20,
+      "CacheStatus": "hit"
+    }
+  ]
+}

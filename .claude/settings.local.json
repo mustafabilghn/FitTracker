@@ -25,7 +25,18 @@
       "Bash(dotnet test *)",
       "Bash(find evaluation *)",
       "Bash(ls evaluation *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(dotnet sln *)",
+      "Bash(dotnet run *)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(dotnet publish *)",
+      "Read(//tmp/fittracker-publish-check/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git push *)",
+      "Bash(gh run *)"
     ]
   }
 }
