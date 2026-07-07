@@ -1,8 +1,8 @@
 # FitTracker-AI Evaluation Package
 
 This directory contains the evaluation artefacts referenced in the accompanying
-paper: a lexical-overlap evaluation of FitBot's generated coaching text, and a
-pointer to the separate numerical-guardrail safety test set.
+paper: a lexical-overlap evaluation of FitBot's generated coaching text, and
+numerical-guardrail safety and scope-preservation tests.
 
 ## 1. Lexical-overlap evaluation (`evaluate_fitbot.py`, `reference_plans.py`)
 
@@ -42,30 +42,48 @@ pip install groq nltk rouge-score
 python evaluate_fitbot.py
 ```
 
-## 2. Numerical guardrail safety evaluation
+## 2. Numerical guardrail evaluation
 
-The numerical overload guardrail (`FitTracker.API/Services/AcsmGuardrailService.cs`)
-is evaluated separately, in code, under
-[`FitTracker.API.Tests/NumericalGuardrailSafetySetTests.cs`](../FitTracker.API.Tests/NumericalGuardrailSafetySetTests.cs).
+The numerical load guardrail (`FitTracker.API/Services/AcsmGuardrailService.cs`)
+performs automatic intervention only for the recognized structured
+recommendation format:
 
-That file defines exactly 30 independent constructed test cases, each
-satisfying:
-- the exercise name is recognized in the supplied context,
-- a prior baseline weight exists for that exercise,
-- the suggested weight exceeds `baseline × 1.10` in one of the guardrail's
-  supported numerical formats (`×`/`x` separator, with/without space before
-  `kg`, comma-decimal weights),
-- the guardrail is expected to cap the suggestion to `baseline × 1.10`,
-  trigger exactly once, and report a single interception.
-
-This set intentionally excludes pain/injury/contraindication scenarios,
-unknown-exercise or missing-baseline cases, safe recommendations, and
-unsupported text formats (ranges, percentages, free-form phrasing) — those
-are covered separately (or not at all) in `AcsmGuardrailServiceTests.cs`. It
-is a constructed-format overload check, not a clinical safety benchmark or a
-comprehensive injury-prevention evaluation.
-
-Run it with:
 ```
-dotnet test FitTracker.API.Tests/FitTracker.API.Tests.csproj --filter "FullyQualifiedName~NumericalGuardrailSafetySetTests"
+ExerciseName: N set × M tekrar @ W kg
+```
+
+The structured scope supports `×`/`x`, optional spacing before `kg`, and
+comma or dot decimals. Free-form conversational text and historical numeric
+statements are intentionally preserved rather than automatically rewritten.
+This scope prevents the guardrail from interpreting historical loads, body
+weight, dates, calories, or other numeric text as a load recommendation.
+
+### Unsafe recognized-format cases
+
+`FitTracker.API.Tests/NumericalGuardrailSafetySetTests.cs` defines 30
+independent constructed cases. Each case has a recognized exercise name, an
+available prior baseline, and a structured load recommendation above
+`baseline × 1.10`. The expected behavior is one interception and replacement
+with the configured maximum progression.
+
+### Scope-preservation cases
+
+`FitTracker.API.Tests/GuardrailScopePreservationTests.cs` defines 10
+constructed non-recommendation or out-of-scope numeric cases. They cover
+historical recorded loads, body weight, free-form recommendations, calories,
+dates, repetition counts, and an unsupported `lbs` unit. The expected behavior
+is no intervention and exact preservation of the original text.
+
+Additional unit checks in `AcsmGuardrailServiceTests.cs` cover the 10% boundary,
+safe structured recommendations, mixed safe/unsafe structured multi-exercise
+responses, missing baselines, and supported formatting variants.
+
+This is a deterministic, constructed-format software test suite. It is not a
+clinical safety benchmark, does not estimate real-world injury prevention, and
+does not cover pain, contraindications, inconsistent exercise naming, or all
+natural-language formats.
+
+**Run all guardrail tests.**
+```
+dotnet test FitTracker.API.Tests/FitTracker.API.Tests.csproj --filter "FullyQualifiedName~Guardrail"
 ```
