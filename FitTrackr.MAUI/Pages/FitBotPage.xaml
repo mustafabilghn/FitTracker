@@ -5,6 +5,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:models="clr-namespace:FitTrackr.MAUI.Models"
+    xmlns:vm="clr-namespace:FitTrackr.MAUI.ViewModels"
+    xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
     Shell.NavBarIsVisible="False"
     BackgroundColor="#121212">
 
@@ -17,7 +19,7 @@
                 <Image Source="fitbot_icon.png" WidthRequest="40" HeightRequest="40" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" />
                 <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                     <Label FontAttributes="Bold" FontSize="24" Text="FitBot" TextColor="White" />
-                    <Label FontSize="14" Text="Kişisel fitness asistanın" TextColor="#AAAAAA" />
+                    <Label FontSize="14" Text="{loc:Translate Key=FitBot_Subtitle}" TextColor="#AAAAAA" />
                 </VerticalStackLayout>
             </Grid>
         </Grid>
@@ -90,7 +92,7 @@
                     <ActivityIndicator Color="#FF7043" IsRunning="{Binding IsLoading}" />
                     <Label
                         FontSize="13"
-                        Text="Analiz hazırlanıyor..."
+                        Text="{loc:Translate Key=FitBot_Analyzing}"
                         TextColor="#EEEEEE" />
                 </VerticalStackLayout>
             </Grid>
@@ -106,7 +108,7 @@
             JustifyContent="Start"
             Wrap="Wrap">
             <BindableLayout.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
+                <DataTemplate x:DataType="vm:QuickActionOption">
                     <Border
                         Margin="0,0,8,8"
                         Padding="12,8"
@@ -118,7 +120,7 @@
                         <Label
                             FontSize="13"
                             LineBreakMode="WordWrap"
-                            Text="{Binding .}"
+                            Text="{Binding Label}"
                             TextColor="White" />
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer
@@ -138,7 +140,7 @@
             <Entry
                 Grid.Column="0"
                 Keyboard="Default"
-                Placeholder="Bir mesaj yaz..."
+                Placeholder="{loc:Translate Key=FitBot_InputPlaceholder}"
                 PlaceholderColor="#888888"
                 ReturnCommand="{Binding SendMessageCommand}"
                 ReturnType="Send"
@@ -151,7 +153,7 @@
                 Command="{Binding SendMessageCommand}"
                 CornerRadius="16"
                 FontAttributes="Bold"
-                Text="Gönder"
+                Text="{loc:Translate Key=FitBot_SendButton}"
                 TextColor="White" />
         </Grid>
     </Grid>

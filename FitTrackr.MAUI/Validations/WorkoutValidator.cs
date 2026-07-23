@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models.DTO;
 using System.Threading.Tasks;
 
@@ -9,22 +10,22 @@ namespace FitTrackr.MAUI.Validations
         {
             if (string.IsNullOrEmpty(workoutName))
             {
-                return "Antrenman adı boş olamaz.";
+                return LocalizationResourceManager.Instance["Workout_NameEmptyError"];
             }
 
             if (workoutDate == default)
             {
-                return "Tarih seçilmelidir.";
+                return LocalizationResourceManager.Instance["Workout_DateRequiredError"];
             }
 
             if (duration <= 0)
             {
-                return "Süre 0'dan büyük bir sayı olmalıdır.";
+                return LocalizationResourceManager.Instance["Workout_DurationInvalidError"];
             }
 
             if (locationId == Guid.Empty)
             {
-                return "Yer seçilmelidir.";
+                return LocalizationResourceManager.Instance["Workout_LocationRequiredError"];
             }
 
             return null;

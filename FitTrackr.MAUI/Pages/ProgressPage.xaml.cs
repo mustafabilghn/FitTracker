@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.ViewModels;
 
 namespace FitTrackr.MAUI.Pages
@@ -39,10 +40,11 @@ namespace FitTrackr.MAUI.Pages
             _isExerciseSelectorOpen = true;
             try
             {
+                var cancel = LocalizationResourceManager.Instance["Common_Cancel"];
                 var options = _viewModel.ExerciseFilters.Select(x => x.Title).ToArray();
-                var selected = await DisplayActionSheet("Egzersiz seç", "İptal", null, options);
+                var selected = await DisplayActionSheet(LocalizationResourceManager.Instance["Progress_SelectExerciseTitle"], cancel, null, options);
 
-                if (string.IsNullOrWhiteSpace(selected) || selected == "İptal")
+                if (string.IsNullOrWhiteSpace(selected) || selected == cancel)
                 {
                     return;
                 }

@@ -1,4 +1,5 @@
 using FitTrackr.MAUI.Services;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Pages;
 using CommunityToolkit.Mvvm.Messaging;
@@ -86,8 +87,18 @@ namespace FitTrackr.MAUI
         public int StreakRecord
         {
             get => streakRecord;
-            set { if (streakRecord != value) { streakRecord = value; OnPropertyChanged(); } }
+            set
+            {
+                if (streakRecord != value)
+                {
+                    streakRecord = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(StreakRecordText));
+                }
+            }
         }
+
+        public string StreakRecordText => string.Format(LocalizationResourceManager.Instance["Main_StreakRecordFormat"], StreakRecord);
 
         /// <summary>Bu haftaki benzersiz antrenman günü sayısı (Pzt–Paz).</summary>
         public string WeeklyWorkouts
@@ -226,7 +237,7 @@ namespace FitTrackr.MAUI
                 }
 
                 if (string.IsNullOrWhiteSpace(Username))
-                    Username = "Kullanıcı";
+                    Username = LocalizationResourceManager.Instance["Profile_DefaultUsername"];
 
                 // ✅ 2. Avatar fresh load et
                 AvatarImageSource = LoadAvatarImageSourceFresh();
@@ -236,7 +247,7 @@ namespace FitTrackr.MAUI
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", $"Veriler alınırken bir hata oluştu: {ex.Message}", "Tamam");
+                await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["Main_LoadDataErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
             finally
             {

@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Validations;
 using FitTrackr.MAUI.ViewModels;
@@ -42,12 +43,12 @@ public partial class AddWorkoutPage : ContentPage
 
         if (!string.IsNullOrEmpty(error))
         {
-            await DisplayAlert("Hata", error, "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], error, LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
         await _viewModel.AddWorkoutAsync(workout);
-        await DisplayAlert("Başarılı", "Antrenman başarıyla eklendi.", "Tamam");
+        await DisplayAlert(LocalizationResourceManager.Instance["AddWorkout_SuccessTitle"], LocalizationResourceManager.Instance["AddWorkout_SuccessMessage"], LocalizationResourceManager.Instance["Common_OK"]);
         await Navigation.PopAsync();
     }
 }

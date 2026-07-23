@@ -2,8 +2,13 @@
 <ContentPage x:Name="ThisPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.WorkoutDetailPage"
              BackgroundColor="#121212">
+
+    <ContentPage.Resources>
+        <loc:LocalizedFormatConverter x:Key="LocalizedFormatConverter" />
+    </ContentPage.Resources>
 
     <Grid>
         <ScrollView>
@@ -19,7 +24,7 @@
                 <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
 
                     <Border Stroke="#4CAF50" StrokeThickness="1" Padding="8,3" StrokeShape="RoundRectangle 10">
-                        <Label Text="{Binding Workout.DurationMinutes,StringFormat='⏱ {0} dk'}"
+                        <Label Text="{Binding Workout.DurationMinutes, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=WorkoutDetail_DurationFormat}"
                            FontSize="14"
                            TextColor="#4CAF50"/>
                     </Border>
@@ -37,7 +42,7 @@
                     </Border>
                 </HorizontalStackLayout>
 
-                <Label Text="Egzersizler"
+                <Label Text="{loc:Translate Key=WorkoutDetail_ExercisesTitle}"
                    FontSize="24"
                    FontAttributes="Bold"
                    TextColor="White"
@@ -54,7 +59,7 @@
 
                     <CollectionView.EmptyView>
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="10" Margin="0,40">
-                            <Label Text="Henüz egzersiz eklenmedi."
+                            <Label Text="{loc:Translate Key=WorkoutDetail_EmptyMessage}"
                                    FontSize="18"
                                    FontAttributes="Bold"
                                    TextColor="White"
@@ -67,7 +72,7 @@
                             <SwipeView>
                                 <SwipeView.RightItems>
                                     <SwipeItems Mode="Reveal">
-                                        <SwipeItem Text="Sil"
+                                        <SwipeItem Text="{loc:Translate Key=Common_Delete}"
                                                    BackgroundColor="#E53935"
                                                    Command="{Binding Source={x:Reference ThisPage},Path=BindingContext.DeleteExerciseCommand}"
                                                    CommandParameter="{Binding Id}"/>
@@ -93,7 +98,7 @@
                                                    TextColor="White" />
 
                                             <Label Grid.Column="1"
-                                                   Text="{Binding Intensity.Level,StringFormat='Yoğunluk: {0}'}"
+                                                   Text="{Binding Intensity.Level, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=WorkoutDetail_IntensityFormat}"
                                                    FontSize="14"
                                                    TextColor="#FF7043"
                                                    HorizontalOptions="End"
@@ -145,12 +150,12 @@
                                             </CollectionView.ItemTemplate>
                                         </CollectionView>
 
-                                        <Label Text="{Binding Notes,StringFormat='Notlar: {0}'}"
+                                        <Label Text="{Binding Notes, Converter={StaticResource LocalizedFormatConverter}, ConverterParameter=WorkoutDetail_NotesFormat}"
                                                FontSize="14"
                                                TextColor="#FF7043"
                                                IsVisible="{Binding IsExpanded}" />
 
-                                        <Button Text=" + Set Ekle"
+                                        <Button Text="{loc:Translate Key=WorkoutDetail_AddSetButton}"
                                                 FontSize="13"
                                                 TextColor="#FF7043"
                                                 BackgroundColor="Transparent"
@@ -161,19 +166,19 @@
 
                                         <VerticalStackLayout IsVisible="{Binding IsAddingSet}" Spacing="8">
 
-                                            <Entry Placeholder="Tekrar Sayısı"
+                                            <Entry Placeholder="{loc:Translate Key=ExerciseSetEntry_RepsPlaceholder}"
                                                    PlaceholderColor="#888"
                                                    TextColor="White"
                                                    BackgroundColor="#2A2A2A"
                                                    Text="{Binding Source={x:Reference ThisPage}, Path=BindingContext.NewReps}"/>
 
-                                            <Entry Placeholder="Ağırlık (kg)"
+                                            <Entry Placeholder="{loc:Translate Key=ExerciseSetEntry_WeightPlaceholder}"
                                                    PlaceholderColor="#888"
                                                    TextColor="White"
                                                    BackgroundColor="#2A2A2A"
                                                    Text="{Binding Source={x:Reference ThisPage},Path=BindingContext.NewWeightInKg}"/>
 
-                                            <Button Text="Kaydet"
+                                            <Button Text="{loc:Translate Key=Common_Save}"
                                                     BackgroundColor="#FF7043"
                                                     TextColor="White"
                                                     CornerRadius="8"

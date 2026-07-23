@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
 using Microsoft.Maui.ApplicationModel;
@@ -9,7 +10,7 @@ namespace FitTrackr.MAUI.ViewModels
 {
     public partial class ExerciseSelectionViewModel : ObservableObject
     {
-        private const string AllOption = "Tümü";
+        private static string AllOption => LocalizationResourceManager.Instance["ExerciseSelection_AllOption"];
         private static readonly TimeSpan SearchDebounceDelay = TimeSpan.FromMilliseconds(180);
 
         private readonly ExerciseCatalogProvider _exerciseCatalogProvider;
@@ -34,11 +35,11 @@ namespace FitTrackr.MAUI.ViewModels
 
         private IReadOnlyList<ExerciseCatalogItemDto> filteredExercises = [];
 
-        public string BodyPartDisplayText => IsFilterInactive(SelectedBodyPart) ? "Bölge" : SelectedBodyPart;
+        public string BodyPartDisplayText => IsFilterInactive(SelectedBodyPart) ? LocalizationResourceManager.Instance["ExerciseSelection_BodyPart"] : SelectedBodyPart;
 
-        public string EquipmentDisplayText => IsFilterInactive(SelectedEquipment) ? "Ekipman" : SelectedEquipment;
+        public string EquipmentDisplayText => IsFilterInactive(SelectedEquipment) ? LocalizationResourceManager.Instance["ExerciseSelection_Equipment"] : SelectedEquipment;
 
-        public string LevelDisplayText => IsFilterInactive(SelectedLevel) ? "Seviye" : SelectedLevel;
+        public string LevelDisplayText => IsFilterInactive(SelectedLevel) ? LocalizationResourceManager.Instance["ExerciseSelection_Level"] : SelectedLevel;
 
         public bool IsBodyPartFiltered => !IsFilterInactive(SelectedBodyPart);
 

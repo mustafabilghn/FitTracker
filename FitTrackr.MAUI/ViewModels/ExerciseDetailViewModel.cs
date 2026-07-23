@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
 using System.Collections.ObjectModel;
@@ -54,7 +55,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (string.IsNullOrWhiteSpace(NewReps))
             {
-                await Shell.Current.DisplayAlert("Hata", "Tekrar sayısı boş olamaz.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseDetail_RepsEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 

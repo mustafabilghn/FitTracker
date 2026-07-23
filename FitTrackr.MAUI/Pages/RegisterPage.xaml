@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.RegisterPage"
              BackgroundColor="#121212"
              Shell.NavBarIsVisible="False">
@@ -15,7 +16,7 @@
                    HorizontalOptions="Center"
                    Margin="0,40,0,10"/>
 
-            <Label Text="Yeni hesap oluştur"
+            <Label Text="{loc:Translate Key=Register_Subtitle}"
                    FontSize="16"
                    TextColor="#AAAAAA"
                    HorizontalOptions="Center"
@@ -23,7 +24,7 @@
 
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
-                <Entry Placeholder="Kullanıcı adı"
+                <Entry Placeholder="{loc:Translate Key=Register_UsernamePlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -32,7 +33,7 @@
 
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
-                <Entry Placeholder="E-posta"
+                <Entry Placeholder="{loc:Translate Key=Register_EmailPlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -42,7 +43,7 @@
 
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
-                <Entry Placeholder="Şifre (en az 6 karakter)"
+                <Entry Placeholder="{loc:Translate Key=Register_PasswordPlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -52,7 +53,7 @@
 
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
-                <Entry Placeholder="Şifre tekrar"
+                <Entry Placeholder="{loc:Translate Key=Register_ConfirmPasswordPlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -60,7 +61,7 @@
                        Text="{Binding ConfirmPassword}"/>
             </Frame>
 
-            <Button Text="Kayıt Ol"
+            <Button Text="{loc:Translate Key=Register_SignUpButton}"
                     FontSize="18"
                     TextColor="White"
                     BackgroundColor="#FF7043"
@@ -75,10 +76,10 @@
                                HorizontalOptions="Center"/>
 
             <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
-                <Label Text="Zaten hesabın var mı?"
+                <Label Text="{loc:Translate Key=Register_AlreadyHaveAccount}"
                        TextColor="#AAAAAA"
                        VerticalOptions="Center"/>
-                <Label Text="Giriş yap"
+                <Label Text="{loc:Translate Key=Register_SignIn}"
                        TextColor="#FF7043"
                        VerticalOptions="Center">
                     <Label.GestureRecognizers>

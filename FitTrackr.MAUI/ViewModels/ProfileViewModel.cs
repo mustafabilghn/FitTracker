@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
+using System.Globalization;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
@@ -29,6 +31,8 @@ namespace FitTrackr.MAUI.ViewModels
         private byte[]? avatarImageBytes;
         private bool hasLoadedProfile = false;
 
+        // Not: bu değerler API/Preferences'ta saklanan veridir, UI diline göre çevrilmez —
+        // aksi halde dil değişince kullanıcının kayıtlı seçimi listede bulunamaz.
         public IReadOnlyList<string> GenderOptions { get; } = new[] { "Erkek", "Kadın", "Diğer" };
         public IReadOnlyList<string> GoalOptions { get; } = new[] { "Kas Yapma", "Keskinleşme", "Koruma" };
 
@@ -93,11 +97,45 @@ namespace FitTrackr.MAUI.ViewModels
             ? "?"
             : Username.Trim()[0].ToString().ToUpperInvariant();
 
-        public string AvatarActionText => HasAvatarImage ? "Fotoğrafı değiştir" : "Fotoğraf ekle";
+        public string AvatarActionText => HasAvatarImage
+            ? LocalizationResourceManager.Instance["Profile_ChangePhoto"]
+            : LocalizationResourceManager.Instance["Profile_AddPhoto"];
+
+        public bool IsTurkishSelected => LocalizationResourceManager.Instance.CurrentCulture.TwoLetterISOLanguageName != "en";
+        public bool IsEnglishSelected => !IsTurkishSelected;
 
         public ProfileViewModel(AuthService authService)
         {
             this.authService = authService;
+            LocalizationResourceManager.Instance.PropertyChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(AvatarActionText));
+                OnPropertyChanged(nameof(IsTurkishSelected));
+                OnPropertyChanged(nameof(IsEnglishSelected));
+            };
+        }
+
+        [RelayCommand]
+        private async Task SetLanguageAsync(string languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(languageCode))
+                return;
+
+            Preferences.Set("app_language", languageCode);
+            var culture = CultureInfo.GetCultureInfo(languageCode == "en" ? "en-US" : "tr-TR");
+            CultureInfo.CurrentCulture = culture;
+            LocalizationResourceManager.Instance.SetCulture(culture);
+
+            // Sayfa içi Label/Button metinleri {loc:Translate} bağlamasıyla anında güncellenir,
+            // ancak Android'in native alt tab bar'ı (Shell TabBar) ilk oluşturulduktan sonra
+            // başlık değişikliklerini yansıtmıyor (bilinen MAUI Shell sınırlaması). Bu yüzden
+            // Shell'i DI üzerinden yeniden oluşturup aynı sayfaya geri dönüyoruz.
+            var newShell = IPlatformApplication.Current!.Services.GetService<AppShell>();
+            if (newShell is not null)
+            {
+                Application.Current!.MainPage = newShell;
+                await Shell.Current.GoToAsync("//ProfilePage");
+            }
         }
 
         public async Task LoadProfileAsync()
@@ -163,7 +201,7 @@ namespace FitTrackr.MAUI.ViewModels
             WeightKg = string.IsNullOrWhiteSpace(WeightKg) ? "75" : WeightKg;
             SelectedGender = string.IsNullOrWhiteSpace(SelectedGender) ? GenderOptions[2] : SelectedGender;
             SelectedGoal = string.IsNullOrWhiteSpace(SelectedGoal) ? GoalOptions[2] : SelectedGoal;
-            Username = string.IsNullOrWhiteSpace(Username) ? "Kullanıcı" : Username;
+            Username = string.IsNullOrWhiteSpace(Username) ? LocalizationResourceManager.Instance["Profile_DefaultUsername"] : Username;
 
             SaveToPreferences();
             await LoadAvatarFromLocalStorageAsync();
@@ -187,30 +225,29 @@ namespace FitTrackr.MAUI.ViewModels
         {
             try
             {
-                var action = await Application.Current!.MainPage!.DisplayActionSheet(
-                    "Profil fotoğrafı",
-                    "Vazgeç",
-                    null,
-                    "Galeriden seç",
-                    "Kameradan çek",
-                    "Fotoğrafı kaldır");
+                var loc = LocalizationResourceManager.Instance;
+                var chooseFromGallery = loc["Profile_ChooseFromGallery"];
+                var takePhoto = loc["Profile_TakePhoto"];
+                var removePhoto = loc["Profile_RemovePhoto"];
 
-                switch (action)
-                {
-                    case "Galeriden seç":
-                        await PickAvatarFromGalleryAsync();
-                        break;
-                    case "Kameradan çek":
-                        await CaptureAvatarAsync();
-                        break;
-                    case "Fotoğrafı kaldır":
-                        await RemoveAvatarAsync();
-                        break;
-                }
+                var action = await Application.Current!.MainPage!.DisplayActionSheet(
+                    loc["Profile_PhotoActionSheetTitle"],
+                    loc["Profile_Decline"],
+                    null,
+                    chooseFromGallery,
+                    takePhoto,
+                    removePhoto);
+
+                if (action == chooseFromGallery)
+                    await PickAvatarFromGalleryAsync();
+                else if (action == takePhoto)
+                    await CaptureAvatarAsync();
+                else if (action == removePhoto)
+                    await RemoveAvatarAsync();
             }
             catch
             {
-                await ShowAlertAsync("Hata", "Profil fotoğrafı seçilemedi. Lütfen tekrar deneyin.");
+                await ShowAlertAsync(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Profile_PhotoSelectFailed"]);
             }
         }
 
@@ -224,11 +261,12 @@ namespace FitTrackr.MAUI.ViewModels
         [RelayCommand]
         public async Task ConfirmDeleteAccountAsync()
         {
+            var loc = LocalizationResourceManager.Instance;
             var isConfirmed = await Application.Current!.MainPage!.DisplayAlert(
-                "Hesabı Sil",
-                "Bu işlemi gerçekleştirmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-                "Evet",
-                "Vazgeç");
+                loc["Profile_DeleteAccount"],
+                loc["Profile_DeleteAccountConfirmMessage"],
+                loc["Profile_DeleteAccountConfirmYes"],
+                loc["Profile_Decline"]);
 
             if (!isConfirmed)
             {
@@ -238,13 +276,13 @@ namespace FitTrackr.MAUI.ViewModels
             var success = await authService.DeleteAccountAsync();
             if (success)
             {
-                await Application.Current!.MainPage!.DisplayAlert("Başarılı", "Hesabınız ve tüm verileriniz kalıcı olarak silindi.", "Tamam");
+                await Application.Current!.MainPage!.DisplayAlert(loc["Profile_DeleteSuccessTitle"], loc["Profile_DeleteSuccessMessage"], loc["Common_OK"]);
                 authService.Logout();
                 Application.Current.MainPage = new NavigationPage(IPlatformApplication.Current.Services.GetService<LoginPage>());
                 return;
             }
 
-            await Application.Current!.MainPage!.DisplayAlert("Hata", "Hesap silme işlemi sırasında bir hata oluştu. Lütfen bağlantınızı kontrol edip tekrar deneyin.", "Tamam");
+            await Application.Current!.MainPage!.DisplayAlert(loc["Common_Error"], loc["Profile_DeleteErrorMessage"], loc["Common_OK"]);
         }
 
         private void LoadFromPreferences()
@@ -283,11 +321,11 @@ namespace FitTrackr.MAUI.ViewModels
 
                 if (cameraStatus != PermissionStatus.Granted)
                 {
-                    await ShowAlertAsync("Kamera izni gerekli", "Fotoğraf çekebilmek için kamera izni vermelisiniz.");
+                    await ShowAlertAsync(LocalizationResourceManager.Instance["Profile_CameraPermissionTitle"], LocalizationResourceManager.Instance["Profile_CameraPermissionMessage"]);
                     return;
                 }
 
-                var photo = await MediaPicker.Default.CapturePhotoAsync(new MediaPickerOptions { Title = "Profil Fotoğrafı" });
+                var photo = await MediaPicker.Default.CapturePhotoAsync(new MediaPickerOptions { Title = LocalizationResourceManager.Instance["Profile_CameraPhotoTitle"] });
                 if (photo is null)
                 {
                     return;
@@ -297,7 +335,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
             catch
             {
-                await ShowAlertAsync("Kamera açılamadı", "Kamera başlatılamadı. Lütfen cihaz izinlerini kontrol edin.");
+                await ShowAlertAsync(LocalizationResourceManager.Instance["Profile_CameraUnavailableTitle"], LocalizationResourceManager.Instance["Profile_CameraUnavailableMessage"]);
             }
         }
 
@@ -315,7 +353,7 @@ namespace FitTrackr.MAUI.ViewModels
 
                     if (photosStatus != PermissionStatus.Granted)
                     {
-                        await ShowAlertAsync("Galeri izni gerekli", "Galeriden fotoğraf seçmek için fotoğraf erişimi vermelisiniz.");
+                        await ShowAlertAsync(LocalizationResourceManager.Instance["Profile_GalleryPermissionTitle"], LocalizationResourceManager.Instance["Profile_GalleryPermissionMessage"]);
                         return;
                     }
                 }
@@ -330,7 +368,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
             catch
             {
-                await ShowAlertAsync("Hata", "Galeri açılamadı. Lütfen tekrar deneyin.");
+                await ShowAlertAsync(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Profile_GalleryErrorMessage"]);
             }
         }
 
@@ -428,7 +466,7 @@ namespace FitTrackr.MAUI.ViewModels
         {
             if (Application.Current?.MainPage is not null)
             {
-                await Application.Current.MainPage.DisplayAlert(title, message, "Tamam");
+                await Application.Current.MainPage.DisplayAlert(title, message, LocalizationResourceManager.Instance["Common_OK"]);
             }
         }
     }

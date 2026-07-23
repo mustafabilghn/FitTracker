@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.AddExercisePage"
              BackgroundColor="#121212"
-             Title="Egzersiz Ekle">
+             Title="{loc:Translate Key=AddExercise_Title}">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="25">
 
-            <Label Text="Yeni Egzersiz"
+            <Label Text="{loc:Translate Key=AddExercise_Header}"
                    FontSize="28"
                    FontAttributes="Bold"
                    TextColor="White"
@@ -21,7 +22,7 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Entry x:Name="ExerciseNameEntry"
-                       Placeholder="Egzersiz Adı"
+                       Placeholder="{loc:Translate Key=AddExercise_NamePlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -31,7 +32,7 @@
             <Frame CornerRadius="12" BackgroundColor="#1E1E1E"
                    Padding="10" HasShadow="True" BorderColor="#333">
                 <Entry x:Name="NotesEntry"
-                       Placeholder="Notlar"
+                       Placeholder="{loc:Translate Key=AddExercise_NotesPlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -44,14 +45,14 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Picker x:Name="IntensityPicker"
-                        Title="Yoğunluk"
+                        Title="{loc:Translate Key=AddExercise_IntensityPlaceholder}"
                         TitleColor="#AAAAAA"
                         TextColor="White"
                         ItemsSource="{Binding Intensities}"
                         ItemDisplayBinding="{Binding Level}"/>
             </Frame>
 
-            <Button Text="Kaydet"
+            <Button Text="{loc:Translate Key=Common_Save}"
                     FontSize="20"
                     TextColor="White"
                     BackgroundColor="Green"

@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Validations;
 using FitTrackr.MAUI.ViewModels;
@@ -34,7 +35,7 @@ public partial class AddExercisePage : ContentPage
 
         if (!string.IsNullOrEmpty(error))
         {
-            await DisplayAlert("Hata", error, "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], error, LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
@@ -47,7 +48,7 @@ public partial class AddExercisePage : ContentPage
         };
 
         await _viewModel.AddExerciseAsync(exercise, _workoutDate);
-        await DisplayAlert("Başarılı", "Egzersiz başarıyla eklendi.", "Tamam");
+        await DisplayAlert(LocalizationResourceManager.Instance["AddExercise_SuccessTitle"], LocalizationResourceManager.Instance["AddExercise_SuccessMessage"], LocalizationResourceManager.Instance["Common_OK"]);
         await Navigation.PopAsync();
     }
 }

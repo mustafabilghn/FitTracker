@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Pages;
 using FitTrackr.MAUI.Services;
 using System.Globalization;
@@ -14,11 +15,13 @@ namespace FitTrackr.MAUI
         {
             InitializeComponent();
 
-            var trCulture = CultureInfo.GetCultureInfo("tr-TR");
-            CultureInfo.DefaultThreadCurrentCulture = trCulture;
-            CultureInfo.DefaultThreadCurrentUICulture = trCulture;
-            CultureInfo.CurrentCulture = trCulture;
-            CultureInfo.CurrentUICulture = trCulture;
+            // Kayıtlı dil tercihini oku (yoksa Türkçe varsayılan). ProfilePage'deki dil
+            // seçici bu tercihi Preferences.Set("app_language", "tr"|"en") ile günceller.
+            var savedLanguage = Preferences.Get("app_language", "tr");
+            var appCulture = CultureInfo.GetCultureInfo(savedLanguage == "en" ? "en-US" : "tr-TR");
+            CultureInfo.DefaultThreadCurrentCulture = appCulture;
+            CultureInfo.CurrentCulture = appCulture;
+            LocalizationResourceManager.Instance.SetCulture(appCulture);
 
             Current.UserAppTheme = AppTheme.Dark;
 

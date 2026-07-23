@@ -228,9 +228,9 @@ namespace FitTrackr.API.Services
             var mostRecent = weeklyMaxes.First().MaxKg;
             var oldestInRange = weeklyMaxes.Last().MaxKg;
 
-            if (mostRecent > oldestInRange + 0.5) return "artıyor";
-            if (oldestInRange > mostRecent + 0.5) return "düşüyor";
-            return "sabit";
+            if (mostRecent > oldestInRange + 0.5) return "UP";
+            if (oldestInRange > mostRecent + 0.5) return "DOWN";
+            return "STABLE";
         }
 
         private static bool IsOnPlateau(List<WeeklyMaxWeightDto> weeklyMaxes)

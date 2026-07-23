@@ -26,7 +26,7 @@ public partial class ExerciseSelectionPage : ContentPage
 
         _workoutId = workoutId;
         _workoutDate = workoutDate.Date;
-        _workoutName = string.IsNullOrWhiteSpace(workoutName) ? "Antrenman" : workoutName;
+        _workoutName = string.IsNullOrWhiteSpace(workoutName) ? DailyWorkoutCardViewModel.DefaultWorkoutName : workoutName;
     }
 
     protected override async void OnAppearing()

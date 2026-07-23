@@ -1,3 +1,5 @@
+using FitTrackr.MAUI.Localization;
+
 namespace FitTrackr.MAUI.Pages;
 
 public partial class StreakDetailPage : ContentPage
@@ -6,21 +8,26 @@ public partial class StreakDetailPage : ContentPage
     {
         InitializeComponent();
 
+        var loc = LocalizationResourceManager.Instance;
         StreakNumberLabel.Text = streak.ToString();
-        RecordLabel.Text = record > 0 ? $"Rekor: {record} Hafta" : "Henüz rekor yok";
+        RecordLabel.Text = record > 0 ? string.Format(loc["Main_StreakRecordFormat"], record) : loc["StreakDetail_NoRecordYet"];
         MotivationLabel.Text = GetMotivationText(streak);
     }
 
-    private static string GetMotivationText(int streak) => streak switch
+    private static string GetMotivationText(int streak)
     {
-        0 => "Henüz serini başlatmadın. Bu hafta bir antrenman kaydet ve ilk haftanı tamamla!",
-        1 => "İlk haftanı tamamladın! Devam et, serini büyüt.",
-        <= 3 => $"{streak} haftalık bir seri yakaladın. Ritmini bulmaya başlıyorsun!",
-        <= 7 => $"{streak} hafta üst üste antrenman yaptın. Harika bir alışkanlık kuruyorsun!",
-        <= 12 => $"{streak} haftalık seri! Artık bu bir yaşam biçimi.",
-        <= 24 => $"{streak} hafta! Yarım yıla yaklaştın — bu ciddi bir kararlılık.",
-        _ => $"{streak} haftalık inanılmaz bir seri! Sen bir fitness makinesisin."
-    };
+        var loc = LocalizationResourceManager.Instance;
+        return streak switch
+        {
+            0 => loc["StreakDetail_Motivation0"],
+            1 => loc["StreakDetail_Motivation1"],
+            <= 3 => string.Format(loc["StreakDetail_MotivationUpTo3Format"], streak),
+            <= 7 => string.Format(loc["StreakDetail_MotivationUpTo7Format"], streak),
+            <= 12 => string.Format(loc["StreakDetail_MotivationUpTo12Format"], streak),
+            <= 24 => string.Format(loc["StreakDetail_MotivationUpTo24Format"], streak),
+            _ => string.Format(loc["StreakDetail_MotivationOver24Format"], streak)
+        };
+    }
 
     private async void OnBackClicked(object sender, EventArgs e)
     {

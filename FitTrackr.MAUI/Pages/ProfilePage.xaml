@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
+             xmlns:conv="clr-namespace:FitTrackr.MAUI.Converters"
              x:Class="FitTrackr.MAUI.Pages.ProfilePage"
-             Title="Profil"
+             Title="{loc:Translate Key=Profile_Title}"
              BackgroundColor="#121212">
+
+    <ContentPage.Resources>
+        <conv:BoolToActiveColorConverter x:Key="BoolToActiveColorConverter" />
+    </ContentPage.Resources>
 
     <ScrollView>
         <VerticalStackLayout Padding="20,24" Spacing="18">
@@ -97,11 +103,11 @@
 
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="Profil Bilgileri"
+                            <Label Text="{loc:Translate Key=Profile_InfoTitle}"
                                    TextColor="#F2F2F2"
                                    FontSize="16"
                                    FontAttributes="Bold" />
-                            <Label Text="Kişisel bilgilerinizi düzenleyin"
+                            <Label Text="{loc:Translate Key=Profile_InfoSubtitle}"
                                    FontSize="12"
                                    TextColor="#9C9C9C" />
                         </VerticalStackLayout>
@@ -117,7 +123,7 @@
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="Kullanıcı Adı" TextColor="#BDBDBD" FontSize="12" />
+                                <Label Text="{loc:Translate Key=Profile_Username}" TextColor="#BDBDBD" FontSize="12" />
                                 <Label Grid.Row="1" Text="{Binding Username}" TextColor="White" FontSize="15" />         
                             </Grid>
                         </Border>
@@ -127,7 +133,7 @@
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="Cinsiyet" TextColor="#BDBDBD" FontSize="12" />
+                                <Label Text="{loc:Translate Key=Profile_Gender}" TextColor="#BDBDBD" FontSize="12" />
                                 <Label Grid.Row="1" Text="{Binding SelectedGender}" TextColor="White" FontSize="15" />
                             </Grid>
                         </Border>
@@ -137,7 +143,7 @@
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="Hedef" TextColor="#BDBDBD" FontSize="12" />
+                                <Label Text="{loc:Translate Key=Profile_Goal}" TextColor="#BDBDBD" FontSize="12" />
                                 <Label Grid.Row="1" Text="{Binding SelectedGoal}" TextColor="White" FontSize="15" />
                             </Grid>
                         </Border>
@@ -147,7 +153,7 @@
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="Boy (cm)" TextColor="#BDBDBD" FontSize="12" />
+                                <Label Text="{loc:Translate Key=Profile_Height}" TextColor="#BDBDBD" FontSize="12" />
                                 <Label Grid.Row="1" Text="{Binding HeightCm}" TextColor="White" FontSize="15" />
                             </Grid>
                         </Border>
@@ -157,11 +163,60 @@
                                 <RoundRectangle CornerRadius="12" />
                             </Border.StrokeShape>
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="Kilo (kg)" TextColor="#BDBDBD" FontSize="12" />
+                                <Label Text="{loc:Translate Key=Profile_Weight}" TextColor="#BDBDBD" FontSize="12" />
                                 <Label Grid.Row="1" Text="{Binding WeightKg}" TextColor="White" FontSize="15" />
                             </Grid>
                         </Border>
 
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Language Card -->
+            <Border BackgroundColor="#171717"
+                    Stroke="#2A2A2A"
+                    StrokeThickness="1"
+                    Padding="18">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24" />
+                </Border.StrokeShape>
+
+                <Border.Shadow>
+                    <Shadow Brush="#33000000"
+                            Radius="16"
+                            Opacity="0.45"
+                            Offset="0,6" />
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{loc:Translate Key=Profile_Language}"
+                           TextColor="#F2F2F2"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Text="Türkçe"
+                                Command="{Binding SetLanguageCommand}"
+                                CommandParameter="tr"
+                                TextColor="White"
+                                CornerRadius="14"
+                                HeightRequest="48">
+                            <Button.BackgroundColor>
+                                <Binding Path="IsTurkishSelected" Converter="{StaticResource BoolToActiveColorConverter}" />
+                            </Button.BackgroundColor>
+                        </Button>
+
+                        <Button Grid.Column="1"
+                                Text="English"
+                                Command="{Binding SetLanguageCommand}"
+                                CommandParameter="en"
+                                TextColor="White"
+                                CornerRadius="14"
+                                HeightRequest="48">
+                            <Button.BackgroundColor>
+                                <Binding Path="IsEnglishSelected" Converter="{StaticResource BoolToActiveColorConverter}" />
+                            </Button.BackgroundColor>
+                        </Button>
                     </Grid>
                 </VerticalStackLayout>
             </Border>
@@ -183,19 +238,19 @@
                 </Border.Shadow>
 
                 <VerticalStackLayout Spacing="14">
-                    <Label Text="Hesap Hareketleri"
+                    <Label Text="{loc:Translate Key=Profile_AccountTitle}"
                            TextColor="#F2F2F2"
                            FontSize="16"
                            FontAttributes="Bold" />
 
-                    <Button Text="Çıkış Yap"
+                    <Button Text="{loc:Translate Key=Profile_SignOut}"
                             Command="{Binding LogoutCommand}"
                             BackgroundColor="#E53935"
                             TextColor="White"
                             CornerRadius="14"
                             HeightRequest="48" />
 
-                    <Button Text="Hesabı Sil"
+                    <Button Text="{loc:Translate Key=Profile_DeleteAccount}"
                             Command="{Binding ConfirmDeleteAccountCommand}"
                             BackgroundColor="Transparent"
                             TextColor="#FF6B6B"

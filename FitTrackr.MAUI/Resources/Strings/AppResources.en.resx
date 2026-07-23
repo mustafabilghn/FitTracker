@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Common_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Profile_Title" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="Profile_InfoTitle" xml:space="preserve">
+    <value>Profile Info</value>
+  </data>
+  <data name="Profile_InfoSubtitle" xml:space="preserve">
+    <value>Edit your personal details</value>
+  </data>
+  <data name="Profile_Username" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Profile_Gender" xml:space="preserve">
+    <value>Gender</value>
+  </data>
+  <data name="Profile_Goal" xml:space="preserve">
+    <value>Goal</value>
+  </data>
+  <data name="Profile_Height" xml:space="preserve">
+    <value>Height (cm)</value>
+  </data>
+  <data name="Profile_Weight" xml:space="preserve">
+    <value>Weight (kg)</value>
+  </data>
+  <data name="Profile_AccountTitle" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Profile_SignOut" xml:space="preserve">
+    <value>Sign Out</value>
+  </data>
+  <data name="Profile_DeleteAccount" xml:space="preserve">
+    <value>Delete Account</value>
+  </data>
+  <data name="Profile_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Profile_ChangePhoto" xml:space="preserve">
+    <value>Change photo</value>
+  </data>
+  <data name="Profile_AddPhoto" xml:space="preserve">
+    <value>Add photo</value>
+  </data>
+  <data name="Profile_DefaultUsername" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Profile_PhotoActionSheetTitle" xml:space="preserve">
+    <value>Profile photo</value>
+  </data>
+  <data name="Profile_Decline" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Profile_ChooseFromGallery" xml:space="preserve">
+    <value>Choose from gallery</value>
+  </data>
+  <data name="Profile_TakePhoto" xml:space="preserve">
+    <value>Take a photo</value>
+  </data>
+  <data name="Profile_RemovePhoto" xml:space="preserve">
+    <value>Remove photo</value>
+  </data>
+  <data name="Profile_PhotoSelectFailed" xml:space="preserve">
+    <value>Failed to select profile photo. Please try again.</value>
+  </data>
+  <data name="Profile_DeleteAccountConfirmMessage" xml:space="preserve">
+    <value>Are you sure you want to do this? This action cannot be undone.</value>
+  </data>
+  <data name="Profile_DeleteAccountConfirmYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Profile_DeleteSuccessTitle" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Profile_DeleteSuccessMessage" xml:space="preserve">
+    <value>Your account and all your data have been permanently deleted.</value>
+  </data>
+  <data name="Profile_DeleteErrorMessage" xml:space="preserve">
+    <value>An error occurred while deleting your account. Please check your connection and try again.</value>
+  </data>
+  <data name="Profile_CameraPermissionTitle" xml:space="preserve">
+    <value>Camera permission required</value>
+  </data>
+  <data name="Profile_CameraPermissionMessage" xml:space="preserve">
+    <value>You need to grant camera permission to take a photo.</value>
+  </data>
+  <data name="Profile_CameraPhotoTitle" xml:space="preserve">
+    <value>Profile Photo</value>
+  </data>
+  <data name="Profile_CameraUnavailableTitle" xml:space="preserve">
+    <value>Camera unavailable</value>
+  </data>
+  <data name="Profile_CameraUnavailableMessage" xml:space="preserve">
+    <value>Failed to start the camera. Please check device permissions.</value>
+  </data>
+  <data name="Profile_GalleryPermissionTitle" xml:space="preserve">
+    <value>Gallery permission required</value>
+  </data>
+  <data name="Profile_GalleryPermissionMessage" xml:space="preserve">
+    <value>You need to grant photo access to select from the gallery.</value>
+  </data>
+  <data name="Profile_GalleryErrorMessage" xml:space="preserve">
+    <value>Failed to open gallery. Please try again.</value>
+  </data>
+  <data name="AppShell_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="AppShell_Workouts" xml:space="preserve">
+    <value>Workouts</value>
+  </data>
+  <data name="AppShell_Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="AppShell_Profile" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="AddExercise_Title" xml:space="preserve">
+    <value>Add Exercise</value>
+  </data>
+  <data name="AddExercise_Header" xml:space="preserve">
+    <value>New Exercise</value>
+  </data>
+  <data name="AddExercise_NamePlaceholder" xml:space="preserve">
+    <value>Exercise Name</value>
+  </data>
+  <data name="AddExercise_NotesPlaceholder" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="AddExercise_IntensityPlaceholder" xml:space="preserve">
+    <value>Intensity</value>
+  </data>
+  <data name="AddExercise_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="AddExercise_SuccessMessage" xml:space="preserve">
+    <value>Exercise added successfully.</value>
+  </data>
+  <data name="AddWorkout_Title" xml:space="preserve">
+    <value>Add Workout</value>
+  </data>
+  <data name="AddWorkout_Header" xml:space="preserve">
+    <value>New Workout</value>
+  </data>
+  <data name="AddWorkout_NamePlaceholder" xml:space="preserve">
+    <value>Workout Name</value>
+  </data>
+  <data name="AddWorkout_DurationPlaceholder" xml:space="preserve">
+    <value>Duration (min)</value>
+  </data>
+  <data name="AddWorkout_LocationPlaceholder" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="AddWorkout_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="AddWorkout_SuccessMessage" xml:space="preserve">
+    <value>Workout added successfully.</value>
+  </data>
+  <data name="Workout_DefaultName" xml:space="preserve">
+    <value>Workout</value>
+  </data>
+  <data name="Workout_NoExercisesYet" xml:space="preserve">
+    <value>No exercises yet.</value>
+  </data>
+  <data name="Workout_ExercisesCountFormat" xml:space="preserve">
+    <value>{0} exercises</value>
+  </data>
+  <data name="Workout_ExerciseFallbackName" xml:space="preserve">
+    <value>Exercise</value>
+  </data>
+  <data name="ExerciseSelection_Title" xml:space="preserve">
+    <value>Select Exercise</value>
+  </data>
+  <data name="ExerciseSelection_BodyPart" xml:space="preserve">
+    <value>Body Part</value>
+  </data>
+  <data name="ExerciseSelection_Equipment" xml:space="preserve">
+    <value>Equipment</value>
+  </data>
+  <data name="ExerciseSelection_Level" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="ExerciseSelection_SearchPlaceholder" xml:space="preserve">
+    <value>Search exercises</value>
+  </data>
+  <data name="ExerciseSelection_EmptyResults" xml:space="preserve">
+    <value>No exercises found</value>
+  </data>
+  <data name="ExerciseSelection_AllOption" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ExerciseSetEntry_Title" xml:space="preserve">
+    <value>Log Sets</value>
+  </data>
+  <data name="ExerciseSetEntry_SetInfoTitle" xml:space="preserve">
+    <value>Set Info</value>
+  </data>
+  <data name="ExerciseSetEntry_RepsPlaceholder" xml:space="preserve">
+    <value>Reps</value>
+  </data>
+  <data name="ExerciseSetEntry_WeightPlaceholder" xml:space="preserve">
+    <value>Weight (kg)</value>
+  </data>
+  <data name="ExerciseSetEntry_AddSetButton" xml:space="preserve">
+    <value>Add Set</value>
+  </data>
+  <data name="ExerciseSetEntry_AddedSetsTitle" xml:space="preserve">
+    <value>Added Sets</value>
+  </data>
+  <data name="ExerciseSetEntry_EditSetTitle" xml:space="preserve">
+    <value>Edit Set</value>
+  </data>
+  <data name="ExerciseSetEntry_RepsEmptyError" xml:space="preserve">
+    <value>Reps cannot be empty.</value>
+  </data>
+  <data name="ExerciseSetEntry_InvalidWeightError" xml:space="preserve">
+    <value>Invalid weight value.</value>
+  </data>
+  <data name="ExerciseSetEntry_NoSetsError" xml:space="preserve">
+    <value>Please add at least one set.</value>
+  </data>
+  <data name="ExerciseSetEntry_SaveExerciseErrorFormat" xml:space="preserve">
+    <value>Failed to save exercise: {0}</value>
+  </data>
+  <data name="ExerciseSetEntry_LoadSetsErrorFormat" xml:space="preserve">
+    <value>Failed to load sets: {0}</value>
+  </data>
+  <data name="ExerciseSetEntry_LoadIntensityError" xml:space="preserve">
+    <value>Failed to load intensity data.</value>
+  </data>
+  <data name="Exercise_NameEmptyError" xml:space="preserve">
+    <value>Exercise name cannot be empty.</value>
+  </data>
+  <data name="Exercise_IntensityRequiredError" xml:space="preserve">
+    <value>Please select an intensity level.</value>
+  </data>
+  <data name="FitBot_Subtitle" xml:space="preserve">
+    <value>Your personal fitness assistant</value>
+  </data>
+  <data name="FitBot_Analyzing" xml:space="preserve">
+    <value>Analyzing...</value>
+  </data>
+  <data name="FitBot_InputPlaceholder" xml:space="preserve">
+    <value>Type a message...</value>
+  </data>
+  <data name="FitBot_SendButton" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="FitBot_ActionAnalyze" xml:space="preserve">
+    <value>Analyze my workouts</value>
+  </data>
+  <data name="FitBot_ActionToday" xml:space="preserve">
+    <value>What should I train today?</value>
+  </data>
+  <data name="FitBot_ActionProgram" xml:space="preserve">
+    <value>Evaluate my program</value>
+  </data>
+  <data name="FitBot_ActionMotivation" xml:space="preserve">
+    <value>Give me motivation</value>
+  </data>
+  <data name="FitBot_WelcomeMessage" xml:space="preserve">
+    <value>Hi, I'm FitBot.
+
+I can review your workout logs and offer quick insights and practical suggestions.
+
+Pick an option below or ask me anything directly.</value>
+  </data>
+  <data name="FitBot_PlateauAlertFormat" xml:space="preserve">
+    <value>⚠️ Plateau alert: {0}</value>
+  </data>
+  <data name="FitBot_ConnectionError" xml:space="preserve">
+    <value>Couldn't reach the server. Check your connection and try again.</value>
+  </data>
+  <data name="FitBot_UnexpectedError" xml:space="preserve">
+    <value>Something unexpected went wrong. Please try again later.</value>
+  </data>
+  <data name="ForgotPassword_Title" xml:space="preserve">
+    <value>Forgot Password</value>
+  </data>
+  <data name="ForgotPassword_Step1Hint" xml:space="preserve">
+    <value>Enter the email address associated with your account and we'll send you a reset code.</value>
+  </data>
+  <data name="ForgotPassword_EmailPlaceholder" xml:space="preserve">
+    <value>Email address</value>
+  </data>
+  <data name="ForgotPassword_SendCodeButton" xml:space="preserve">
+    <value>Send Code</value>
+  </data>
+  <data name="ForgotPassword_CodePlaceholder" xml:space="preserve">
+    <value>6-digit code</value>
+  </data>
+  <data name="ForgotPassword_NewPasswordPlaceholder" xml:space="preserve">
+    <value>New password (min. 6 characters)</value>
+  </data>
+  <data name="ForgotPassword_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Confirm new password</value>
+  </data>
+  <data name="ForgotPassword_ResetButton" xml:space="preserve">
+    <value>Reset Password</value>
+  </data>
+  <data name="ForgotPassword_DidNotReceiveCode" xml:space="preserve">
+    <value>Didn't receive the code?</value>
+  </data>
+  <data name="ForgotPassword_Resend" xml:space="preserve">
+    <value>Resend</value>
+  </data>
+  <data name="ForgotPassword_EmailRequiredError" xml:space="preserve">
+    <value>Please enter your email address.</value>
+  </data>
+  <data name="ForgotPassword_RequestFailedError" xml:space="preserve">
+    <value>Request failed. Check your internet connection.</value>
+  </data>
+  <data name="ForgotPassword_CodeSentFormat" xml:space="preserve">
+    <value>We sent a 6-digit code to '{0}'.
+Check your email.</value>
+  </data>
+  <data name="ForgotPassword_CodeRequiredError" xml:space="preserve">
+    <value>Please enter the reset code.</value>
+  </data>
+  <data name="ForgotPassword_PasswordLengthError" xml:space="preserve">
+    <value>Password must be at least 6 characters.</value>
+  </data>
+  <data name="ForgotPassword_PasswordsMismatchError" xml:space="preserve">
+    <value>Passwords do not match.</value>
+  </data>
+  <data name="ForgotPassword_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="ForgotPassword_SuccessMessage" xml:space="preserve">
+    <value>Your password has been reset. You can now sign in with your new password.</value>
+  </data>
+  <data name="ForgotPassword_CodeInvalidError" xml:space="preserve">
+    <value>The code is incorrect or has expired. Please try again.</value>
+  </data>
+  <data name="Login_Subtitle" xml:space="preserve">
+    <value>Sign in to your account</value>
+  </data>
+  <data name="Login_EmailPlaceholder" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Login_PasswordPlaceholder" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Login_SignInButton" xml:space="preserve">
+    <value>Sign In</value>
+  </data>
+  <data name="Login_ForgotPassword" xml:space="preserve">
+    <value>Forgot password</value>
+  </data>
+  <data name="Login_Or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="Login_ContinueWithGoogle" xml:space="preserve">
+    <value>Continue with Google</value>
+  </data>
+  <data name="Login_NoAccount" xml:space="preserve">
+    <value>Don't have an account?</value>
+  </data>
+  <data name="Login_SignUp" xml:space="preserve">
+    <value>Sign Up</value>
+  </data>
+  <data name="Login_EmptyFieldsError" xml:space="preserve">
+    <value>Email and password cannot be empty.</value>
+  </data>
+  <data name="Login_InvalidEmailError" xml:space="preserve">
+    <value>Please enter a valid email address.</value>
+  </data>
+  <data name="Login_InvalidCredentialsError" xml:space="preserve">
+    <value>Incorrect email or password.</value>
+  </data>
+  <data name="Login_GoogleSignInError" xml:space="preserve">
+    <value>Could not sign in with Google. Please try again.</value>
+  </data>
+  <data name="Login_GenericError" xml:space="preserve">
+    <value>An error occurred. Please try again.</value>
+  </data>
+  <data name="Main_WeeklyStreak" xml:space="preserve">
+    <value>Weekly Streak</value>
+  </data>
+  <data name="Main_StreakRecordFormat" xml:space="preserve">
+    <value>Record: {0} wks</value>
+  </data>
+  <data name="Main_ThisWeek" xml:space="preserve">
+    <value>This Week</value>
+  </data>
+  <data name="Main_WorkoutDays" xml:space="preserve">
+    <value>Workout days</value>
+  </data>
+  <data name="Main_LoadDataErrorFormat" xml:space="preserve">
+    <value>Failed to load data: {0}</value>
+  </data>
+  <data name="Progress_Title" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="Progress_ExerciseLabel" xml:space="preserve">
+    <value>Exercise</value>
+  </data>
+  <data name="Progress_Current" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="Progress_Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="Progress_NoChartDataTitle" xml:space="preserve">
+    <value>No chart data</value>
+  </data>
+  <data name="Progress_NoChartDataMessage" xml:space="preserve">
+    <value>No records found for the selected exercise and period.</value>
+  </data>
+  <data name="Progress_InsightsTitle" xml:space="preserve">
+    <value>Insights</value>
+  </data>
+  <data name="Progress_SelectExerciseTitle" xml:space="preserve">
+    <value>Select Exercise</value>
+  </data>
+  <data name="Progress_TimeFilterFallback" xml:space="preserve">
+    <value>Select Period</value>
+  </data>
+  <data name="Progress_ExerciseFallback" xml:space="preserve">
+    <value>Select Exercise</value>
+  </data>
+  <data name="Progress_ExerciseEmptyStateFormat" xml:space="preserve">
+    <value>No exercises logged in the {0} period.</value>
+  </data>
+  <data name="Progress_TimeFilterOneMonth" xml:space="preserve">
+    <value>1 Month</value>
+  </data>
+  <data name="Progress_TimeFilterThreeMonths" xml:space="preserve">
+    <value>3 Months</value>
+  </data>
+  <data name="Progress_TimeFilterAllTime" xml:space="preserve">
+    <value>All Time</value>
+  </data>
+  <data name="Progress_MetricWeight" xml:space="preserve">
+    <value>Weight</value>
+  </data>
+  <data name="Progress_MetricVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="Progress_MetricEstOneRm" xml:space="preserve">
+    <value>Est. 1RM</value>
+  </data>
+  <data name="Progress_LoadDataErrorFormat" xml:space="preserve">
+    <value>Failed to load data: {0}</value>
+  </data>
+  <data name="Progress_NoWorkoutsInsight" xml:space="preserve">
+    <value>Add workouts to see your reports here.</value>
+  </data>
+  <data name="Progress_NoRecordsSubtitle" xml:space="preserve">
+    <value>No records</value>
+  </data>
+  <data name="Progress_RecordsSubtitleFormat" xml:space="preserve">
+    <value>{0} records • last {1}</value>
+  </data>
+  <data name="Progress_NotEnoughRecordsInsight" xml:space="preserve">
+    <value>Not enough records for comparison.</value>
+  </data>
+  <data name="Progress_NoChangeInsight" xml:space="preserve">
+    <value>No significant change in the selected range.</value>
+  </data>
+  <data name="Progress_VsFirstRecord" xml:space="preserve">
+    <value>vs. first record</value>
+  </data>
+  <data name="Progress_Vs3MonthsAgo" xml:space="preserve">
+    <value>vs. 3 months ago</value>
+  </data>
+  <data name="Progress_Vs1MonthAgo" xml:space="preserve">
+    <value>vs. 1 month ago</value>
+  </data>
+  <data name="Progress_ChangeInsightFormat" xml:space="preserve">
+    <value>{0}: {1} change.</value>
+  </data>
+  <data name="Progress_VolumeTrendingUp" xml:space="preserve">
+    <value>Total workout volume is trending upward.</value>
+  </data>
+  <data name="Register_Subtitle" xml:space="preserve">
+    <value>Create a new account</value>
+  </data>
+  <data name="Register_UsernamePlaceholder" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="Register_EmailPlaceholder" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Register_PasswordPlaceholder" xml:space="preserve">
+    <value>Password (min. 6 characters)</value>
+  </data>
+  <data name="Register_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Confirm Password</value>
+  </data>
+  <data name="Register_SignUpButton" xml:space="preserve">
+    <value>Sign Up</value>
+  </data>
+  <data name="Register_AlreadyHaveAccount" xml:space="preserve">
+    <value>Already have an account?</value>
+  </data>
+  <data name="Register_SignIn" xml:space="preserve">
+    <value>Sign In</value>
+  </data>
+  <data name="Register_UsernameEmptyError" xml:space="preserve">
+    <value>Username cannot be empty.</value>
+  </data>
+  <data name="Register_EmailEmptyError" xml:space="preserve">
+    <value>Email address cannot be empty.</value>
+  </data>
+  <data name="Register_PasswordEmptyError" xml:space="preserve">
+    <value>Password cannot be empty.</value>
+  </data>
+  <data name="Register_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Register_SuccessMessage" xml:space="preserve">
+    <value>Your account has been created. You can now sign in.</value>
+  </data>
+  <data name="Register_FailedError" xml:space="preserve">
+    <value>Registration failed. The email or username may already be in use.</value>
+  </data>
+  <data name="StreakDetail_Title" xml:space="preserve">
+    <value>WEEKLY STREAK</value>
+  </data>
+  <data name="StreakDetail_HowItWorksTitle" xml:space="preserve">
+    <value>HOW DOES THE WEEKLY STREAK WORK?</value>
+  </data>
+  <data name="StreakDetail_Rule1" xml:space="preserve">
+    <value>• Log at least 1 workout each week → streak +1</value>
+  </data>
+  <data name="StreakDetail_Rule2" xml:space="preserve">
+    <value>• Missing an entire week resets your streak to zero</value>
+  </data>
+  <data name="StreakDetail_Rule3" xml:space="preserve">
+    <value>• Weeks are calculated on a Monday–Sunday cycle</value>
+  </data>
+  <data name="StreakDetail_NoRecordYet" xml:space="preserve">
+    <value>No record yet</value>
+  </data>
+  <data name="StreakDetail_Motivation0" xml:space="preserve">
+    <value>You haven't started your streak yet. Log a workout this week and complete your first week!</value>
+  </data>
+  <data name="StreakDetail_Motivation1" xml:space="preserve">
+    <value>You completed your first week! Keep going and grow your streak.</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo3Format" xml:space="preserve">
+    <value>You're on a {0}-week streak. You're finding your rhythm!</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo7Format" xml:space="preserve">
+    <value>{0} consecutive weeks of training. You're building a great habit!</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo12Format" xml:space="preserve">
+    <value>{0}-week streak! This is becoming a lifestyle.</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo24Format" xml:space="preserve">
+    <value>{0} weeks! You're approaching half a year — that's serious commitment.</value>
+  </data>
+  <data name="StreakDetail_MotivationOver24Format" xml:space="preserve">
+    <value>An incredible {0}-week streak! You're a fitness machine.</value>
+  </data>
+  <data name="WeeklyDetail_Title" xml:space="preserve">
+    <value>THIS WEEK</value>
+  </data>
+  <data name="WeeklyDetail_GoalTitle" xml:space="preserve">
+    <value>WEEKLY GOAL</value>
+  </data>
+  <data name="WeeklyDetail_DayMon" xml:space="preserve">
+    <value>M</value>
+  </data>
+  <data name="WeeklyDetail_DayTue" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="WeeklyDetail_DayWed" xml:space="preserve">
+    <value>W</value>
+  </data>
+  <data name="WeeklyDetail_DayThu" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="WeeklyDetail_DayFri" xml:space="preserve">
+    <value>F</value>
+  </data>
+  <data name="WeeklyDetail_DaySat" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="WeeklyDetail_DaySun" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="WeeklyDetail_LegendText" xml:space="preserve">
+    <value>✔ = Day with workout</value>
+  </data>
+  <data name="WeeklyDetail_HowItWorksTitle" xml:space="preserve">
+    <value>HOW DOES THE WEEKLY WORKOUT COUNT WORK?</value>
+  </data>
+  <data name="WeeklyDetail_HowItWorksMessage" xml:space="preserve">
+    <value>Shows how many different days you worked out this week. Logging multiple workouts on the same day still counts as one day.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation0" xml:space="preserve">
+    <value>No workouts logged this week yet. Let's go — we can still save this week! 💪</value>
+  </data>
+  <data name="WeeklyDetail_Motivation1" xml:space="preserve">
+    <value>1 workout day this week. Great start, keep it up!</value>
+  </data>
+  <data name="WeeklyDetail_Motivation2" xml:space="preserve">
+    <value>2 active days this week. Aim for 3+ days next week.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation3" xml:space="preserve">
+    <value>3 workout days this week! You're striking a great balance.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation4" xml:space="preserve">
+    <value>4 days this week! Your body is thanking you.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation5" xml:space="preserve">
+    <value>5 days this week! That's serious commitment.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation6" xml:space="preserve">
+    <value>6 days this week! Almost a perfect week.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation7Plus" xml:space="preserve">
+    <value>You trained every single day this week! Outstanding! 🏆</value>
+  </data>
+  <data name="WorkoutList_Title" xml:space="preserve">
+    <value>Workout Log</value>
+  </data>
+  <data name="WorkoutList_TodayButton" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="WorkoutList_LoadPageErrorFormat" xml:space="preserve">
+    <value>Failed to load page: {0}</value>
+  </data>
+  <data name="WorkoutList_LoadWorkoutsErrorFormat" xml:space="preserve">
+    <value>Failed to load workouts: {0}</value>
+  </data>
+  <data name="WorkoutDetail_DurationFormat" xml:space="preserve">
+    <value>⏱ {0} min</value>
+  </data>
+  <data name="WorkoutDetail_ExercisesTitle" xml:space="preserve">
+    <value>Exercises</value>
+  </data>
+  <data name="WorkoutDetail_EmptyMessage" xml:space="preserve">
+    <value>No exercises added yet.</value>
+  </data>
+  <data name="WorkoutDetail_IntensityFormat" xml:space="preserve">
+    <value>Intensity: {0}</value>
+  </data>
+  <data name="WorkoutDetail_NotesFormat" xml:space="preserve">
+    <value>Notes: {0}</value>
+  </data>
+  <data name="WorkoutDetail_AddSetButton" xml:space="preserve">
+    <value> + Add Set</value>
+  </data>
+  <data name="Workout_NameEmptyError" xml:space="preserve">
+    <value>Workout name cannot be empty.</value>
+  </data>
+  <data name="Workout_DateRequiredError" xml:space="preserve">
+    <value>Please select a date.</value>
+  </data>
+  <data name="Workout_DurationInvalidError" xml:space="preserve">
+    <value>Duration must be greater than 0.</value>
+  </data>
+  <data name="Workout_LocationRequiredError" xml:space="preserve">
+    <value>Please select a location.</value>
+  </data>
+  <data name="ExerciseDetail_RepsEmptyError" xml:space="preserve">
+    <value>Reps cannot be empty.</value>
+  </data>
+  <data name="WorkoutList_Yesterday" xml:space="preserve">
+    <value>Yesterday</value>
+  </data>
+  <data name="WorkoutList_Tomorrow" xml:space="preserve">
+    <value>Tomorrow</value>
+  </data>
+  <data name="WorkoutList_RenameTitle" xml:space="preserve">
+    <value>Workout Name</value>
+  </data>
+  <data name="WorkoutList_RenameMessage" xml:space="preserve">
+    <value>Edit workout name</value>
+  </data>
+  <data name="WorkoutList_RenamePlaceholder" xml:space="preserve">
+    <value>Workout name</value>
+  </data>
+  <data name="WorkoutList_DeleteExerciseErrorFormat" xml:space="preserve">
+    <value>Failed to delete exercise: {0}</value>
+  </data>
+  <data name="WorkoutList_UpdateNameErrorFormat" xml:space="preserve">
+    <value>Failed to update workout name: {0}</value>
+  </data>
+</root>

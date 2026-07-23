@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FitTrackr.MAUI.Localization;
 
 namespace FitTrackr.MAUI.Validations
 {
@@ -11,10 +12,10 @@ namespace FitTrackr.MAUI.Validations
         public static string Validate(string exerciseName, Guid intensityId)
         {
             if (string.IsNullOrWhiteSpace(exerciseName))
-                return "Egzersiz adı boş geçilemez";
+                return LocalizationResourceManager.Instance["Exercise_NameEmptyError"];
 
             if (intensityId == Guid.Empty)
-                return "Egzersiz yoğunluğu seçilmelidir";
+                return LocalizationResourceManager.Instance["Exercise_IntensityRequiredError"];
 
             return null;
         }

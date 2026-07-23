@@ -17,10 +17,11 @@ namespace FitTrackr.API.Services
     {
         private const double MaxProgressionRate = 0.10;
 
-        // Matches structured suggestion lines: "ExerciseName: N set × M tekrar @ W kg"
-        // Also handles "x" instead of "×" and optional comma/dot in weight.
+        // Matches structured suggestion lines in either language:
+        // TR: "ExerciseName: N set × M tekrar @ W kg"  |  EN: "ExerciseName: N sets × M reps @ W kg"
+        // Also handles "x" instead of "×", optional "s" on set/rep, and optional comma/dot in weight.
         private static readonly Regex SuggestionLinePattern = new(
-            @"^(?<exercise>[^:\r\n]+):\s*\d+\s*set\s*[×x]\s*\d+\s*tekrar\s*@\s*(?<weight>\d+(?:[.,]\d+)?)\s*kg",
+            @"^(?<exercise>[^:\r\n]+):\s*\d+\s*sets?\s*[×x]\s*\d+\s*(?:tekrar|reps?)\s*@\s*(?<weight>\d+(?:[.,]\d+)?)\s*kg",
             RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
         // Fallback: inline weight mentions on a line that already contains a known exercise
@@ -40,7 +41,7 @@ namespace FitTrackr.API.Services
             var intercepted = new List<string>();
             var sanitized = llmReply;
 
-            // Primary pass: structured suggestion lines ("Exercise: N set × M tekrar @ W kg")
+            // Primary pass: structured suggestion lines ("Exercise: N sets × M reps @ W kg")
             sanitized = SuggestionLinePattern.Replace(sanitized, match =>
             {
                 var exerciseName = match.Groups["exercise"].Value.Trim();
@@ -73,7 +74,7 @@ namespace FitTrackr.API.Services
                 if (replacedValue == matchStr)
                     return match.Value; // nothing actually changed, don't intercept
 
-                intercepted.Add($"{exerciseName}: {recommendedKg:F1} kg → {safeStr} kg (ACSM ≤10% kuralı)");
+                intercepted.Add($"{exerciseName}: {recommendedKg:F1} kg → {safeStr} kg (ACSM ≤10% rule)");
                 return replacedValue;
             });
 
@@ -104,7 +105,7 @@ namespace FitTrackr.API.Services
                         return weightMatch.Value;
 
                     var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
-                    intercepted.Add($"{exerciseName}: {kg:F1} kg → {safeStr} kg (ACSM ≤10% kuralı)");
+                    intercepted.Add($"{exerciseName}: {kg:F1} kg → {safeStr} kg (ACSM ≤10% rule)");
                     return $"{safeStr} kg";
                 });
             }

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models;
 using FitTrackr.MAUI.Models.DTO;
@@ -24,9 +25,9 @@ namespace FitTrackr.MAUI.ViewModels
     /// </summary>
     public partial class ProgressViewModel : ObservableObject
     {
-        private const string TimeFilterFallbackText = "Dönem Seç";
-        private const string ExerciseFallbackText = "Egzersiz Seç";
-        private static readonly CultureInfo TurkishCulture = CultureInfo.GetCultureInfo("tr-TR");
+        private static string TimeFilterFallbackText => LocalizationResourceManager.Instance["Progress_TimeFilterFallback"];
+        private static string ExerciseFallbackText => LocalizationResourceManager.Instance["Progress_ExerciseFallback"];
+        private static CultureInfo DisplayCulture => LocalizationResourceManager.Instance.CurrentCulture;
 
         private readonly WorkoutService _workoutService;
         private readonly ExerciseService _exerciseService;
@@ -117,7 +118,7 @@ namespace FitTrackr.MAUI.ViewModels
         public bool HasWorkoutData => _allEntries.Count > 0;
         public bool HasExercisesInRange => ExerciseFilters.Count > 0;
         public bool ShowExerciseEmptyState => !HasExercisesInRange;
-        public string ExerciseEmptyStateText => $"{SelectedPeriodTypeDisplay} döneminde kayıtlı egzersiz bulunamadı.";
+        public string ExerciseEmptyStateText => string.Format(LocalizationResourceManager.Instance["Progress_ExerciseEmptyStateFormat"], SelectedPeriodTypeDisplay);
 
         public ICommand SelectTimeFilterCommand => _selectTimeFilterCommand;
         public ICommand SelectExerciseCommand => _selectExerciseCommand;
@@ -247,17 +248,17 @@ namespace FitTrackr.MAUI.ViewModels
         private void BuildTimeFilters()
         {
             TimeFilters.Clear();
-            TimeFilters.Add(new ProgressTimeRangeOption("1 Ay", ProgressTimeRange.OneMonth));
-            TimeFilters.Add(new ProgressTimeRangeOption("3 Ay", ProgressTimeRange.ThreeMonths));
-            TimeFilters.Add(new ProgressTimeRangeOption("Tümü", ProgressTimeRange.AllTime));
+            TimeFilters.Add(new ProgressTimeRangeOption(LocalizationResourceManager.Instance["Progress_TimeFilterOneMonth"], ProgressTimeRange.OneMonth));
+            TimeFilters.Add(new ProgressTimeRangeOption(LocalizationResourceManager.Instance["Progress_TimeFilterThreeMonths"], ProgressTimeRange.ThreeMonths));
+            TimeFilters.Add(new ProgressTimeRangeOption(LocalizationResourceManager.Instance["Progress_TimeFilterAllTime"], ProgressTimeRange.AllTime));
         }
 
         private void BuildMetricOptions()
         {
             MetricOptions.Clear();
-            MetricOptions.Add(new ProgressMetricOption("Ağırlık", ProgressMetricType.Weight));
-            MetricOptions.Add(new ProgressMetricOption("Antrenman Hacmi", ProgressMetricType.Volume));
-            MetricOptions.Add(new ProgressMetricOption("Tahmini 1RM", ProgressMetricType.EstimatedOneRm));
+            MetricOptions.Add(new ProgressMetricOption(LocalizationResourceManager.Instance["Progress_MetricWeight"], ProgressMetricType.Weight));
+            MetricOptions.Add(new ProgressMetricOption(LocalizationResourceManager.Instance["Progress_MetricVolume"], ProgressMetricType.Volume));
+            MetricOptions.Add(new ProgressMetricOption(LocalizationResourceManager.Instance["Progress_MetricEstOneRm"], ProgressMetricType.EstimatedOneRm));
         }
 
         private async Task LoadProgressAsync()
@@ -292,7 +293,7 @@ namespace FitTrackr.MAUI.ViewModels
                 ComparisonCurrentUnitText = string.Empty;
                 ComparisonDifferenceUnitText = string.Empty;
 
-                Insights.Add(new ProgressInsightItem($"Veri yüklenemedi: {ex.Message}", Color.FromArgb("#FF7043")));
+                Insights.Add(new ProgressInsightItem(string.Format(LocalizationResourceManager.Instance["Progress_LoadDataErrorFormat"], ex.Message), Color.FromArgb("#FF7043")));
                 OnPropertyChanged(nameof(HasChartData));
                 OnPropertyChanged(nameof(ShowChartEmptyState));
                 OnPropertyChanged(nameof(HasWorkoutData));
@@ -372,7 +373,7 @@ namespace FitTrackr.MAUI.ViewModels
                     ComparisonDifferenceText = "—";
                     ComparisonCurrentUnitText = string.Empty;
                     ComparisonDifferenceUnitText = string.Empty;
-                    Insights.Add(new ProgressInsightItem("Antrenman eklediğinde raporlar burada görünecek.", Color.FromArgb("#FF7043")));
+                    Insights.Add(new ProgressInsightItem(LocalizationResourceManager.Instance["Progress_NoWorkoutsInsight"], Color.FromArgb("#FF7043")));
                     OnPropertyChanged(nameof(HasChartData));
                     OnPropertyChanged(nameof(ShowChartEmptyState));
                     OnPropertyChanged(nameof(HasWorkoutData));
@@ -452,12 +453,12 @@ namespace FitTrackr.MAUI.ViewModels
 
                 if (exerciseEntries.Count == 0)
                 {
-                    exercise.Subtitle = "Kayıt yok";
+                    exercise.Subtitle = LocalizationResourceManager.Instance["Progress_NoRecordsSubtitle"];
                     continue;
                 }
 
                 var lastDate = exerciseEntries[^1].Date;
-                exercise.Subtitle = $"{exerciseEntries.Count} kayıt • son {lastDate.ToString("dd MMM", TurkishCulture)}";
+                exercise.Subtitle = string.Format(LocalizationResourceManager.Instance["Progress_RecordsSubtitleFormat"], exerciseEntries.Count, lastDate.ToString("dd MMM", DisplayCulture));
             }
         }
 
@@ -488,7 +489,7 @@ namespace FitTrackr.MAUI.ViewModels
             var previousValue = GetMetricValue(firstEntry, metricType);
             var currentValue = GetMetricValue(currentEntry, metricType);
             var difference = currentValue - previousValue;
-            var rangeDisplay = $"{firstEntry.Date.ToString("dd MMM yyyy", TurkishCulture)} - {currentEntry.Date.ToString("dd MMM yyyy", TurkishCulture)}";
+            var rangeDisplay = $"{firstEntry.Date.ToString("dd MMM yyyy", DisplayCulture)} - {currentEntry.Date.ToString("dd MMM yyyy", DisplayCulture)}";
 
             var points = BuildRangeChartPoints(orderedEntries, metricType);
 
@@ -509,7 +510,7 @@ namespace FitTrackr.MAUI.ViewModels
             var previousValue = GetMetricValue(firstEntry, metricType);
             var currentValue = GetMetricValue(bestEntry, metricType);
             var difference = currentValue - previousValue;
-            var rangeDisplay = $"{firstEntry.Date.ToString("dd MMM yyyy", TurkishCulture)} - {bestEntry.Date.ToString("dd MMM yyyy", TurkishCulture)}";
+            var rangeDisplay = $"{firstEntry.Date.ToString("dd MMM yyyy", DisplayCulture)} - {bestEntry.Date.ToString("dd MMM yyyy", DisplayCulture)}";
 
             var monthlyPoints = BuildAllTimeMonthlyChartPoints(orderedEntries, metricType);
 
@@ -534,7 +535,7 @@ namespace FitTrackr.MAUI.ViewModels
                     var isLast = index == orderedEntries.Count - 1;
 
                     return new ProgressChartPoint(
-                        entry.Date.ToString("dd MMM", TurkishCulture),
+                        entry.Date.ToString("dd MMM", DisplayCulture),
                         FormatMetricValue(value, metricType),
                         value,
                         isLast,
@@ -570,7 +571,7 @@ namespace FitTrackr.MAUI.ViewModels
                     var isLast = index == monthlyBestEntries.Count - 1;
 
                     return new ProgressChartPoint(
-                        entry.Date.ToString("MMM yy", TurkishCulture),
+                        entry.Date.ToString("MMM yy", DisplayCulture),
                         FormatMetricValue(value, metricType),
                         value,
                         isLast,
@@ -624,28 +625,28 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (!comparison.HasData)
             {
-                Insights.Add(new ProgressInsightItem("Karşılaştırma için yeterli kayıt yok.", Color.FromArgb("#FF8A65")));
+                Insights.Add(new ProgressInsightItem(LocalizationResourceManager.Instance["Progress_NotEnoughRecordsInsight"], Color.FromArgb("#FF8A65")));
                 return;
             }
 
             if (Math.Abs(comparison.Difference) < 0.001)
             {
-                Insights.Add(new ProgressInsightItem("Seçili aralıkta belirgin değişim görünmüyor.", Color.FromArgb("#F59E0B")));
+                Insights.Add(new ProgressInsightItem(LocalizationResourceManager.Instance["Progress_NoChangeInsight"], Color.FromArgb("#F59E0B")));
                 return;
             }
 
             var diffText = FormatSignedMetricValue(comparison.Difference, comparison.MetricType);
             var periodText = comparison.RangeType == ProgressTimeRange.AllTime
-                ? "İlk kayda göre"
+                ? LocalizationResourceManager.Instance["Progress_VsFirstRecord"]
                 : comparison.RangeType == ProgressTimeRange.ThreeMonths
-                    ? "3 aya göre"
-                    : "1 aya göre";
+                    ? LocalizationResourceManager.Instance["Progress_Vs3MonthsAgo"]
+                    : LocalizationResourceManager.Instance["Progress_Vs1MonthAgo"];
 
-            Insights.Add(new ProgressInsightItem($"{periodText} {diffText} değişim var.", Color.FromArgb("#FF8A65")));
+            Insights.Add(new ProgressInsightItem(string.Format(LocalizationResourceManager.Instance["Progress_ChangeInsightFormat"], periodText, diffText), Color.FromArgb("#FF8A65")));
 
             if (comparison.MetricType == ProgressMetricType.Volume && comparison.Difference > 0)
             {
-                Insights.Add(new ProgressInsightItem("Toplam antrenman hacmi yükseliş trendinde.", Color.FromArgb("#FB923C")));
+                Insights.Add(new ProgressInsightItem(LocalizationResourceManager.Instance["Progress_VolumeTrendingUp"], Color.FromArgb("#FB923C")));
             }
         }
 
@@ -808,8 +809,8 @@ namespace FitTrackr.MAUI.ViewModels
             }
 
             var numeric = metricType == ProgressMetricType.Weight
-                ? Math.Abs(value).ToString("0.#", TurkishCulture)
-                : Math.Abs(value).ToString("0", TurkishCulture);
+                ? Math.Abs(value).ToString("0.#", DisplayCulture)
+                : Math.Abs(value).ToString("0", DisplayCulture);
 
             if (!includeSign)
             {

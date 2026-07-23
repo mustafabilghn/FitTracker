@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models;
 using FitTrackr.MAUI.Models.DTO;
 using System.Collections.ObjectModel;
@@ -7,13 +8,16 @@ namespace FitTrackr.MAUI.ViewModels
 {
     public partial class DailyWorkoutCardViewModel : ObservableObject
     {
-        public const string DefaultWorkoutName = "Antrenman";
+        // Bu değer API'ye kaydedilen antrenman adı için varsayılan değerdir. GenderOptions/GoalOptions'ın
+        // aksine sabit bir listeyle eşleştirilmediği (serbest metin olduğu) için dile göre değişmesi
+        // güvenli — en kötü ihtimalle daha önce farklı dilde kaydedilmiş bir isim öyle görünmeye devam eder.
+        public static string DefaultWorkoutName => LocalizationResourceManager.Instance["Workout_DefaultName"];
 
         private Guid? workoutId;
         private string workoutName = DefaultWorkoutName;
         private bool isExpanded;
         private bool hasExercises;
-        private string exercisesPreviewText = "Egzersiz bulunmuyor.";
+        private string exercisesPreviewText = LocalizationResourceManager.Instance["Workout_NoExercisesYet"];
 
         public Guid? WorkoutId
         {
@@ -80,7 +84,7 @@ namespace FitTrackr.MAUI.ViewModels
             if (!HasExercises)
             {
                 IsExpanded = false;
-                ExercisesPreviewText = "Egzersiz bulunmuyor.";
+                ExercisesPreviewText = LocalizationResourceManager.Instance["Workout_NoExercisesYet"];
             }
         }
 
@@ -93,7 +97,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (names.Count == 0)
             {
-                ExercisesPreviewText = "Egzersiz bulunmuyor.";
+                ExercisesPreviewText = LocalizationResourceManager.Instance["Workout_NoExercisesYet"];
                 return;
             }
 
@@ -115,8 +119,8 @@ namespace FitTrackr.MAUI.ViewModels
 
             HasExercises = Exercises.Count > 0;
             ExercisesPreviewText = HasExercises
-                ? $"{Exercises.Count} egzersiz"
-                : "Egzersiz bulunmuyor.";
+                ? string.Format(LocalizationResourceManager.Instance["Workout_ExercisesCountFormat"], Exercises.Count)
+                : LocalizationResourceManager.Instance["Workout_NoExercisesYet"];
 
             // Egzersiz varsa kart varsayılan olarak açık gelsin.
             // Kullanıcı manuel kapatırsa ToggleCardExpansion IsExpanded'ı false yapar
@@ -135,8 +139,8 @@ namespace FitTrackr.MAUI.ViewModels
             Exercises.Remove(exercise);
             HasExercises = Exercises.Count > 0;
             ExercisesPreviewText = HasExercises
-                ? $"{Exercises.Count} egzersiz"
-                : "Egzersiz bulunmuyor.";
+                ? string.Format(LocalizationResourceManager.Instance["Workout_ExercisesCountFormat"], Exercises.Count)
+                : LocalizationResourceManager.Instance["Workout_NoExercisesYet"];
 
             if (!HasExercises)
             {
@@ -173,7 +177,7 @@ namespace FitTrackr.MAUI.ViewModels
         public WorkoutExerciseItemViewModel(Guid exerciseId, string exerciseName, IEnumerable<WorkoutExerciseSetItemViewModel> sets)
         {
             ExerciseId = exerciseId;
-            ExerciseName = string.IsNullOrWhiteSpace(exerciseName) ? "Egzersiz" : exerciseName.Trim();
+            ExerciseName = string.IsNullOrWhiteSpace(exerciseName) ? LocalizationResourceManager.Instance["Workout_ExerciseFallbackName"] : exerciseName.Trim();
 
             foreach (var set in sets)
             {

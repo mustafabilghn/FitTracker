@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.ExerciseSetEntryPage"
              x:Name="ThisPage"
              BackgroundColor="#121212"
-             Title="Set Girişi">
+             Title="{loc:Translate Key=ExerciseSetEntry_Title}">
 
     <Grid RowDefinitions="*,Auto" Padding="20,18,20,16" RowSpacing="16">
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Spacing="16">
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Egzersiz"
+                    <Label Text="{loc:Translate Key=Workout_ExerciseFallbackName}"
                            FontSize="13"
                            TextColor="#9E9E9E" />
                     <Label Text="{Binding ExerciseName}"
@@ -26,7 +27,7 @@
                         StrokeShape="RoundRectangle 16"
                         Padding="14">
                     <VerticalStackLayout Spacing="12">
-                        <Label Text="Set Bilgisi"
+                        <Label Text="{loc:Translate Key=ExerciseSetEntry_SetInfoTitle}"
                                FontSize="16"
                                FontAttributes="Bold"
                                TextColor="White" />
@@ -37,7 +38,7 @@
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 12"
                                     Padding="10,6">
-                                <Entry Placeholder="Tekrar Sayısı"
+                                <Entry Placeholder="{loc:Translate Key=ExerciseSetEntry_RepsPlaceholder}"
                                        PlaceholderColor="#8E8E8E"
                                        TextColor="White"
                                        Keyboard="Numeric"
@@ -51,7 +52,7 @@
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 12"
                                     Padding="10,6">
-                                <Entry Placeholder="Ağırlık (kg)"
+                                <Entry Placeholder="{loc:Translate Key=ExerciseSetEntry_WeightPlaceholder}"
                                        PlaceholderColor="#8E8E8E"
                                        TextColor="White"
                                        Keyboard="Numeric"
@@ -60,7 +61,7 @@
                             </Border>
                         </Grid>
 
-                        <Button Text="Set Ekle"
+                        <Button Text="{loc:Translate Key=ExerciseSetEntry_AddSetButton}"
                                 Command="{Binding AddSetCommand}"
                                 BackgroundColor="#2B2B2B"
                                 TextColor="#FF8A65"
@@ -79,7 +80,7 @@
                         Padding="14"
                         IsVisible="{Binding HasPendingSets}">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="Eklenen Setler"
+                        <Label Text="{loc:Translate Key=ExerciseSetEntry_AddedSetsTitle}"
                                FontSize="16"
                                FontAttributes="Bold"
                                TextColor="White" />
@@ -134,7 +135,7 @@
 
         <Grid Grid.Row="1" RowDefinitions="Auto,Auto" RowSpacing="8">
             <Button Grid.Row="0"
-                    Text="Kaydet"
+                    Text="{loc:Translate Key=Common_Save}"
                     Command="{Binding SaveCommand}"
                     BackgroundColor="#FF7043"
                     TextColor="White"
