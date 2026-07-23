@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.AddWorkoutPage"
              BackgroundColor="#121212"
-             Title="Antrenman Ekle">
+             Title="{loc:Translate Key=AddWorkout_Title}">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="25">
 
-            <Label Text="Yeni Antrenman"
+            <Label Text="{loc:Translate Key=AddWorkout_Header}"
                    FontSize="28"
                    FontAttributes="Bold"
                    TextColor="White"
@@ -21,7 +22,7 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Entry x:Name="WorkoutNameEntry"
-                       Placeholder="Antrenman Adı"
+                       Placeholder="{loc:Translate Key=AddWorkout_NamePlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -46,7 +47,7 @@
                    HasShadow="True"
                    BorderColor="#333">
                 <Entry x:Name="DurationMinutes"
-                       Placeholder="Süre (dk)"
+                       Placeholder="{loc:Translate Key=AddWorkout_DurationPlaceholder}"
                        PlaceholderColor="#AAAAAA"
                        TextColor="White"
                        BackgroundColor="Transparent"
@@ -58,7 +59,7 @@
                    Padding="10"
                    HasShadow="True"
                    BorderColor="#333">
-                <Picker Title="Yer"
+                <Picker Title="{loc:Translate Key=AddWorkout_LocationPlaceholder}"
                         x:Name="LocationPicker"
                         TitleColor="#AAAAAA"
                         ItemsSource="{Binding Locations}"
@@ -66,7 +67,7 @@
                         TextColor="White"/>
             </Frame>
 
-            <Button Text="Kaydet"
+            <Button Text="{loc:Translate Key=Common_Save}"
                     FontSize="20"
                     TextColor="White"
                     BackgroundColor="Green"

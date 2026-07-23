@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Services;
 using System.Text.RegularExpressions;
 
@@ -37,37 +38,37 @@ namespace FitTrackr.MAUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(username))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Kullanıcı adı boş olamaz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Register_UsernameEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(email))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "E-posta adresi boş olamaz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Register_EmailEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (!IsValidEmail(email))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Geçerli bir e-posta adresi giriniz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Login_InvalidEmailError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Şifre boş olamaz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Register_PasswordEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (password.Length < 6)
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Şifre en az 6 karakter olmalıdır.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ForgotPassword_PasswordLengthError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (password != confirmPassword)
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Şifreler eşleşmiyor.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ForgotPassword_PasswordsMismatchError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
@@ -79,12 +80,12 @@ namespace FitTrackr.MAUI.ViewModels
 
                 if (success)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Başarılı", "Hesabın oluşturuldu, giriş yapabilirsin.", "Tamam");
+                    await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Register_SuccessTitle"], LocalizationResourceManager.Instance["Register_SuccessMessage"], LocalizationResourceManager.Instance["Common_OK"]);
                     await Application.Current.MainPage.Navigation.PopAsync();
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir hata oluştu. E-posta veya kullanıcı adı zaten kullanılıyor olabilir.", "Tamam");
+                    await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Register_FailedError"], LocalizationResourceManager.Instance["Common_OK"]);
                 }
             }
             finally

@@ -28,6 +28,7 @@ namespace FitTrackr.MAUI.ViewModels
         [ObservableProperty]
         private string selectedGoal = string.Empty;
 
+        // Not: ProfileViewModel.GenderOptions/GoalOptions ile aynı sebepten UI diline göre çevrilmez.
         public ObservableCollection<string> GenderOptions { get; } = new() { "Erkek", "Kadın", "Diğer" };
         public ObservableCollection<string> GoalOptions { get; } = new() { "Kas Yapma", "Keskinleşme", "Koruma" };
 
@@ -78,35 +79,35 @@ namespace FitTrackr.MAUI.ViewModels
                 if (string.IsNullOrWhiteSpace(Username))
                 {
                     Debug.WriteLine("[EditProfileVM] Validation failed: Username is empty");
-                    await ShowAlertAsync("Uyarı", "Kullanıcı adı boş bırakılamaz.");
+                    await ShowAlertAsync("Warning", "Username cannot be empty.");
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(HeightCm) || !int.TryParse(HeightCm, out var heightValue))
                 {
                     Debug.WriteLine("[EditProfileVM] Validation failed: Invalid height");
-                    await ShowAlertAsync("Uyarı", "Boy geçerli bir sayı olmalıdır.");
+                    await ShowAlertAsync("Warning", "Height must be a valid number.");
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(WeightKg) || !int.TryParse(WeightKg, out var weightValue))
                 {
                     Debug.WriteLine("[EditProfileVM] Validation failed: Invalid weight");
-                    await ShowAlertAsync("Uyarı", "Kilo geçerli bir sayı olmalıdır.");
+                    await ShowAlertAsync("Warning", "Weight must be a valid number.");
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(SelectedGender))
                 {
                     Debug.WriteLine("[EditProfileVM] Validation failed: Gender is empty");
-                    await ShowAlertAsync("Uyarı", "Cinsiyet seçiniz.");
+                    await ShowAlertAsync("Warning", "Please select a gender.");
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(SelectedGoal))
                 {
                     Debug.WriteLine("[EditProfileVM] Validation failed: Goal is empty");
-                    await ShowAlertAsync("Uyarı", "Hedef seçiniz.");
+                    await ShowAlertAsync("Warning", "Please select a goal.");
                     return;
                 }
 
@@ -152,7 +153,7 @@ namespace FitTrackr.MAUI.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"[EditProfileVM] SaveAsync error: {ex.Message}\n{ex.StackTrace}");
-                await ShowAlertAsync("Hata", $"Beklenmeyen hata: {ex.Message}");
+                await ShowAlertAsync("Error", $"Unexpected error: {ex.Message}");
             }
             finally
             {
@@ -164,7 +165,7 @@ namespace FitTrackr.MAUI.ViewModels
         {
             if (Application.Current?.MainPage is not null)
             {
-                await Application.Current.MainPage.DisplayAlert(title, message, "Tamam");
+                await Application.Current.MainPage.DisplayAlert(title, message, "OK");
             }
         }
     }

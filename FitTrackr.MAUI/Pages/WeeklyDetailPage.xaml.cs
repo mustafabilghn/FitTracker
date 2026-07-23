@@ -1,3 +1,5 @@
+using FitTrackr.MAUI.Localization;
+
 namespace FitTrackr.MAUI.Pages;
 
 public partial class WeeklyDetailPage : ContentPage
@@ -53,17 +55,21 @@ public partial class WeeklyDetailPage : ContentPage
         }
     }
 
-    private static string GetMotivationText(int count) => count switch
+    private static string GetMotivationText(int count)
     {
-        0 => "Bu hafta henüz hiç antrenman kaydı yok. Hadi başla, haftayı kurtarabiliriz! 💪",
-        1 => "Bu hafta 1 gün antrenman yaptın. Güzel bir başlangıç, devam et!",
-        2 => "Bu hafta 2 gün aktifsin. Haftaya 3+ güne ulaşmayı hedefle.",
-        3 => "Bu hafta 3 gün antrenman! Harika bir denge kuruyorsun.",
-        4 => "Bu hafta 4 gün! Vücudun sana teşekkür ediyor.",
-        5 => "Bu hafta 5 gün! Ciddi bir kararlılık bu.",
-        6 => "Bu hafta 6 gün! Neredeyse mükemmel bir hafta.",
-        _ => "Bu hafta her gün antrenman yaptın! Olağanüstü bir hafta! 🏆"
-    };
+        var loc = LocalizationResourceManager.Instance;
+        return count switch
+        {
+            0 => loc["WeeklyDetail_Motivation0"],
+            1 => loc["WeeklyDetail_Motivation1"],
+            2 => loc["WeeklyDetail_Motivation2"],
+            3 => loc["WeeklyDetail_Motivation3"],
+            4 => loc["WeeklyDetail_Motivation4"],
+            5 => loc["WeeklyDetail_Motivation5"],
+            6 => loc["WeeklyDetail_Motivation6"],
+            _ => loc["WeeklyDetail_Motivation7Plus"]
+        };
+    }
 
     private async void OnBackClicked(object sender, EventArgs e)
     {

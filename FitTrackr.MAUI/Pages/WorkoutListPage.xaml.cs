@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.ViewModels;
 using System.Collections.ObjectModel;
@@ -85,7 +86,7 @@ public partial class WorkoutListPage : ContentPage
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Hata", $"Sayfa yuklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
+                await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["WorkoutList_LoadPageErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
             finally
             {
@@ -175,7 +176,7 @@ public partial class WorkoutListPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Hata", $"Antrenmanlar yuklenirken bir hata meydana geldi: {ex.Message}", "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["WorkoutList_LoadWorkoutsErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
         }
         finally
         {
@@ -475,7 +476,7 @@ public partial class WorkoutListPage : ContentPage
             services,
             card.WorkoutId ?? Guid.Empty,
             card.WorkoutDate,
-            string.IsNullOrWhiteSpace(card.WorkoutName) ? "Antrenman" : card.WorkoutName);
+            string.IsNullOrWhiteSpace(card.WorkoutName) ? DailyWorkoutCardViewModel.DefaultWorkoutName : card.WorkoutName);
 
         await Navigation.PushAsync(exerciseSelectionPage);
     }

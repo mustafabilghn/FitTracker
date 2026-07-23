@@ -3,13 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FitTrackr.MAUI.Pages.EditProfilePage"
              BackgroundColor="#121212"
-             Title="Profili Düzenle">
+             Title="Edit Profile">
 
     <ScrollView>
         <Grid RowDefinitions="Auto,*,Auto" Padding="20,24" RowSpacing="16">
             <!-- Title -->
             <Label Grid.Row="0"
-                   Text="Profili Düzenle"
+                   Text="Edit Profile"
                    FontSize="22"
                    FontAttributes="Bold"
                    TextColor="White"
@@ -20,7 +20,7 @@
 
                 <!-- Username -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Kullanıcı Adı"
+                    <Label Text="Username"
                            TextColor="#BDBDBD"
                            FontSize="12"
                            FontAttributes="Bold" />
@@ -29,12 +29,12 @@
                            TextColor="White"
                            PlaceholderColor="#8A8A8A"
                            HeightRequest="48"
-                           Placeholder="Kullanıcı adı giriniz" />
+                           Placeholder="Enter username" />
                 </VerticalStackLayout>
 
                 <!-- Height -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Boy (cm)"
+                    <Label Text="Height (cm)"
                            TextColor="#BDBDBD"
                            FontSize="12"
                            FontAttributes="Bold" />
@@ -44,12 +44,12 @@
                            TextColor="White"
                            PlaceholderColor="#8A8A8A"
                            HeightRequest="48"
-                           Placeholder="Boy giriniz" />
+                           Placeholder="Enter height" />
                 </VerticalStackLayout>
 
                 <!-- Weight -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Kilo (kg)"
+                    <Label Text="Weight (kg)"
                            TextColor="#BDBDBD"
                            FontSize="12"
                            FontAttributes="Bold" />
@@ -59,12 +59,12 @@
                            TextColor="White"
                            PlaceholderColor="#8A8A8A"
                            HeightRequest="48"
-                           Placeholder="Kilo giriniz" />
+                           Placeholder="Enter weight" />
                 </VerticalStackLayout>
 
                 <!-- Gender -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Cinsiyet"
+                    <Label Text="Gender"
                            TextColor="#BDBDBD"
                            FontSize="12"
                            FontAttributes="Bold" />
@@ -74,12 +74,12 @@
                             TextColor="White"
                             TitleColor="#8A8A8A"
                             HeightRequest="48"
-                            Title="Cinsiyet seçiniz" />
+                            Title="Select gender" />
                 </VerticalStackLayout>
 
                 <!-- Goal -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Hedef"
+                    <Label Text="Goal"
                            TextColor="#BDBDBD"
                            FontSize="12"
                            FontAttributes="Bold" />
@@ -89,14 +89,14 @@
                             TextColor="White"
                             TitleColor="#8A8A8A"
                             HeightRequest="48"
-                            Title="Hedef seçiniz" />
+                            Title="Select goal" />
                 </VerticalStackLayout>
 
             </VerticalStackLayout>
 
             <!-- Save Button -->
             <Button Grid.Row="2"
-                    Text="Kaydet"
+                    Text="Save"
                     Command="{Binding SaveCommand}"
                     BackgroundColor="#FF7043"
                     TextColor="White"

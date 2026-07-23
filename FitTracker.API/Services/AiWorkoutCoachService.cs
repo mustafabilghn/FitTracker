@@ -38,6 +38,10 @@ namespace FitTrackr.API.Services
         private const string ContextCacheHeader = "X-FitBot-Context-Cache";
         private const string GroqMsHeader = "X-FitBot-Groq-Ms";
 
+        // İsteğin dili RequestLocalizationMiddleware tarafından Accept-Language header'ından
+        // çözümlenip CultureInfo.CurrentUICulture'a yazılır (bkz. Program.cs). Buradan okunur.
+        private static bool IsEnglish => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+
         public AiWorkoutCoachService(
             HttpClient httpClient,
             IWorkoutAnalysisService workoutAnalysisService,
@@ -74,17 +78,61 @@ namespace FitTrackr.API.Services
 
             if (analysis.TotalWorkouts == 0)
             {
-                return new AiWorkoutInsightDto
-                {
-                    Summary = "Henüz analiz yapacak kadar antrenman verisi yok.",
-                    Strengths = new List<string>(),
-                    Improvements = new List<string>
+                return IsEnglish
+                    ? new AiWorkoutInsightDto
                     {
-                        "Önce birkaç antrenman kaydı ekle. Veri arttıkça yorumlar daha anlamlı olur."
-                    },
-                    NextWorkoutSuggestion = "Kısa ve temel bir antrenman kaydıyla başlayabilirsin."
-                };
+                        Summary = "Not enough workout data to analyze yet.",
+                        Strengths = new List<string>(),
+                        Improvements = new List<string>
+                        {
+                            "Log a few workouts first — insights become more meaningful as your data grows."
+                        },
+                        NextWorkoutSuggestion = "Start by logging a short, simple workout."
+                    }
+                    : new AiWorkoutInsightDto
+                    {
+                        Summary = "Henüz analiz yapacak kadar antrenman verisi yok.",
+                        Strengths = new List<string>(),
+                        Improvements = new List<string>
+                        {
+                            "Önce birkaç antrenman kaydı ekle. Veri arttıkça yorumlar daha anlamlı olur."
+                        },
+                        NextWorkoutSuggestion = "Kısa ve temel bir antrenman kaydıyla başlayabilirsin."
+                    };
             }
+
+            var systemContent = IsEnglish
+                ? "You are a conservative fitness coach who analyzes structured workout data. " +
+                  "Base your analysis only on the data provided. Do not make assumptions beyond the data. " +
+                  "Use real numbers and clear observations wherever possible. " +
+                  "Respond only in English. Use clear, concise, supportive fitness-coach language. " +
+                  "If data is limited, say so explicitly. " +
+                  "Do not praise low activity. If activity is low, state it plainly and neutrally. " +
+                  "Do not make confident claims when you are uncertain. " +
+                  "Avoid inferences like 'balanced', 'consistent', 'well-rounded', 'plateau', 'progression', 'beginner' unless strongly supported by the data. " +
+                  "Add to the strengths list only genuinely positive items directly supported by the data. " +
+                  "Avoid flowery or filler language. Keep observations data-driven and cautious. " +
+                  "Return ONLY valid JSON. JSON keys must be exactly: summary, strengths, improvements, nextWorkoutSuggestion. " +
+                  "summary and nextWorkoutSuggestion must be strings. strengths and improvements must be string arrays. " +
+                  "Generate at most 2 strengths and 2 improvements."
+                : "Yapılandırılmış antrenman verisini analiz eden muhafazakâr bir fitness koçusun. " +
+                  "Yalnızca verilen veriye dayan. Veri dışında varsayım yapma. " +
+                  "Mümkünse gerçek sayıları ve net gözlemleri kullan. " +
+                  "Tüm yanıt değerleri tamamen Türkçe ve doğal Türkçe olsun. İngilizce kelime veya yarı Türkçe yarı İngilizce ifade kullanma. " +
+                  "Yanıtlar kısa, temiz, kullanıcı dostu ve robotik olmayan bir Türkçe ile yazılsın. " +
+                  "Veri azsa bunu açıkça söyle. " +
+                  "Düşük aktiviteyi övme. Aktivite düşükse bunu açık ve nötr şekilde belirt. " +
+                  "Emin olmadığın çıkarımları iddialı şekilde yazma. " +
+                  "Veri güçlü şekilde desteklemiyorsa balanced, consistent, well-rounded, plateau, progression, beginner gibi çıkarımlar kullanma. " +
+                  "Güçlü yönler listesine sadece gerçekten olumlu ve doğrudan veriden desteklenen maddeleri ekle. " +
+                  "Gereksiz süslü dil kullanma. Yorumlar veri odaklı ve temkinli olsun. " +
+                  "SADECE geçerli JSON döndür. JSON anahtarları tam olarak şunlar olsun: summary, strengths, improvements, nextWorkoutSuggestion. " +
+                  "summary ve nextWorkoutSuggestion string olsun. strengths ve improvements string dizileri olsun. " +
+                  "En fazla 2 strengths ve 2 improvements maddesi üret.";
+
+            var userContent = IsEnglish
+                ? $"Workout analysis data (JSON): {analysisJson}. Analyze this data and produce concise insights following the rules above."
+                : $"Antrenman analiz verisi (JSON): {analysisJson}. Bu veriyi analiz et ve kurallara uyan kısa içgörüler üret.";
 
             var requestBody = new
             {
@@ -93,30 +141,8 @@ namespace FitTrackr.API.Services
                 response_format = new { type = "json_object" },
                 messages = new object[]
                 {
-                    new
-                    {
-                        role = "system",
-                        content =
-                            "Yapılandırılmış antrenman verisini analiz eden muhafazakâr bir fitness koçusun. " +
-                            "Yalnızca verilen veriye dayan. Veri dışında varsayım yapma. " +
-                            "Mümkünse gerçek sayıları ve net gözlemleri kullan. " +
-                            "Tüm yanıt değerleri tamamen Türkçe ve doğal Türkçe olsun. İngilizce kelime veya yarı Türkçe yarı İngilizce ifade kullanma. " +
-                            "Yanıtlar kısa, temiz, kullanıcı dostu ve robotik olmayan bir Türkçe ile yazılsın. " +
-                            "Veri azsa bunu açıkça söyle. " +
-                            "Düşük aktiviteyi övme. Aktivite düşükse bunu açık ve nötr şekilde belirt. " +
-                            "Emin olmadığın çıkarımları iddialı şekilde yazma. " +
-                            "Veri güçlü şekilde desteklemiyorsa balanced, consistent, well-rounded, plateau, progression, beginner gibi çıkarımlar kullanma. " +
-                            "Güçlü yönler listesine sadece gerçekten olumlu ve doğrudan veriden desteklenen maddeleri ekle. " +
-                            "Gereksiz süslü dil kullanma. Yorumlar veri odaklı ve temkinli olsun. " +
-                            "SADECE geçerli JSON döndür. JSON anahtarları tam olarak şunlar olsun: summary, strengths, improvements, nextWorkoutSuggestion. " +
-                            "summary ve nextWorkoutSuggestion string olsun. strengths ve improvements string dizileri olsun. " +
-                            "En fazla 2 strengths ve 2 improvements maddesi üret."
-                    },
-                    new
-                    {
-                        role = "user",
-                        content = $"Antrenman analiz verisi (JSON): {analysisJson}. Bu veriyi analiz et ve kurallara uyan kısa içgörüler üret."
-                    }
+                    new { role = "system", content = systemContent },
+                    new { role = "user", content = userContent }
                 }
             };
 
@@ -159,10 +185,10 @@ namespace FitTrackr.API.Services
         public async Task<FitBotChatResponseDto> ChatAsync(string userId, FitBotChatRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(userId))
-                return new FitBotChatResponseDto { Reply = "Kullanıcı bilgisi alınamadı." };
+                return new FitBotChatResponseDto { Reply = IsEnglish ? "Unable to identify user." : "Kullanıcı bilgisi alınamadı." };
 
             if (string.IsNullOrWhiteSpace(_groqApiKey))
-                throw new InvalidOperationException("Groq yapılandırması eksik.");
+                throw new InvalidOperationException(IsEnglish ? "Groq configuration is missing." : "Groq yapılandırması eksik.");
 
             var cacheKey = $"{ContextCacheKeyPrefix}{userId}";
             var contextStopwatch = Stopwatch.StartNew();
@@ -218,12 +244,17 @@ namespace FitTrackr.API.Services
                     RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
                     return new FitBotChatResponseDto
                     {
-                        Reply = "Şu an çok fazla istek var, biraz bekleyip tekrar dene.",
+                        Reply = IsEnglish
+                            ? "Too many requests right now — wait a moment and try again."
+                            : "Şu an çok fazla istek var, biraz bekleyip tekrar dene.",
                         PlateauAlerts = new List<string>()
                     };
                 }
 
-                throw new InvalidOperationException($"Groq API hatası {response.StatusCode}: {responseContent}");
+                throw new InvalidOperationException(
+                    IsEnglish
+                        ? $"Groq API error {response.StatusCode}: {responseContent}"
+                        : $"Groq API hatası {response.StatusCode}: {responseContent}");
             }
 
             var chatResponse = JsonSerializer.Deserialize<GroqChatResponse>(responseContent);
@@ -272,7 +303,12 @@ namespace FitTrackr.API.Services
             }
         }
 
-        private static string BuildSystemPrompt(string actionType, FitBotContextDto context)
+        // Dil dispatcher'ı: prompt-mühendisliği metni (paper'ın güvenlik garantilerinin kalbi)
+        // yanlışlıkla bozulmasın diye TR/EN için iki tam, bağımsız metot olarak tutulur.
+        private static string BuildSystemPrompt(string actionType, FitBotContextDto context) =>
+            IsEnglish ? BuildSystemPromptEnglish(actionType, context) : BuildSystemPromptTurkish(actionType, context);
+
+        private static string BuildSystemPromptTurkish(string actionType, FitBotContextDto context)
         {
             var sb = new StringBuilder();
 
@@ -460,6 +496,190 @@ namespace FitTrackr.API.Services
             return sb.ToString().Trim();
         }
 
+        private static string BuildSystemPromptEnglish(string actionType, FitBotContextDto context)
+        {
+            var sb = new StringBuilder();
+
+            if (context.TotalWorkouts == 0)
+            {
+                sb.AppendLine("You are FitBot — the user's personal AI fitness coach.");
+                sb.AppendLine("The user has no workout records yet.");
+                sb.AppendLine("RULE: Do NOT fabricate data. Give NO specific information about past workouts, weights, muscle groups, or trends.");
+                sb.AppendLine("LANGUAGE RULE — HIGHEST PRIORITY: Respond only in English. Use clear, concise, supportive fitness-coach language.");
+                sb.AppendLine();
+
+                switch ((actionType ?? "free").ToLowerInvariant())
+                {
+                    case "analyze":
+                    case "program":
+                        sb.AppendLine("In 1-2 sentences, say 'no records yet — start logging workouts' and stop. Do not add suggestions or analysis.");
+                        break;
+                    case "today":
+                        sb.AppendLine("Since there are no records, suggest any muscle group. 2-3 exercises, each on its own line, in exactly this format: 'ExerciseName: 3 sets × 10 reps'. Do NOT use a 'Exercise:' prefix — start directly with the exercise name.");
+                        break;
+                    case "motivation":
+                        sb.AppendLine("Exactly 3 short sentences. First sentence: direct call to action. Do NOT fabricate specific weights or exercise names. Keep it general but energetic.");
+                        break;
+                    default:
+                        sb.AppendLine("Answer the user's question briefly and naturally. Do not fabricate missing data.");
+                        break;
+                }
+
+                return sb.ToString().Trim();
+            }
+
+            sb.AppendLine("You are FitBot — the user's personal AI fitness coach.");
+            sb.AppendLine();
+            sb.AppendLine("LANGUAGE RULE — HIGHEST PRIORITY:");
+            sb.AppendLine("Respond only in English. Use clear, concise, supportive fitness-coach language. Any other language is strictly forbidden.");
+            sb.AppendLine("Exercise and movement names (Bench Press, Lat Pulldown, Pull-up, T-bar Row, etc.) should be written in their original form.");
+            sb.AppendLine();
+            sb.AppendLine("MANDATORY RULES:");
+            sb.AppendLine("- Always address the user as 'you/your'. Never use 'we' forms like 'we can see', 'we can discuss', 'we can do'.");
+            sb.AppendLine("- DO NOT ASK QUESTIONS: Do not ask the user things like 'would you like to...?'. Directly analyze and conclude.");
+            sb.AppendLine("- DO NOT infer personality from weight numbers: sequences like '100→80→50 kg' must not be interpreted as 'you are used to different difficulty levels'. Numbers are just weight records.");
+            sb.AppendLine("- Speak naturally. Do not repeat the same sentence or phrase more than once. Each paragraph/bullet must contain a DIFFERENT idea.");
+            sb.AppendLine("- Base responses only on the data below. Do not fabricate or speculate.");
+            sb.AppendLine("- TREND RULE: Write about weight trends ONLY for exercises explicitly listed in the 'Weight trends' section below. If that section is EMPTY — do NOT use phrases like 'weight dropped/increased/rising/falling' for any exercise. Do NOT compute your own trends from the recent workout weights.");
+            sb.AppendLine("- ACTIVITY RULE: If the workout count line is marked '← LOW/MODERATE', do NOT say 'consistent' or 'you train consistently'.");
+            sb.AppendLine("- COMPARISON RULE: Phrases like 'frequency increased', 'showing progress', 'improvement' require comparative data from a prior period. If this week and the last-30-days count are equal or close (meaning all workouts happened this week), do NOT use improvement language.");
+            sb.AppendLine("- NEVER say you need more data. Phrases like 'more data is needed', 'I need more information', 'I don't know the intensity' are strictly forbidden. Work only with what is available.");
+            sb.AppendLine("- DO NOT EXPLAIN YOUR RULES: Do not explain why you are not covering a topic. Meta-comments like 'I will skip the plateau section since the list is empty' are forbidden. Simply don't mention it.");
+            sb.AppendLine($"- Plateau list is {(context.PlateauExercises.Count == 0 ? "EMPTY — do NOT use the word 'plateau'." : "populated — only reference exercises that appear in it.")}");
+            sb.AppendLine("- Do not present an achievement or progress that is not in the data.");
+            sb.AppendLine("- The app has NO weekly workout goal. Do not say 'you hit your goal this week' or 'you completed all workouts'.");
+            sb.AppendLine();
+
+            sb.AppendLine("=== USER DATA ===");
+            sb.AppendLine($"Total workouts logged: {context.TotalWorkouts}");
+
+            if (context.DaysSinceLastWorkout >= 0)
+                sb.AppendLine($"Days since last workout: {context.DaysSinceLastWorkout}");
+            else
+                sb.AppendLine("Last workout: No records.");
+
+            sb.AppendLine($"Workouts this week: {context.WorkoutsThisWeek}");
+            var activityNote = context.WorkoutsLast30Days <= 8 ? " ← LOW/MODERATE — do NOT say 'consistent', 'frequently', 'regularly'" : "";
+            sb.AppendLine($"Workouts in last 30 days: {context.WorkoutsLast30Days}{activityNote}");
+
+            var uniqueWorkoutNames = context.MuscleGroupFrequency.Keys.ToList();
+            if (uniqueWorkoutNames.Count > 1)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Workout type distribution (last 30 days):");
+                foreach (var kv in context.MuscleGroupFrequency.OrderByDescending(kv => kv.Value))
+                    sb.AppendLine($"  {kv.Key}: {kv.Value} workouts");
+            }
+
+            if (context.RecentWorkouts.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Recent workouts — LIST IS ORDERED NEWEST TO OLDEST (first row = MOST RECENT workout):");
+                var index = 1;
+                foreach (var workout in context.RecentWorkouts)
+                {
+                    var recency = index == 1 ? "MOST RECENT WORKOUT" : $"{index}th previous workout";
+                    sb.AppendLine($"  [{recency}] {workout.WorkoutDate:dd.MM.yyyy} — {workout.WorkoutName}");
+                    foreach (var ex in workout.Exercises)
+                    {
+                        if (ex.MaxWeightKg > 0)
+                            sb.AppendLine($"    • {ex.ExerciseName}: {ex.SetCount} sets, session max weight {ex.MaxWeightKg:F1} kg");
+                        else
+                            sb.AppendLine($"    • {ex.ExerciseName}: {ex.SetCount} sets (no weight recorded)");
+                    }
+                    index++;
+                }
+            }
+
+            if (context.WeightTrends.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Weight trends — relay these lines as-is, do not add interpretation:");
+                foreach (var trend in context.WeightTrends)
+                {
+                    var ordered = trend.WeeklyMaxWeights.OrderByDescending(w => w.WeeksAgo).ToList();
+                    var oldest = ordered.First();
+                    var newest = ordered.Last();
+                    var delta = newest.MaxKg - oldest.MaxKg;
+                    var deltaStr = delta >= 0 ? $"+{delta:F1}" : $"{delta:F1}";
+                    var trendDesc = trend.Trend.ToUpperInvariant() switch
+                    {
+                        "UP" => "weight is increasing in recent weeks",
+                        "DOWN" => "weight is decreasing in recent weeks",
+                        "STABLE" => "weight is stable in recent weeks",
+                        _ => trend.Trend.ToLowerInvariant()
+                    };
+                    sb.AppendLine($"  {trend.ExerciseName}: {oldest.MaxKg:F1} kg → {newest.MaxKg:F1} kg ({deltaStr} kg), {trendDesc}");
+                }
+            }
+
+            if (context.PlateauExercises.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Plateau exercises (max weight unchanged for the last 3 weeks):");
+                foreach (var ex in context.PlateauExercises)
+                    sb.AppendLine($"  - {ex}");
+                sb.AppendLine("For these exercises only, suggest a concrete way forward: deload, rep range change, or exercise variation.");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("=== RESPONSE STYLE ===");
+
+            switch ((actionType ?? "free").ToLowerInvariant())
+            {
+                case "analyze":
+                    sb.AppendLine("Analyze the workout data. Express each point with a DIFFERENT sentence structure — do not repeat.");
+                    sb.AppendLine("Strengths: only genuine improvements directly supported by the data. If total workouts < 5, do NOT list strengths — say 'not enough data yet'.");
+                    sb.AppendLine("Improvement areas: missing muscle groups, low frequency. If the plateau list is empty, do NOT mention it. 3-4 distinct points or paragraphs is enough.");
+                    break;
+                case "today":
+                    if (context.RecentWorkouts.Count > 0)
+                    {
+                        var lastWorkout = context.RecentWorkouts[0];
+                        var lastExNames = string.Join(", ", lastWorkout.Exercises.Select(e => e.ExerciseName));
+                        sb.AppendLine($"⛔ AVOID TODAY: The last workout ({lastWorkout.WorkoutDate:dd.MM.yyyy}) included: [{lastExNames}]");
+                        sb.AppendLine("Do NOT suggest movements that target the same muscle groups as those exercises. Choose a completely different muscle group.");
+                    }
+                    sb.AppendLine("Pick EXACTLY 1 muscle group and commit to it. Do not offer alternatives like 'shoulders or back'.");
+                    sb.AppendLine("FORMAT: 1 short intro sentence ('I recommend training X today.'), then EXACTLY 2-3 exercises, each on its own line. Do NOT write 4 or more exercises. Do NOT add sentences after the list.");
+                    sb.AppendLine("WEIGHT FORMAT: If the exercise has past data in the 'Weight trends' section, write the line as: 'ExerciseName: X sets × Y reps @ Z kg'. If there is no weight data, write: 'ExerciseName: X sets × Y reps'.");
+                    sb.AppendLine("ACSM SAFETY RULE: The recommended weight (Z kg) must not exceed 110% of that exercise's most recent session max (ACSM progressive overload ≤10%/week).");
+                    sb.AppendLine("Vague openings like 'I can suggest a few exercises' are forbidden — state the muscle group directly.");
+                    sb.AppendLine("Use standard fitness terminology for exercise names (Pull-up, Cable Row, T-bar Row). Do not invent translations.");
+                    break;
+                case "program":
+                    sb.AppendLine("Evaluate weekly frequency, muscle group balance, and weight trends.");
+                    sb.AppendLine("Each paragraph must cover a DIFFERENT topic: 1st paragraph frequency, 2nd muscle balance, 3rd trend, 4th concrete suggestion. Do not repeat the same idea in two paragraphs.");
+                    sb.AppendLine("LAST PARAGRAPH RULE: Do NOT start with 'In conclusion', 'To summarize', 'Therefore'. The last paragraph must not restate the previous ones — it should contain a single concrete data-supported action step.");
+                    sb.AppendLine("NO EXERCISE LISTS: Do not add set/rep plans like 'Squat: 3 sets × 10 reps' to a program evaluation.");
+                    sb.AppendLine("NO MARKDOWN: Do not use **, *, #, numbered lists (1. 2. 3.), or bullet symbols (- or •). Write in plain paragraphs.");
+                    sb.AppendLine("DATA READING RULE: 'Workouts in last 30 days: X' is a 30-day total, not a weekly figure. Do not infer 'you train X times per week'.");
+                    sb.AppendLine("TREND RULE: Only comment on trends for exercises that appear in the weight trends section. Do not say 'track your progress' for exercises not listed there.");
+                    break;
+                case "motivation":
+                    sb.AppendLine("GOAL: Motivate the user to train today.");
+                    sb.AppendLine("STRUCTURE: Exactly 3 SHORT sentences. Each sentence one idea. Plain text.");
+                    sb.AppendLine("TONE: Coach tone — short, direct, energetic.");
+                    sb.AppendLine("FIRST WORD: Start with an action word, 'Today', or a concrete number. Do NOT start with 'You', 'Your', 'I', 'Let me'.");
+                    sb.AppendLine("DATA: Use 1 concrete number from the data (kg or days).");
+                    sb.AppendLine("FORBIDDEN: nostalgic tone, 'remember when', filler phrases.");
+                    sb.AppendLine("EXAMPLE: 'Hit the gym — your muscles are ready. You hit 100 kg, now push past it. Move.'");
+                    break;
+                default:
+                    sb.AppendLine("Answer the user's question briefly and naturally. Reference the data when relevant.");
+                    break;
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("=== PRE-SEND CHECKLIST ===");
+            sb.AppendLine("Before sending your response, check:");
+            sb.AppendLine("1. Is there any non-English word? If so, replace it.");
+            sb.AppendLine("2. Do I say I need more data or more information? If so, remove it — work with what is available.");
+            sb.AppendLine("3. Did I repeat the same idea in two different sentences? If so, remove one.");
+
+            return sb.ToString().Trim();
+        }
+
         // Motivasyon gibi kısa tutulması gereken yanıtları cümle sayısıyla kes.
         // Tarih formatlarındaki (15.05.2026) ve sayılardaki noktalar cümle sonu sayılmaz.
         private static string TruncateToSentences(string text, int maxSentences)
@@ -490,37 +710,56 @@ namespace FitTrackr.API.Services
         }
 
         // Prompt kurallarına rağmen modelin ürettiği kalıp ifadeleri çıktı tarafında temizler.
+        // Dile göre iki ayrı örüntü seti kullanılır.
         private static string SanitizeOutputPatterns(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
 
-            var patterns = new (string Pattern, string Replacement)[]
-            {
-                (@"(?i)sonuç olarak[,.]?\s*", ""),
-                (@"(?i)özetle[,.]?\s*", ""),
-                (@"(?i)bu bilgiler ışığında[,.]?\s*", ""),
-                (@"(?i)bu nedenle[,.]?\s*", ""),
-                (@"(?i)düzenli olarak antrenman yap\w*", "antrenman sıklığını artır"),
-                (@"(?i)düzenli olarak çalış\w*", "daha sık çalış"),
-                // "daha fazla veri/antrenman gerekiyor" kalıpları
-                (@"(?i)daha fazla (antrenman |veri |veriye |bilgiye )?(verisi?|ihtiyaç|gerekli)[^\n.]*[.\n]?\s*", ""),
-                (@"(?i)(analiz edilebilmesi|değerlendirilebilmesi) için daha fazla[^\n.]*[.\n]?\s*", ""),
-                // Model kendi kurallarını açıklamasın
-                (@"(?i)(takılma noktası listesi|plato listesi) boş[^\n.]*[.\n]?\s*", ""),
-                (@"(?i)bu konuya (daha derinlemesine |)girilmeyecektir[^\n.]*[.\n]?\s*", ""),
-                // Ağırlık sayılarından kişilik/alışkanlık çıkarımı
-                (@"(?i)farklı zorluk seviyeleriy?le? çalış\w*", "farklı ağırlıklarla çalışmışsın"),
-                (@"(?i)farklı zorluk seviyelerinin? bir göstergesi", ""),
-                // Biz formu → tekil dönüşümü
-                (@"\bkonuşabiliriz\b", "konuşabilirsin"),
-                (@"\bdeğerlendirebiliriz\b", "değerlendirebilirsin"),
-                (@"\bçalışabiliriz\b", "çalışabilirsin"),
-                (@"\bbakabiliriz\b", "bakabilirsin"),
-                (@"\byapabiliriz\b", "yapabilirsin"),
-                (@"\bsöyleyebiliriz\b", "söyleyebilirim"),
-                (@"\bgörebiliriz\b", "görebilirsin"),
-                (@"\bincleyebiliriz\b", "inceleyebilirsin"),
-            };
+            var patterns = IsEnglish
+                ? new (string Pattern, string Replacement)[]
+                {
+                    (@"(?i)in conclusion[,.]?\s*", ""),
+                    (@"(?i)to summarize[,.]?\s*", ""),
+                    (@"(?i)in summary[,.]?\s*", ""),
+                    (@"(?i)in light of (this|the above)[,.]?\s*", ""),
+                    (@"(?i)therefore[,.]?\s*", ""),
+                    // "more data needed" patterns
+                    (@"(?i)more (data|information|workouts?) (is |are )?(needed|required)[^\n.]*[.\n]?\s*", ""),
+                    (@"(?i)i (would |)need more (data|information)[^\n.]*[.\n]?\s*", ""),
+                    // Model explaining its own rules
+                    (@"(?i)(the |)plateau list is empty[^\n.]*[.\n]?\s*", ""),
+                    (@"(?i)i (will|won'?t) (cover|address|discuss) (this|that)[^\n.]*[.\n]?\s*", ""),
+                    // We-form → I/you
+                    (@"\bwe can (see|discuss|do|track|review|evaluate|look)\b", "you can $1"),
+                    (@"\blet'?s (see|discuss|do|track|review|evaluate|look)\b", ""),
+                }
+                : new (string Pattern, string Replacement)[]
+                {
+                    (@"(?i)sonuç olarak[,.]?\s*", ""),
+                    (@"(?i)özetle[,.]?\s*", ""),
+                    (@"(?i)bu bilgiler ışığında[,.]?\s*", ""),
+                    (@"(?i)bu nedenle[,.]?\s*", ""),
+                    (@"(?i)düzenli olarak antrenman yap\w*", "antrenman sıklığını artır"),
+                    (@"(?i)düzenli olarak çalış\w*", "daha sık çalış"),
+                    // "daha fazla veri/antrenman gerekiyor" kalıpları
+                    (@"(?i)daha fazla (antrenman |veri |veriye |bilgiye )?(verisi?|ihtiyaç|gerekli)[^\n.]*[.\n]?\s*", ""),
+                    (@"(?i)(analiz edilebilmesi|değerlendirilebilmesi) için daha fazla[^\n.]*[.\n]?\s*", ""),
+                    // Model kendi kurallarını açıklamasın
+                    (@"(?i)(takılma noktası listesi|plato listesi) boş[^\n.]*[.\n]?\s*", ""),
+                    (@"(?i)bu konuya (daha derinlemesine |)girilmeyecektir[^\n.]*[.\n]?\s*", ""),
+                    // Ağırlık sayılarından kişilik/alışkanlık çıkarımı
+                    (@"(?i)farklı zorluk seviyeleriy?le? çalış\w*", "farklı ağırlıklarla çalışmışsın"),
+                    (@"(?i)farklı zorluk seviyelerinin? bir göstergesi", ""),
+                    // Biz formu → tekil dönüşümü
+                    (@"\bkonuşabiliriz\b", "konuşabilirsin"),
+                    (@"\bdeğerlendirebiliriz\b", "değerlendirebilirsin"),
+                    (@"\bçalışabiliriz\b", "çalışabilirsin"),
+                    (@"\bbakabiliriz\b", "bakabilirsin"),
+                    (@"\byapabiliriz\b", "yapabilirsin"),
+                    (@"\bsöyleyebiliriz\b", "söyleyebilirim"),
+                    (@"\bgörebiliriz\b", "görebilirsin"),
+                    (@"\bincleyebiliriz\b", "inceleyebilirsin"),
+                };
 
             foreach (var (pattern, replacement) in patterns)
                 text = System.Text.RegularExpressions.Regex.Replace(text, pattern, replacement);
@@ -528,11 +767,13 @@ namespace FitTrackr.API.Services
             return text.Trim();
         }
 
-        // Bilinen yabancı bağlaç/dolgu kelimeleri için güvenli kelime sınırı kontrollü değiştirme.
-        // Fitness terimleri (Pull-up, T-bar Row vb.) tam kelime eşleşmesi olmadığı için etkilenmez.
+        // Türkçe hedefte: bilinen yabancı bağlaç/dolgu kelimelerini güvenli kelime sınırı
+        // kontrollü şekilde değiştirir (fitness terimleri tam kelime eşleşmesi olmadığı için etkilenmez).
+        // İngilizce hedefte: hedef dil zaten İngilizce olduğu için no-op.
         private static string SanitizeForeignWords(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
+            if (IsEnglish) return text;
 
             // Yabancı kelime → Türkçe karşılığı
             var replacements = new (string Pattern, string Replacement)[]

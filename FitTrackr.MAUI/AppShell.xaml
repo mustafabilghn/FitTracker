@@ -5,20 +5,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:FitTrackr.MAUI"
     xmlns:pages="clr-namespace:FitTrackr.MAUI.Pages"
+    xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
     Title="FitTrackr.MAUI">
 
     <TabBar>
-        <ShellContent Title="Ana Sayfa"
+        <ShellContent Title="{loc:Translate Key=AppShell_Home}"
                       Shell.NavBarIsVisible="False"
                       Icon="home.png"
                       ContentTemplate="{DataTemplate local:MainPage}"
                       Route="MainPage"/>
-        <ShellContent Title="Antrenmanlar"
+        <ShellContent Title="{loc:Translate Key=AppShell_Workouts}"
                       Shell.NavBarIsVisible="False"
                       Icon="workouts.png"
                       ContentTemplate="{DataTemplate pages:WorkoutListPage}"
                       Route="WorkoutListPage"/>
-        <ShellContent Title="Raporlar"
+        <ShellContent Title="{loc:Translate Key=AppShell_Reports}"
                       Shell.NavBarIsVisible="False"
                       Icon="progress.svg"
                       ContentTemplate="{DataTemplate pages:ProgressPage}"
@@ -28,7 +29,7 @@
                       Icon="bot.png"
                       ContentTemplate="{DataTemplate pages:FitBotPage}"
                       Route="FitBotPage"/>
-        <ShellContent Title="Profil"
+        <ShellContent Title="{loc:Translate Key=AppShell_Profile}"
                       Shell.NavBarIsVisible="False"
                       Icon="profile.png"
                       ContentTemplate="{DataTemplate pages:ProfilePage}"

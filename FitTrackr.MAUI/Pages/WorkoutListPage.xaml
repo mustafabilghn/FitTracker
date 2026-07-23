@@ -3,6 +3,7 @@
     x:Name="ThisPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
     x:Class="FitTrackr.MAUI.Pages.WorkoutListPage"
     BackgroundColor="#121212">
     <Grid>
@@ -10,7 +11,7 @@
             <VerticalStackLayout Padding="20" Spacing="18">
                 <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                     <Label
-                        Text="Antrenman Günlüğü"
+                        Text="{loc:Translate Key=WorkoutList_Title}"
                         FontSize="30"
                         FontAttributes="Bold"
                         TextColor="White"
@@ -77,13 +78,13 @@
                         </Grid>
 
                         <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="4">
-                            <Label Text="P" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="1" Text="S" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="2" Text="C" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="3" Text="P" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="4" Text="C" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="5" Text="C" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
-                            <Label Grid.Column="6" Text="P" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayMon}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="1" Text="{loc:Translate Key=WeeklyDetail_DayTue}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="2" Text="{loc:Translate Key=WeeklyDetail_DayWed}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="3" Text="{loc:Translate Key=WeeklyDetail_DayThu}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="4" Text="{loc:Translate Key=WeeklyDetail_DayFri}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="5" Text="{loc:Translate Key=WeeklyDetail_DaySat}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
+                            <Label Grid.Column="6" Text="{loc:Translate Key=WeeklyDetail_DaySun}" TextColor="#8F8F8F" HorizontalTextAlignment="Center" FontSize="12" />
                         </Grid>
 
                         <CollectionView
@@ -144,7 +145,7 @@
                         VerticalOptions="Center" />
                     <Button
                         Grid.Column="1"
-                        Text="Bugün"
+                        Text="{loc:Translate Key=WorkoutList_TodayButton}"
                         Command="{Binding GoToTodayCommand}"
                         BackgroundColor="#2A2A2A"
                         TextColor="#FF7043"
@@ -329,7 +330,7 @@
                                                         <SwipeView.RightItems>
                                                             <SwipeItems Mode="Execute" SwipeBehaviorOnInvoked="Close">
                                                                 <SwipeItem
-                                                                    Text="Sil"
+                                                                    Text="{loc:Translate Key=Common_Delete}"
                                                                     BackgroundColor="#D84343"
                                                                     Command="{Binding Source={x:Reference ThisPage}, Path=BindingContext.DeleteExerciseCommand}"
                                                                     CommandParameter="{Binding .}" />

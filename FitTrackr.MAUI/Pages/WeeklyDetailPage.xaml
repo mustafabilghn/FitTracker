@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.WeeklyDetailPage"
              BackgroundColor="#121212"
              Shell.NavBarIsVisible="False">
@@ -35,7 +36,7 @@
             </VerticalStackLayout>
 
             <!-- Başlık -->
-            <Label Text="BU HAFTA"
+            <Label Text="{loc:Translate Key=WeeklyDetail_Title}"
                    FontSize="26"
                    FontAttributes="Bold"
                    TextColor="White"
@@ -55,7 +56,7 @@
                    BorderColor="#333"
                    Padding="20">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="HAFTALIK HEDEF"
+                    <Label Text="{loc:Translate Key=WeeklyDetail_GoalTitle}"
                            FontSize="13"
                            FontAttributes="Bold"
                            TextColor="#4CAF50" />
@@ -64,36 +65,36 @@
                     <Grid ColumnDefinitions="*,*,*,*,*,*,*"
                           ColumnSpacing="6">
                         <VerticalStackLayout Grid.Column="0" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayMon}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DayMon" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="S" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayTue}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DayTue" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="2" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="Ç" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayWed}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DayWed" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayThu}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DayThu" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="4" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="C" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DayFri}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DayFri" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="5" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="C" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DaySat}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DaySat" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="6" Spacing="4" HorizontalOptions="Center">
-                            <Label Text="P" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
+                            <Label Text="{loc:Translate Key=WeeklyDetail_DaySun}" FontSize="11" TextColor="#AAAAAA" HorizontalOptions="Center" />
                             <Label x:Name="DaySun" Text="○" FontSize="18" HorizontalOptions="Center" />
                         </VerticalStackLayout>
                     </Grid>
 
-                    <Label Text="✔ = Antrenman yapılan gün"
+                    <Label Text="{loc:Translate Key=WeeklyDetail_LegendText}"
                            FontSize="12"
                            TextColor="#666666"
                            Margin="0,4,0,0" />
@@ -107,11 +108,11 @@
                    BorderColor="#333"
                    Padding="20">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="HAFTALIK ANTRENMAN SAYISI NASIL ÇALIŞIR?"
+                    <Label Text="{loc:Translate Key=WeeklyDetail_HowItWorksTitle}"
                            FontSize="13"
                            FontAttributes="Bold"
                            TextColor="#4CAF50" />
-                    <Label Text="Haftada kaç farklı gün antrenman yaptığını gösterir. Bir günde birden fazla antrenman kaydetsen bile o gün tek sayılır."
+                    <Label Text="{loc:Translate Key=WeeklyDetail_HowItWorksMessage}"
                            FontSize="14"
                            TextColor="#CCCCCC"
                            LineBreakMode="WordWrap" />

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
@@ -77,7 +78,7 @@ namespace FitTrackr.MAUI.ViewModels
             _selectedExercise = null;
             _originalSetIds.Clear();
 
-            ExerciseName = string.IsNullOrWhiteSpace(exerciseName) ? "Egzersiz" : exerciseName.Trim();
+            ExerciseName = string.IsNullOrWhiteSpace(exerciseName) ? LocalizationResourceManager.Instance["Workout_ExerciseFallbackName"] : exerciseName.Trim();
             RepsInput = string.Empty;
             WeightInput = string.Empty;
             PendingSets.Clear();
@@ -91,13 +92,13 @@ namespace FitTrackr.MAUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(RepsInput))
             {
-                await Shell.Current.DisplayAlert("Hata", "Tekrar sayisi bos olamaz.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_RepsEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (!TryParseWeight(WeightInput, out var weightInKg))
             {
-                await Shell.Current.DisplayAlert("Hata", "Agirlik degeri gecerli degil.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_InvalidWeightError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
@@ -123,10 +124,10 @@ namespace FitTrackr.MAUI.ViewModels
             }
 
             var updatedReps = await Shell.Current.DisplayPromptAsync(
-                "Set Düzenle",
-                "Tekrar sayısı",
-                accept: "Kaydet",
-                cancel: "İptal",
+                LocalizationResourceManager.Instance["ExerciseSetEntry_EditSetTitle"],
+                LocalizationResourceManager.Instance["ExerciseSetEntry_RepsPlaceholder"],
+                accept: LocalizationResourceManager.Instance["Common_Save"],
+                cancel: LocalizationResourceManager.Instance["Common_Cancel"],
                 initialValue: pendingSet.Reps,
                 keyboard: Keyboard.Numeric);
 
@@ -137,15 +138,15 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (string.IsNullOrWhiteSpace(updatedReps))
             {
-                await Shell.Current.DisplayAlert("Hata", "Tekrar sayisi bos olamaz.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_RepsEmptyError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             var updatedWeight = await Shell.Current.DisplayPromptAsync(
-                "Set Düzenle",
-                "Ağırlık (kg)",
-                accept: "Kaydet",
-                cancel: "İptal",
+                LocalizationResourceManager.Instance["ExerciseSetEntry_EditSetTitle"],
+                LocalizationResourceManager.Instance["ExerciseSetEntry_WeightPlaceholder"],
+                accept: LocalizationResourceManager.Instance["Common_Save"],
+                cancel: LocalizationResourceManager.Instance["Common_Cancel"],
                 initialValue: pendingSet.WeightInKg.ToString("0.##", CultureInfo.CurrentCulture),
                 keyboard: Keyboard.Numeric);
 
@@ -156,7 +157,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (!TryParseWeight(updatedWeight, out var weightInKg))
             {
-                await Shell.Current.DisplayAlert("Hata", "Agirlik degeri gecerli degil.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_InvalidWeightError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
@@ -191,7 +192,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (PendingSets.Count == 0)
             {
-                await Shell.Current.DisplayAlert("Hata", "Lutfen en az bir set ekleyin.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_NoSetsError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
@@ -210,7 +211,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Hata", $"Egzersiz kaydedilemedi: {ex.Message}", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["ExerciseSetEntry_SaveExerciseErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
             finally
             {
@@ -348,7 +349,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Hata", $"Setler yuklenemedi: {ex.Message}", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["ExerciseSetEntry_LoadSetsErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
             finally
             {
@@ -390,7 +391,7 @@ namespace FitTrackr.MAUI.ViewModels
 
             if (defaultIntensity == null)
             {
-                await Shell.Current.DisplayAlert("Hata", "Yogunluk verisi alinamadi.", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ExerciseSetEntry_LoadIntensityError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return Guid.Empty;
             }
 

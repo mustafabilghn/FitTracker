@@ -40,7 +40,11 @@
       "Bash(dotnet --version)",
       "Bash(dotnet workload *)",
       "Bash(dotnet --list-sdks)",
-      "Bash(xargs -I{} sh -c 'echo === {} ===; grep -i \"targetSdkVersion\\\\|minSdkVersion\\\\|compileSdkVersion\" {}')"
+      "Bash(xargs -I{} sh -c 'echo === {} ===; grep -i \"targetSdkVersion\\\\|minSdkVersion\\\\|compileSdkVersion\" {}')",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git checkout *)",
+      "Bash(git stash *)"
     ]
   }
 }

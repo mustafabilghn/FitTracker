@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Services;
 using System.Text.RegularExpressions;
 
@@ -38,13 +39,13 @@ namespace FitTrackr.MAUI.ViewModels
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "E-posta ve şifre boş olamaz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Login_EmptyFieldsError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
             if (!IsValidEmail(email))
             {
-                await Application.Current.MainPage.DisplayAlert("Hata", "Geçerli bir e-posta adresi giriniz.", "Tamam");
+                await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Login_InvalidEmailError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
@@ -60,7 +61,7 @@ namespace FitTrackr.MAUI.ViewModels
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Hata", "E-posta veya şifre hatalı.", "Tamam");
+                    await Application.Current.MainPage.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["Login_InvalidCredentialsError"], LocalizationResourceManager.Instance["Common_OK"]);
                 }
             }
             finally
@@ -96,18 +97,18 @@ namespace FitTrackr.MAUI.ViewModels
                 else
                 {
                     await Application.Current.MainPage.DisplayAlert(
-                        "Hata",
-                        "Google ile giriş yapılamadı. Lütfen tekrar deneyin.",
-                        "Tamam");
+                        LocalizationResourceManager.Instance["Common_Error"],
+                        LocalizationResourceManager.Instance["Login_GoogleSignInError"],
+                        LocalizationResourceManager.Instance["Common_OK"]);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Google login hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LoginViewModel] Google login error: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert(
-                    "Hata",
-                    "Bir hata oluştu. Lütfen tekrar deneyin.",
-                    "Tamam");
+                    LocalizationResourceManager.Instance["Common_Error"],
+                    LocalizationResourceManager.Instance["Login_GenericError"],
+                    LocalizationResourceManager.Instance["Common_OK"]);
             }
             finally
             {

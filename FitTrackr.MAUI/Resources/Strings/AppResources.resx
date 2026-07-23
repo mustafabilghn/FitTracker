@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Bu dosya varsayılan/nötr kültürdür: Türkçe. İngilizce karşılığı AppResources.en.resx içindedir. -->
+  <data name="Common_OK" xml:space="preserve">
+    <value>Tamam</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Hata</value>
+  </data>
+  <data name="Common_Warning" xml:space="preserve">
+    <value>Uyarı</value>
+  </data>
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Sil</value>
+  </data>
+  <data name="Profile_Title" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="Profile_InfoTitle" xml:space="preserve">
+    <value>Profil Bilgileri</value>
+  </data>
+  <data name="Profile_InfoSubtitle" xml:space="preserve">
+    <value>Kişisel bilgilerinizi düzenleyin</value>
+  </data>
+  <data name="Profile_Username" xml:space="preserve">
+    <value>Kullanıcı Adı</value>
+  </data>
+  <data name="Profile_Gender" xml:space="preserve">
+    <value>Cinsiyet</value>
+  </data>
+  <data name="Profile_Goal" xml:space="preserve">
+    <value>Hedef</value>
+  </data>
+  <data name="Profile_Height" xml:space="preserve">
+    <value>Boy (cm)</value>
+  </data>
+  <data name="Profile_Weight" xml:space="preserve">
+    <value>Kilo (kg)</value>
+  </data>
+  <data name="Profile_AccountTitle" xml:space="preserve">
+    <value>Hesap Hareketleri</value>
+  </data>
+  <data name="Profile_SignOut" xml:space="preserve">
+    <value>Çıkış Yap</value>
+  </data>
+  <data name="Profile_DeleteAccount" xml:space="preserve">
+    <value>Hesabı Sil</value>
+  </data>
+  <data name="Profile_Language" xml:space="preserve">
+    <value>Dil</value>
+  </data>
+  <data name="Profile_ChangePhoto" xml:space="preserve">
+    <value>Fotoğrafı değiştir</value>
+  </data>
+  <data name="Profile_AddPhoto" xml:space="preserve">
+    <value>Fotoğraf ekle</value>
+  </data>
+  <data name="Profile_DefaultUsername" xml:space="preserve">
+    <value>Kullanıcı</value>
+  </data>
+  <data name="Profile_PhotoActionSheetTitle" xml:space="preserve">
+    <value>Profil fotoğrafı</value>
+  </data>
+  <data name="Profile_Decline" xml:space="preserve">
+    <value>Vazgeç</value>
+  </data>
+  <data name="Profile_ChooseFromGallery" xml:space="preserve">
+    <value>Galeriden seç</value>
+  </data>
+  <data name="Profile_TakePhoto" xml:space="preserve">
+    <value>Kameradan çek</value>
+  </data>
+  <data name="Profile_RemovePhoto" xml:space="preserve">
+    <value>Fotoğrafı kaldır</value>
+  </data>
+  <data name="Profile_PhotoSelectFailed" xml:space="preserve">
+    <value>Profil fotoğrafı seçilemedi. Lütfen tekrar deneyin.</value>
+  </data>
+  <data name="Profile_DeleteAccountConfirmMessage" xml:space="preserve">
+    <value>Bu işlemi gerçekleştirmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</value>
+  </data>
+  <data name="Profile_DeleteAccountConfirmYes" xml:space="preserve">
+    <value>Evet</value>
+  </data>
+  <data name="Profile_DeleteSuccessTitle" xml:space="preserve">
+    <value>Başarılı</value>
+  </data>
+  <data name="Profile_DeleteSuccessMessage" xml:space="preserve">
+    <value>Hesabınız ve tüm verileriniz kalıcı olarak silindi.</value>
+  </data>
+  <data name="Profile_DeleteErrorMessage" xml:space="preserve">
+    <value>Hesap silme işlemi sırasında bir hata oluştu. Lütfen bağlantınızı kontrol edip tekrar deneyin.</value>
+  </data>
+  <data name="Profile_CameraPermissionTitle" xml:space="preserve">
+    <value>Kamera izni gerekli</value>
+  </data>
+  <data name="Profile_CameraPermissionMessage" xml:space="preserve">
+    <value>Fotoğraf çekebilmek için kamera izni vermelisiniz.</value>
+  </data>
+  <data name="Profile_CameraPhotoTitle" xml:space="preserve">
+    <value>Profil Fotoğrafı</value>
+  </data>
+  <data name="Profile_CameraUnavailableTitle" xml:space="preserve">
+    <value>Kamera açılamadı</value>
+  </data>
+  <data name="Profile_CameraUnavailableMessage" xml:space="preserve">
+    <value>Kamera başlatılamadı. Lütfen cihaz izinlerini kontrol edin.</value>
+  </data>
+  <data name="Profile_GalleryPermissionTitle" xml:space="preserve">
+    <value>Galeri izni gerekli</value>
+  </data>
+  <data name="Profile_GalleryPermissionMessage" xml:space="preserve">
+    <value>Galeriden fotoğraf seçmek için fotoğraf erişimi vermelisiniz.</value>
+  </data>
+  <data name="Profile_GalleryErrorMessage" xml:space="preserve">
+    <value>Galeri açılamadı. Lütfen tekrar deneyin.</value>
+  </data>
+  <data name="AppShell_Home" xml:space="preserve">
+    <value>Ana Sayfa</value>
+  </data>
+  <data name="AppShell_Workouts" xml:space="preserve">
+    <value>Antrenmanlar</value>
+  </data>
+  <data name="AppShell_Reports" xml:space="preserve">
+    <value>Raporlar</value>
+  </data>
+  <data name="AppShell_Profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="AddExercise_Title" xml:space="preserve">
+    <value>Egzersiz Ekle</value>
+  </data>
+  <data name="AddExercise_Header" xml:space="preserve">
+    <value>Yeni Egzersiz</value>
+  </data>
+  <data name="AddExercise_NamePlaceholder" xml:space="preserve">
+    <value>Egzersiz Adı</value>
+  </data>
+  <data name="AddExercise_NotesPlaceholder" xml:space="preserve">
+    <value>Notlar</value>
+  </data>
+  <data name="AddExercise_IntensityPlaceholder" xml:space="preserve">
+    <value>Yoğunluk</value>
+  </data>
+  <data name="AddExercise_SuccessTitle" xml:space="preserve">
+    <value>Başarılı</value>
+  </data>
+  <data name="AddExercise_SuccessMessage" xml:space="preserve">
+    <value>Egzersiz başarıyla eklendi.</value>
+  </data>
+  <data name="AddWorkout_Title" xml:space="preserve">
+    <value>Antrenman Ekle</value>
+  </data>
+  <data name="AddWorkout_Header" xml:space="preserve">
+    <value>Yeni Antrenman</value>
+  </data>
+  <data name="AddWorkout_NamePlaceholder" xml:space="preserve">
+    <value>Antrenman Adı</value>
+  </data>
+  <data name="AddWorkout_DurationPlaceholder" xml:space="preserve">
+    <value>Süre (dk)</value>
+  </data>
+  <data name="AddWorkout_LocationPlaceholder" xml:space="preserve">
+    <value>Yer</value>
+  </data>
+  <data name="AddWorkout_SuccessTitle" xml:space="preserve">
+    <value>Başarılı</value>
+  </data>
+  <data name="AddWorkout_SuccessMessage" xml:space="preserve">
+    <value>Antrenman başarıyla eklendi.</value>
+  </data>
+  <data name="Workout_DefaultName" xml:space="preserve">
+    <value>Antrenman</value>
+  </data>
+  <data name="Workout_NoExercisesYet" xml:space="preserve">
+    <value>Egzersiz bulunmuyor.</value>
+  </data>
+  <data name="Workout_ExercisesCountFormat" xml:space="preserve">
+    <value>{0} egzersiz</value>
+  </data>
+  <data name="Workout_ExerciseFallbackName" xml:space="preserve">
+    <value>Egzersiz</value>
+  </data>
+  <data name="ExerciseSelection_Title" xml:space="preserve">
+    <value>Egzersiz Seç</value>
+  </data>
+  <data name="ExerciseSelection_BodyPart" xml:space="preserve">
+    <value>Bölge</value>
+  </data>
+  <data name="ExerciseSelection_Equipment" xml:space="preserve">
+    <value>Ekipman</value>
+  </data>
+  <data name="ExerciseSelection_Level" xml:space="preserve">
+    <value>Seviye</value>
+  </data>
+  <data name="ExerciseSelection_SearchPlaceholder" xml:space="preserve">
+    <value>Egzersiz ara</value>
+  </data>
+  <data name="ExerciseSelection_EmptyResults" xml:space="preserve">
+    <value>Aramanıza uygun egzersiz bulunamadı</value>
+  </data>
+  <data name="ExerciseSelection_AllOption" xml:space="preserve">
+    <value>Tümü</value>
+  </data>
+  <data name="ExerciseSetEntry_Title" xml:space="preserve">
+    <value>Set Girişi</value>
+  </data>
+  <data name="ExerciseSetEntry_SetInfoTitle" xml:space="preserve">
+    <value>Set Bilgisi</value>
+  </data>
+  <data name="ExerciseSetEntry_RepsPlaceholder" xml:space="preserve">
+    <value>Tekrar Sayısı</value>
+  </data>
+  <data name="ExerciseSetEntry_WeightPlaceholder" xml:space="preserve">
+    <value>Ağırlık (kg)</value>
+  </data>
+  <data name="ExerciseSetEntry_AddSetButton" xml:space="preserve">
+    <value>Set Ekle</value>
+  </data>
+  <data name="ExerciseSetEntry_AddedSetsTitle" xml:space="preserve">
+    <value>Eklenen Setler</value>
+  </data>
+  <data name="ExerciseSetEntry_EditSetTitle" xml:space="preserve">
+    <value>Set Düzenle</value>
+  </data>
+  <data name="ExerciseSetEntry_RepsEmptyError" xml:space="preserve">
+    <value>Tekrar sayisi bos olamaz.</value>
+  </data>
+  <data name="ExerciseSetEntry_InvalidWeightError" xml:space="preserve">
+    <value>Agirlik degeri gecerli degil.</value>
+  </data>
+  <data name="ExerciseSetEntry_NoSetsError" xml:space="preserve">
+    <value>Lutfen en az bir set ekleyin.</value>
+  </data>
+  <data name="ExerciseSetEntry_SaveExerciseErrorFormat" xml:space="preserve">
+    <value>Egzersiz kaydedilemedi: {0}</value>
+  </data>
+  <data name="ExerciseSetEntry_LoadSetsErrorFormat" xml:space="preserve">
+    <value>Setler yuklenemedi: {0}</value>
+  </data>
+  <data name="ExerciseSetEntry_LoadIntensityError" xml:space="preserve">
+    <value>Yogunluk verisi alinamadi.</value>
+  </data>
+  <data name="Exercise_NameEmptyError" xml:space="preserve">
+    <value>Egzersiz adı boş geçilemez</value>
+  </data>
+  <data name="Exercise_IntensityRequiredError" xml:space="preserve">
+    <value>Egzersiz yoğunluğu seçilmelidir</value>
+  </data>
+  <data name="FitBot_Subtitle" xml:space="preserve">
+    <value>Kişisel fitness asistanın</value>
+  </data>
+  <data name="FitBot_Analyzing" xml:space="preserve">
+    <value>Analiz hazırlanıyor...</value>
+  </data>
+  <data name="FitBot_InputPlaceholder" xml:space="preserve">
+    <value>Bir mesaj yaz...</value>
+  </data>
+  <data name="FitBot_SendButton" xml:space="preserve">
+    <value>Gönder</value>
+  </data>
+  <data name="FitBot_ActionAnalyze" xml:space="preserve">
+    <value>Antrenmanlarımı analiz et</value>
+  </data>
+  <data name="FitBot_ActionToday" xml:space="preserve">
+    <value>Bugün ne çalışayım?</value>
+  </data>
+  <data name="FitBot_ActionProgram" xml:space="preserve">
+    <value>Programımı değerlendir</value>
+  </data>
+  <data name="FitBot_ActionMotivation" xml:space="preserve">
+    <value>Motivasyon ver</value>
+  </data>
+  <data name="FitBot_WelcomeMessage" xml:space="preserve">
+    <value>Merhaba, ben FitBot.
+
+Antrenman kayıtlarına bakıp kısa yorumlar ve pratik öneriler sunabilirim.
+
+Hazırsan aşağıdan bir seçenek seçelim veya direkt soru sorabilirsin.</value>
+  </data>
+  <data name="FitBot_PlateauAlertFormat" xml:space="preserve">
+    <value>⚠️ Plato uyarısı: {0}</value>
+  </data>
+  <data name="FitBot_ConnectionError" xml:space="preserve">
+    <value>Yanıt alınamadı. Bağlantını kontrol edip tekrar dene.</value>
+  </data>
+  <data name="FitBot_UnexpectedError" xml:space="preserve">
+    <value>Beklenmeyen bir sorun oluştu. Lütfen daha sonra tekrar dene.</value>
+  </data>
+  <data name="ForgotPassword_Title" xml:space="preserve">
+    <value>Şifremi Unuttum</value>
+  </data>
+  <data name="ForgotPassword_Step1Hint" xml:space="preserve">
+    <value>Hesabına kayıtlı e-posta adresini gir, sana bir sıfırlama kodu gönderelim.</value>
+  </data>
+  <data name="ForgotPassword_EmailPlaceholder" xml:space="preserve">
+    <value>E-posta adresi</value>
+  </data>
+  <data name="ForgotPassword_SendCodeButton" xml:space="preserve">
+    <value>Kod Gönder</value>
+  </data>
+  <data name="ForgotPassword_CodePlaceholder" xml:space="preserve">
+    <value>6 haneli kod</value>
+  </data>
+  <data name="ForgotPassword_NewPasswordPlaceholder" xml:space="preserve">
+    <value>Yeni şifre (en az 6 karakter)</value>
+  </data>
+  <data name="ForgotPassword_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Şifreyi tekrar gir</value>
+  </data>
+  <data name="ForgotPassword_ResetButton" xml:space="preserve">
+    <value>Şifremi Sıfırla</value>
+  </data>
+  <data name="ForgotPassword_DidNotReceiveCode" xml:space="preserve">
+    <value>Kodu almadın mı?</value>
+  </data>
+  <data name="ForgotPassword_Resend" xml:space="preserve">
+    <value>Tekrar gönder</value>
+  </data>
+  <data name="ForgotPassword_EmailRequiredError" xml:space="preserve">
+    <value>Lütfen e-posta adresini gir.</value>
+  </data>
+  <data name="ForgotPassword_RequestFailedError" xml:space="preserve">
+    <value>İstek gönderilemedi. İnternet bağlantını kontrol et.</value>
+  </data>
+  <data name="ForgotPassword_CodeSentFormat" xml:space="preserve">
+    <value>'{0}' adresine 6 haneli
+bir kod gönderdik. E-postanı kontrol et.</value>
+  </data>
+  <data name="ForgotPassword_CodeRequiredError" xml:space="preserve">
+    <value>Sıfırlama kodunu gir.</value>
+  </data>
+  <data name="ForgotPassword_PasswordLengthError" xml:space="preserve">
+    <value>Şifre en az 6 karakter olmalıdır.</value>
+  </data>
+  <data name="ForgotPassword_PasswordsMismatchError" xml:space="preserve">
+    <value>Şifreler eşleşmiyor.</value>
+  </data>
+  <data name="ForgotPassword_SuccessTitle" xml:space="preserve">
+    <value>Başarılı</value>
+  </data>
+  <data name="ForgotPassword_SuccessMessage" xml:space="preserve">
+    <value>Şifren başarıyla sıfırlandı. Yeni şifrenle giriş yapabilirsin.</value>
+  </data>
+  <data name="ForgotPassword_CodeInvalidError" xml:space="preserve">
+    <value>Kod hatalı veya süresi dolmuş. Tekrar dene.</value>
+  </data>
+  <data name="Login_Subtitle" xml:space="preserve">
+    <value>Hesabına giriş yap</value>
+  </data>
+  <data name="Login_EmailPlaceholder" xml:space="preserve">
+    <value>E-posta</value>
+  </data>
+  <data name="Login_PasswordPlaceholder" xml:space="preserve">
+    <value>Şifre</value>
+  </data>
+  <data name="Login_SignInButton" xml:space="preserve">
+    <value>Giriş Yap</value>
+  </data>
+  <data name="Login_ForgotPassword" xml:space="preserve">
+    <value>Şifremi unuttum</value>
+  </data>
+  <data name="Login_Or" xml:space="preserve">
+    <value>veya</value>
+  </data>
+  <data name="Login_ContinueWithGoogle" xml:space="preserve">
+    <value>Google ile devam et</value>
+  </data>
+  <data name="Login_NoAccount" xml:space="preserve">
+    <value>Hesabın yok mu?</value>
+  </data>
+  <data name="Login_SignUp" xml:space="preserve">
+    <value>Kayıt ol</value>
+  </data>
+  <data name="Login_EmptyFieldsError" xml:space="preserve">
+    <value>E-posta ve şifre boş olamaz.</value>
+  </data>
+  <data name="Login_InvalidEmailError" xml:space="preserve">
+    <value>Geçerli bir e-posta adresi giriniz.</value>
+  </data>
+  <data name="Login_InvalidCredentialsError" xml:space="preserve">
+    <value>E-posta veya şifre hatalı.</value>
+  </data>
+  <data name="Login_GoogleSignInError" xml:space="preserve">
+    <value>Google ile giriş yapılamadı. Lütfen tekrar deneyin.</value>
+  </data>
+  <data name="Login_GenericError" xml:space="preserve">
+    <value>Bir hata oluştu. Lütfen tekrar deneyin.</value>
+  </data>
+  <data name="Main_WeeklyStreak" xml:space="preserve">
+    <value>Haftalık Seri</value>
+  </data>
+  <data name="Main_StreakRecordFormat" xml:space="preserve">
+    <value>Rekor: {0} Hafta</value>
+  </data>
+  <data name="Main_ThisWeek" xml:space="preserve">
+    <value>Bu Hafta</value>
+  </data>
+  <data name="Main_WorkoutDays" xml:space="preserve">
+    <value>Antrenman günü</value>
+  </data>
+  <data name="Main_LoadDataErrorFormat" xml:space="preserve">
+    <value>Veriler alınırken bir hata oluştu: {0}</value>
+  </data>
+  <data name="Progress_Title" xml:space="preserve">
+    <value>Raporlar</value>
+  </data>
+  <data name="Progress_ExerciseLabel" xml:space="preserve">
+    <value>Egzersiz</value>
+  </data>
+  <data name="Progress_Current" xml:space="preserve">
+    <value>Güncel</value>
+  </data>
+  <data name="Progress_Change" xml:space="preserve">
+    <value>Fark</value>
+  </data>
+  <data name="Progress_NoChartDataTitle" xml:space="preserve">
+    <value>Grafik için veri yok</value>
+  </data>
+  <data name="Progress_NoChartDataMessage" xml:space="preserve">
+    <value>Seçili egzersiz ve dönem için kayıt bulunamadı.</value>
+  </data>
+  <data name="Progress_InsightsTitle" xml:space="preserve">
+    <value>Kısa İçgörüler</value>
+  </data>
+  <data name="Progress_SelectExerciseTitle" xml:space="preserve">
+    <value>Egzersiz seç</value>
+  </data>
+  <data name="Progress_TimeFilterFallback" xml:space="preserve">
+    <value>Dönem Seç</value>
+  </data>
+  <data name="Progress_ExerciseFallback" xml:space="preserve">
+    <value>Egzersiz Seç</value>
+  </data>
+  <data name="Progress_ExerciseEmptyStateFormat" xml:space="preserve">
+    <value>{0} döneminde kayıtlı egzersiz bulunamadı.</value>
+  </data>
+  <data name="Progress_TimeFilterOneMonth" xml:space="preserve">
+    <value>1 Ay</value>
+  </data>
+  <data name="Progress_TimeFilterThreeMonths" xml:space="preserve">
+    <value>3 Ay</value>
+  </data>
+  <data name="Progress_TimeFilterAllTime" xml:space="preserve">
+    <value>Tümü</value>
+  </data>
+  <data name="Progress_MetricWeight" xml:space="preserve">
+    <value>Ağırlık</value>
+  </data>
+  <data name="Progress_MetricVolume" xml:space="preserve">
+    <value>Antrenman Hacmi</value>
+  </data>
+  <data name="Progress_MetricEstOneRm" xml:space="preserve">
+    <value>Tahmini 1RM</value>
+  </data>
+  <data name="Progress_LoadDataErrorFormat" xml:space="preserve">
+    <value>Veri yüklenemedi: {0}</value>
+  </data>
+  <data name="Progress_NoWorkoutsInsight" xml:space="preserve">
+    <value>Antrenman eklediğinde raporlar burada görünecek.</value>
+  </data>
+  <data name="Progress_NoRecordsSubtitle" xml:space="preserve">
+    <value>Kayıt yok</value>
+  </data>
+  <data name="Progress_RecordsSubtitleFormat" xml:space="preserve">
+    <value>{0} kayıt • son {1}</value>
+  </data>
+  <data name="Progress_NotEnoughRecordsInsight" xml:space="preserve">
+    <value>Karşılaştırma için yeterli kayıt yok.</value>
+  </data>
+  <data name="Progress_NoChangeInsight" xml:space="preserve">
+    <value>Seçili aralıkta belirgin değişim görünmüyor.</value>
+  </data>
+  <data name="Progress_VsFirstRecord" xml:space="preserve">
+    <value>İlk kayda göre</value>
+  </data>
+  <data name="Progress_Vs3MonthsAgo" xml:space="preserve">
+    <value>3 aya göre</value>
+  </data>
+  <data name="Progress_Vs1MonthAgo" xml:space="preserve">
+    <value>1 aya göre</value>
+  </data>
+  <data name="Progress_ChangeInsightFormat" xml:space="preserve">
+    <value>{0} {1} değişim var.</value>
+  </data>
+  <data name="Progress_VolumeTrendingUp" xml:space="preserve">
+    <value>Toplam antrenman hacmi yükseliş trendinde.</value>
+  </data>
+  <data name="Register_Subtitle" xml:space="preserve">
+    <value>Yeni hesap oluştur</value>
+  </data>
+  <data name="Register_UsernamePlaceholder" xml:space="preserve">
+    <value>Kullanıcı adı</value>
+  </data>
+  <data name="Register_EmailPlaceholder" xml:space="preserve">
+    <value>E-posta</value>
+  </data>
+  <data name="Register_PasswordPlaceholder" xml:space="preserve">
+    <value>Şifre (en az 6 karakter)</value>
+  </data>
+  <data name="Register_ConfirmPasswordPlaceholder" xml:space="preserve">
+    <value>Şifre tekrar</value>
+  </data>
+  <data name="Register_SignUpButton" xml:space="preserve">
+    <value>Kayıt Ol</value>
+  </data>
+  <data name="Register_AlreadyHaveAccount" xml:space="preserve">
+    <value>Zaten hesabın var mı?</value>
+  </data>
+  <data name="Register_SignIn" xml:space="preserve">
+    <value>Giriş yap</value>
+  </data>
+  <data name="Register_UsernameEmptyError" xml:space="preserve">
+    <value>Kullanıcı adı boş olamaz.</value>
+  </data>
+  <data name="Register_EmailEmptyError" xml:space="preserve">
+    <value>E-posta adresi boş olamaz.</value>
+  </data>
+  <data name="Register_PasswordEmptyError" xml:space="preserve">
+    <value>Şifre boş olamaz.</value>
+  </data>
+  <data name="Register_SuccessTitle" xml:space="preserve">
+    <value>Başarılı</value>
+  </data>
+  <data name="Register_SuccessMessage" xml:space="preserve">
+    <value>Hesabın oluşturuldu, giriş yapabilirsin.</value>
+  </data>
+  <data name="Register_FailedError" xml:space="preserve">
+    <value>Kayıt sırasında bir hata oluştu. E-posta veya kullanıcı adı zaten kullanılıyor olabilir.</value>
+  </data>
+  <data name="StreakDetail_Title" xml:space="preserve">
+    <value>HAFTALIK SERİ</value>
+  </data>
+  <data name="StreakDetail_HowItWorksTitle" xml:space="preserve">
+    <value>HAFTALIK SERİ NASIL ÇALIŞIR?</value>
+  </data>
+  <data name="StreakDetail_Rule1" xml:space="preserve">
+    <value>• Her hafta en az 1 egzersiz kaydet → seri +1</value>
+  </data>
+  <data name="StreakDetail_Rule2" xml:space="preserve">
+    <value>• Bir hafta boyunca hiç kayıt yapmazsan seri sıfırlanır</value>
+  </data>
+  <data name="StreakDetail_Rule3" xml:space="preserve">
+    <value>• Haftalar Pazartesi–Pazar döngüsüyle hesaplanır</value>
+  </data>
+  <data name="StreakDetail_NoRecordYet" xml:space="preserve">
+    <value>Henüz rekor yok</value>
+  </data>
+  <data name="StreakDetail_Motivation0" xml:space="preserve">
+    <value>Henüz serini başlatmadın. Bu hafta bir antrenman kaydet ve ilk haftanı tamamla!</value>
+  </data>
+  <data name="StreakDetail_Motivation1" xml:space="preserve">
+    <value>İlk haftanı tamamladın! Devam et, serini büyüt.</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo3Format" xml:space="preserve">
+    <value>{0} haftalık bir seri yakaladın. Ritmini bulmaya başlıyorsun!</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo7Format" xml:space="preserve">
+    <value>{0} hafta üst üste antrenman yaptın. Harika bir alışkanlık kuruyorsun!</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo12Format" xml:space="preserve">
+    <value>{0} haftalık seri! Artık bu bir yaşam biçimi.</value>
+  </data>
+  <data name="StreakDetail_MotivationUpTo24Format" xml:space="preserve">
+    <value>{0} hafta! Yarım yıla yaklaştın — bu ciddi bir kararlılık.</value>
+  </data>
+  <data name="StreakDetail_MotivationOver24Format" xml:space="preserve">
+    <value>{0} haftalık inanılmaz bir seri! Sen bir fitness makinesisin.</value>
+  </data>
+  <data name="WeeklyDetail_Title" xml:space="preserve">
+    <value>BU HAFTA</value>
+  </data>
+  <data name="WeeklyDetail_GoalTitle" xml:space="preserve">
+    <value>HAFTALIK HEDEF</value>
+  </data>
+  <data name="WeeklyDetail_DayMon" xml:space="preserve">
+    <value>P</value>
+  </data>
+  <data name="WeeklyDetail_DayTue" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="WeeklyDetail_DayWed" xml:space="preserve">
+    <value>Ç</value>
+  </data>
+  <data name="WeeklyDetail_DayThu" xml:space="preserve">
+    <value>P</value>
+  </data>
+  <data name="WeeklyDetail_DayFri" xml:space="preserve">
+    <value>C</value>
+  </data>
+  <data name="WeeklyDetail_DaySat" xml:space="preserve">
+    <value>C</value>
+  </data>
+  <data name="WeeklyDetail_DaySun" xml:space="preserve">
+    <value>P</value>
+  </data>
+  <data name="WeeklyDetail_LegendText" xml:space="preserve">
+    <value>✔ = Antrenman yapılan gün</value>
+  </data>
+  <data name="WeeklyDetail_HowItWorksTitle" xml:space="preserve">
+    <value>HAFTALIK ANTRENMAN SAYISI NASIL ÇALIŞIR?</value>
+  </data>
+  <data name="WeeklyDetail_HowItWorksMessage" xml:space="preserve">
+    <value>Haftada kaç farklı gün antrenman yaptığını gösterir. Bir günde birden fazla antrenman kaydetsen bile o gün tek sayılır.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation0" xml:space="preserve">
+    <value>Bu hafta henüz hiç antrenman kaydı yok. Hadi başla, haftayı kurtarabiliriz! 💪</value>
+  </data>
+  <data name="WeeklyDetail_Motivation1" xml:space="preserve">
+    <value>Bu hafta 1 gün antrenman yaptın. Güzel bir başlangıç, devam et!</value>
+  </data>
+  <data name="WeeklyDetail_Motivation2" xml:space="preserve">
+    <value>Bu hafta 2 gün aktifsin. Haftaya 3+ güne ulaşmayı hedefle.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation3" xml:space="preserve">
+    <value>Bu hafta 3 gün antrenman! Harika bir denge kuruyorsun.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation4" xml:space="preserve">
+    <value>Bu hafta 4 gün! Vücudun sana teşekkür ediyor.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation5" xml:space="preserve">
+    <value>Bu hafta 5 gün! Ciddi bir kararlılık bu.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation6" xml:space="preserve">
+    <value>Bu hafta 6 gün! Neredeyse mükemmel bir hafta.</value>
+  </data>
+  <data name="WeeklyDetail_Motivation7Plus" xml:space="preserve">
+    <value>Bu hafta her gün antrenman yaptın! Olağanüstü bir hafta! 🏆</value>
+  </data>
+  <data name="WorkoutList_Title" xml:space="preserve">
+    <value>Antrenman Günlüğü</value>
+  </data>
+  <data name="WorkoutList_TodayButton" xml:space="preserve">
+    <value>Bugün</value>
+  </data>
+  <data name="WorkoutList_LoadPageErrorFormat" xml:space="preserve">
+    <value>Sayfa yuklenirken bir hata meydana geldi: {0}</value>
+  </data>
+  <data name="WorkoutList_LoadWorkoutsErrorFormat" xml:space="preserve">
+    <value>Antrenmanlar yuklenirken bir hata meydana geldi: {0}</value>
+  </data>
+  <data name="WorkoutDetail_DurationFormat" xml:space="preserve">
+    <value>⏱ {0} dk</value>
+  </data>
+  <data name="WorkoutDetail_ExercisesTitle" xml:space="preserve">
+    <value>Egzersizler</value>
+  </data>
+  <data name="WorkoutDetail_EmptyMessage" xml:space="preserve">
+    <value>Henüz egzersiz eklenmedi.</value>
+  </data>
+  <data name="WorkoutDetail_IntensityFormat" xml:space="preserve">
+    <value>Yoğunluk: {0}</value>
+  </data>
+  <data name="WorkoutDetail_NotesFormat" xml:space="preserve">
+    <value>Notlar: {0}</value>
+  </data>
+  <data name="WorkoutDetail_AddSetButton" xml:space="preserve">
+    <value> + Set Ekle</value>
+  </data>
+  <data name="Workout_NameEmptyError" xml:space="preserve">
+    <value>Antrenman adı boş olamaz.</value>
+  </data>
+  <data name="Workout_DateRequiredError" xml:space="preserve">
+    <value>Tarih seçilmelidir.</value>
+  </data>
+  <data name="Workout_DurationInvalidError" xml:space="preserve">
+    <value>Süre 0'dan büyük bir sayı olmalıdır.</value>
+  </data>
+  <data name="Workout_LocationRequiredError" xml:space="preserve">
+    <value>Yer seçilmelidir.</value>
+  </data>
+  <data name="ExerciseDetail_RepsEmptyError" xml:space="preserve">
+    <value>Tekrar sayısı boş olamaz.</value>
+  </data>
+  <data name="WorkoutList_Yesterday" xml:space="preserve">
+    <value>Dün</value>
+  </data>
+  <data name="WorkoutList_Tomorrow" xml:space="preserve">
+    <value>Yarın</value>
+  </data>
+  <data name="WorkoutList_RenameTitle" xml:space="preserve">
+    <value>Antrenman Adı</value>
+  </data>
+  <data name="WorkoutList_RenameMessage" xml:space="preserve">
+    <value>Antrenman adını düzenle</value>
+  </data>
+  <data name="WorkoutList_RenamePlaceholder" xml:space="preserve">
+    <value>Antrenman adı</value>
+  </data>
+  <data name="WorkoutList_DeleteExerciseErrorFormat" xml:space="preserve">
+    <value>Egzersiz silinemedi: {0}</value>
+  </data>
+  <data name="WorkoutList_UpdateNameErrorFormat" xml:space="preserve">
+    <value>Antrenman adi guncellenemedi: {0}</value>
+  </data>
+</root>

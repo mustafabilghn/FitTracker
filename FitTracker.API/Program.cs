@@ -10,10 +10,12 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System;
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -88,6 +90,21 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddValidatorsFromAssemblyContaining<WorkoutRequestDtoValidator>();
 
+builder.Services.AddLocalization();
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    // Hem tam ("tr-TR"/"en-US") hem kısa ("tr"/"en") kültür kodları desteklenir; istemci
+    // hangisini gönderirse göndersin eşleşsin diye ikisi de listede.
+    var supportedCultures = new[]
+    {
+        new CultureInfo("tr-TR"), new CultureInfo("tr"),
+        new CultureInfo("en-US"), new CultureInfo("en")
+    };
+    options.DefaultRequestCulture = new RequestCulture("tr-TR");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -144,6 +161,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseRequestLocalization();
 
 app.UseAuthentication();
 app.UseAuthorization();

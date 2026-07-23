@@ -3,10 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:FitTrackr.MAUI.Models.DTO"
              xmlns:vm="clr-namespace:FitTrackr.MAUI.ViewModels"
+             xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
              x:Class="FitTrackr.MAUI.Pages.ExerciseSelectionPage"
              x:DataType="vm:ExerciseSelectionViewModel"
              BackgroundColor="#121212"
-             Title="Egzersiz Seç">
+             Title="{loc:Translate Key=ExerciseSelection_Title}">
 
     <ContentPage.Resources>
         <Style x:Key="FilterChipBorderStyle" TargetType="Border">
@@ -48,7 +49,7 @@
 
                     <Picker Opacity="0.01"
                             BackgroundColor="Transparent"
-                            Title="Bölge"
+                            Title="{loc:Translate Key=ExerciseSelection_BodyPart}"
                             ItemsSource="{Binding BodyPartOptions}"
                             SelectedItem="{Binding SelectedBodyPart}"
                             HorizontalOptions="Fill"
@@ -71,7 +72,7 @@
 
                     <Picker Opacity="0.01"
                             BackgroundColor="Transparent"
-                            Title="Ekipman"
+                            Title="{loc:Translate Key=ExerciseSelection_Equipment}"
                             ItemsSource="{Binding EquipmentOptions}"
                             SelectedItem="{Binding SelectedEquipment}"
                             HorizontalOptions="Fill"
@@ -94,7 +95,7 @@
 
                     <Picker Opacity="0.01"
                             BackgroundColor="Transparent"
-                            Title="Seviye"
+                            Title="{loc:Translate Key=ExerciseSelection_Level}"
                             ItemsSource="{Binding LevelOptions}"
                             SelectedItem="{Binding SelectedLevel}"
                             HorizontalOptions="Fill"
@@ -110,7 +111,7 @@
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 14"
                 Padding="12,4">
-            <SearchBar Placeholder="Egzersiz ara"
+            <SearchBar Placeholder="{loc:Translate Key=ExerciseSelection_SearchPlaceholder}"
                        PlaceholderColor="#8F8F8F"
                        BackgroundColor="Transparent"
                        TextColor="White"
@@ -128,7 +129,7 @@
             </CollectionView.ItemsLayout>
 
             <CollectionView.EmptyView>
-                <Label Text="Aramanıza uygun egzersiz bulunamadı"
+                <Label Text="{loc:Translate Key=ExerciseSelection_EmptyResults}"
                        TextColor="#B9B9B9"
                        FontSize="14"
                        HorizontalOptions="Center"

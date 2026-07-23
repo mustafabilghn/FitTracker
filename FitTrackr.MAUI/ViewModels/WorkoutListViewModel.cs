@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Messages;
 using FitTrackr.MAUI.Models.DTO;
 using FitTrackr.MAUI.Services;
@@ -45,7 +46,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
         }
 
-        private static readonly CultureInfo TurkishCulture = new("tr-TR");
+        private static CultureInfo DisplayCulture => LocalizationResourceManager.Instance.CurrentCulture;
 
         public string SelectedDateDisplay
         {
@@ -55,15 +56,15 @@ namespace FitTrackr.MAUI.ViewModels
                 var selected = SelectedDate.Date;
 
                 if (selected == today)
-                    return "Bugün";
+                    return LocalizationResourceManager.Instance["WorkoutList_TodayButton"];
 
                 if (selected == today.AddDays(-1))
-                    return "Dün";
+                    return LocalizationResourceManager.Instance["WorkoutList_Yesterday"];
 
                 if (selected == today.AddDays(1))
-                    return "Yarın";
+                    return LocalizationResourceManager.Instance["WorkoutList_Tomorrow"];
 
-                return selected.ToString("dd MMMM dddd", TurkishCulture);
+                return selected.ToString("dd MMMM dddd", DisplayCulture);
             }
         }
 
@@ -237,11 +238,11 @@ namespace FitTrackr.MAUI.ViewModels
                 : card.WorkoutName;
 
             var newName = await Shell.Current.DisplayPromptAsync(
-                "Antrenman Adı",
-                "Antrenman adını düzenle",
-                accept: "Kaydet",
-                cancel: "İptal",
-                placeholder: "Antrenman adı",
+                LocalizationResourceManager.Instance["WorkoutList_RenameTitle"],
+                LocalizationResourceManager.Instance["WorkoutList_RenameMessage"],
+                accept: LocalizationResourceManager.Instance["Common_Save"],
+                cancel: LocalizationResourceManager.Instance["Common_Cancel"],
+                placeholder: LocalizationResourceManager.Instance["WorkoutList_RenamePlaceholder"],
                 maxLength: 20,
                 keyboard: Keyboard.Text,
                 initialValue: currentName);
@@ -300,7 +301,7 @@ namespace FitTrackr.MAUI.ViewModels
                 // Rollback: API başarısız oldu, kartı yenile
                 await RefreshDailyWorkoutCardAsync();
                 _ = RefreshWeekWorkoutIndicatorsAsync();
-                await Shell.Current.DisplayAlert("Hata", $"Egzersiz silinemedi: {ex.Message}", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["WorkoutList_DeleteExerciseErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
         }
 
@@ -349,7 +350,7 @@ namespace FitTrackr.MAUI.ViewModels
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Hata", $"Antrenman adi guncellenemedi: {ex.Message}", "Tamam");
+                await Shell.Current.DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], string.Format(LocalizationResourceManager.Instance["WorkoutList_UpdateNameErrorFormat"], ex.Message), LocalizationResourceManager.Instance["Common_OK"]);
             }
         }
 
@@ -382,7 +383,7 @@ namespace FitTrackr.MAUI.ViewModels
         private void BuildWeekStrip()
         {
             var weekStart = GetWeekStart(SelectedDate);
-            var culture = new CultureInfo("tr-TR");
+            var culture = DisplayCulture;
 
             WeekDays.Clear();
 

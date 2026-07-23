@@ -1,3 +1,4 @@
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Services;
 
 namespace FitTrackr.MAUI.Pages;
@@ -25,7 +26,7 @@ public partial class ForgotPasswordPage : ContentPage
 
         if (string.IsNullOrWhiteSpace(email))
         {
-            await DisplayAlert("Uyarı", "Lütfen e-posta adresini gir.", "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Warning"], LocalizationResourceManager.Instance["ForgotPassword_EmailRequiredError"], LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
@@ -39,13 +40,12 @@ public partial class ForgotPasswordPage : ContentPage
 
             if (!success)
             {
-                await DisplayAlert("Hata", "İstek gönderilemedi. İnternet bağlantını kontrol et.", "Tamam");
+                await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], LocalizationResourceManager.Instance["ForgotPassword_RequestFailedError"], LocalizationResourceManager.Instance["Common_OK"]);
                 return;
             }
 
-            // Başarılı — adım 2'ye geç
             _email = email;
-            Step2HintLabel.Text = $"'{email}' adresine 6 haneli\nbir kod gönderdik. E-postanı kontrol et.";
+            Step2HintLabel.Text = string.Format(LocalizationResourceManager.Instance["ForgotPassword_CodeSentFormat"], email);
             StepOneLayout.IsVisible = false;
             StepTwoLayout.IsVisible = true;
         }
@@ -66,19 +66,19 @@ public partial class ForgotPasswordPage : ContentPage
 
         if (string.IsNullOrWhiteSpace(code))
         {
-            await DisplayAlert("Uyarı", "Sıfırlama kodunu gir.", "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Warning"], LocalizationResourceManager.Instance["ForgotPassword_CodeRequiredError"], LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
         if (newPassword.Length < 6)
         {
-            await DisplayAlert("Uyarı", "Şifre en az 6 karakter olmalıdır.", "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Warning"], LocalizationResourceManager.Instance["ForgotPassword_PasswordLengthError"], LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
         if (newPassword != confirm)
         {
-            await DisplayAlert("Uyarı", "Şifreler eşleşmiyor.", "Tamam");
+            await DisplayAlert(LocalizationResourceManager.Instance["Common_Warning"], LocalizationResourceManager.Instance["ForgotPassword_PasswordsMismatchError"], LocalizationResourceManager.Instance["Common_OK"]);
             return;
         }
 
@@ -92,15 +92,15 @@ public partial class ForgotPasswordPage : ContentPage
 
             if (success)
             {
-                await DisplayAlert("Başarılı", "Şifren başarıyla sıfırlandı. Yeni şifrenle giriş yapabilirsin.", "Tamam");
+                await DisplayAlert(LocalizationResourceManager.Instance["ForgotPassword_SuccessTitle"], LocalizationResourceManager.Instance["ForgotPassword_SuccessMessage"], LocalizationResourceManager.Instance["Common_OK"]);
                 await Navigation.PopAsync();
             }
             else
             {
                 var message = string.IsNullOrWhiteSpace(error)
-                    ? "Kod hatalı veya süresi dolmuş. Tekrar dene."
+                    ? LocalizationResourceManager.Instance["ForgotPassword_CodeInvalidError"]
                     : error;
-                await DisplayAlert("Hata", message, "Tamam");
+                await DisplayAlert(LocalizationResourceManager.Instance["Common_Error"], message, LocalizationResourceManager.Instance["Common_OK"]);
             }
         }
         finally

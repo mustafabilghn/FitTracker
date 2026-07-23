@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Net.Http;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FitTrackr.MAUI.Localization;
 using FitTrackr.MAUI.Models;
 using FitTrackr.MAUI.Services;
 
@@ -9,11 +10,6 @@ namespace FitTrackr.MAUI.ViewModels;
 
 public partial class FitBotViewModel : ObservableObject
 {
-    public const string ActionAnalyze = "Antrenmanlarımı analiz et";
-    public const string ActionToday = "Bugün ne çalışayım?";
-    public const string ActionProgram = "Programımı değerlendir";
-    public const string ActionMotivation = "Motivasyon ver";
-
     private readonly WorkoutService _workoutService;
 
     [ObservableProperty]
@@ -27,12 +23,12 @@ public partial class FitBotViewModel : ObservableObject
 
     public ObservableCollection<FitBotChatMessage> Messages { get; } = new();
 
-    public ObservableCollection<string> QuickActions { get; } = new()
+    public ObservableCollection<QuickActionOption> QuickActions { get; } = new()
     {
-        ActionAnalyze,
-        ActionToday,
-        ActionProgram,
-        ActionMotivation
+        new QuickActionOption("analyze", LocalizationResourceManager.Instance["FitBot_ActionAnalyze"]),
+        new QuickActionOption("today", LocalizationResourceManager.Instance["FitBot_ActionToday"]),
+        new QuickActionOption("program", LocalizationResourceManager.Instance["FitBot_ActionProgram"]),
+        new QuickActionOption("motivation", LocalizationResourceManager.Instance["FitBot_ActionMotivation"]),
     };
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
@@ -50,32 +46,20 @@ public partial class FitBotViewModel : ObservableObject
         Messages.Add(new FitBotChatMessage
         {
             IsFromUser = false,
-            Text =
-                "Merhaba, ben FitBot.\n\n"
-                + "Antrenman kayıtlarına bakıp kısa yorumlar ve pratik öneriler sunabilirim.\n\n"
-                + "Hazırsan aşağıdan bir seçenek seçelim veya direkt soru sorabilirsin."
+            Text = LocalizationResourceManager.Instance["FitBot_WelcomeMessage"]
         });
     }
 
     [RelayCommand]
-    private async Task QuickActionAsync(string? label)
+    private async Task QuickActionAsync(QuickActionOption? option)
     {
-        if (string.IsNullOrWhiteSpace(label) || IsLoading)
+        if (option is null || string.IsNullOrWhiteSpace(option.Label) || IsLoading)
             return;
-
-        var actionType = label switch
-        {
-            ActionAnalyze => "analyze",
-            ActionToday => "today",
-            ActionProgram => "program",
-            ActionMotivation => "motivation",
-            _ => "free"
-        };
 
         var history = Messages.TakeLast(10).ToList();
         ErrorMessage = string.Empty;
-        Messages.Add(new FitBotChatMessage { IsFromUser = true, Text = label });
-        await RunChatAsync(label, actionType, history);
+        Messages.Add(new FitBotChatMessage { IsFromUser = true, Text = option.Label });
+        await RunChatAsync(option.Label, option.Key, history);
     }
 
     [RelayCommand]
@@ -112,20 +96,20 @@ public partial class FitBotViewModel : ObservableObject
             if (response.PlateauAlerts?.Count > 0)
             {
                 var exerciseList = string.Join(", ", response.PlateauAlerts);
-                reply = $"⚠️ Plato uyarısı: {exerciseList}\n\n{reply}";
+                reply = $"{string.Format(LocalizationResourceManager.Instance["FitBot_PlateauAlertFormat"], exerciseList)}\n\n{reply}";
             }
 
             AddBotMessage(reply);
         }
         catch (HttpRequestException)
         {
-            const string friendly = "Yanıt alınamadı. Bağlantını kontrol edip tekrar dene.";
+            var friendly = LocalizationResourceManager.Instance["FitBot_ConnectionError"];
             ErrorMessage = friendly;
             AddBotMessage(friendly);
         }
         catch (Exception)
         {
-            const string friendly = "Beklenmeyen bir sorun oluştu. Lütfen daha sonra tekrar dene.";
+            var friendly = LocalizationResourceManager.Instance["FitBot_UnexpectedError"];
             ErrorMessage = friendly;
             AddBotMessage(friendly);
         }
@@ -140,3 +124,5 @@ public partial class FitBotViewModel : ObservableObject
         Messages.Add(new FitBotChatMessage { IsFromUser = false, Text = text });
     }
 }
+
+public sealed record QuickActionOption(string Key, string Label);

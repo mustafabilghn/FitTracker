@@ -3,6 +3,7 @@
     x:Class="FitTrackr.MAUI.Pages.ProgressPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:loc="clr-namespace:FitTrackr.MAUI.Localization"
     x:Name="ThisPage"
     BackgroundColor="#0F0F0F"
     Shell.NavBarIsVisible="False">
@@ -10,7 +11,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20,26,20,28" Spacing="14">
             <Label
-                Text="Raporlar"
+                Text="{loc:Translate Key=Progress_Title}"
                 FontSize="34"
                 FontAttributes="Bold"
                 TextColor="White" />
@@ -56,7 +57,7 @@
                 StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="8">
                     <Label
-                        Text="Egzersiz"
+                        Text="{loc:Translate Key=Progress_ExerciseLabel}"
                         FontSize="12"
                         TextColor="#A9A9A9" />
 
@@ -138,7 +139,7 @@
                     <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="22" HorizontalOptions="Center">
                         <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
                             <Label
-                                Text="Güncel"
+                                Text="{loc:Translate Key=Progress_Current}"
                                 FontSize="12"
                                 TextColor="#A9A9A9" />
                             <HorizontalStackLayout Spacing="6" VerticalOptions="End">
@@ -159,7 +160,7 @@
 
                         <VerticalStackLayout Grid.Column="1" Spacing="6" HorizontalOptions="Center">
                             <Label
-                                Text="Fark"
+                                Text="{loc:Translate Key=Progress_Change}"
                                 FontSize="12"
                                 TextColor="#A9A9A9" />
                             <HorizontalStackLayout Spacing="6" VerticalOptions="End">
@@ -197,13 +198,13 @@
                             <Grid IsVisible="{Binding ShowChartEmptyState}">
                                 <VerticalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
                                     <Label
-                                        Text="Grafik için veri yok"
+                                        Text="{loc:Translate Key=Progress_NoChartDataTitle}"
                                         FontSize="14"
                                         FontAttributes="Bold"
                                         TextColor="White"
                                         HorizontalTextAlignment="Center" />
                                     <Label
-                                        Text="Seçili egzersiz ve dönem için kayıt bulunamadı."
+                                        Text="{loc:Translate Key=Progress_NoChartDataMessage}"
                                         FontSize="12"
                                         TextColor="#9A9A9A"
                                         HorizontalTextAlignment="Center" />
@@ -249,7 +250,7 @@
                 StrokeShape="RoundRectangle 24">
                 <VerticalStackLayout Spacing="12">
                     <Label
-                        Text="Kısa İçgörüler"
+                        Text="{loc:Translate Key=Progress_InsightsTitle}"
                         FontSize="18"
                         FontAttributes="Bold"
                         TextColor="White" />
