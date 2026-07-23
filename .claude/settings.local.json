@@ -36,7 +36,11 @@
       "Bash(python3 -c ' *)",
       "Bash(echo \"exit: $?\")",
       "Bash(git push *)",
-      "Bash(gh run *)"
+      "Bash(gh run *)",
+      "Bash(dotnet --version)",
+      "Bash(dotnet workload *)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(xargs -I{} sh -c 'echo === {} ===; grep -i \"targetSdkVersion\\\\|minSdkVersion\\\\|compileSdkVersion\" {}')"
     ]
   }
 }
