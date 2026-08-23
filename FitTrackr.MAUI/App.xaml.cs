@@ -15,10 +15,20 @@ namespace FitTrackr.MAUI
         {
             InitializeComponent();
 
-            // Kayıtlı dil tercihini oku (yoksa Türkçe varsayılan). ProfilePage'deki dil
-            // seçici bu tercihi Preferences.Set("app_language", "tr"|"en") ile günceller.
-            var savedLanguage = Preferences.Get("app_language", "tr");
-            var appCulture = CultureInfo.GetCultureInfo(savedLanguage == "en" ? "en-US" : "tr-TR");
+            // Kullanıcı ProfilePage'den elle bir dil seçtiyse (Preferences.Set("app_language", "tr"|"en"))
+            // o tercih her zaman önceliklidir. Elle bir seçim yoksa uygulama cihazın sistem diline göre
+            // kendini otomatik ayarlar: cihaz Türkçe ise Türkçe, aksi halde (İngilizce dahil her dil) İngilizce.
+            string languageCode;
+            if (Preferences.ContainsKey("app_language"))
+            {
+                languageCode = Preferences.Get("app_language", "tr");
+            }
+            else
+            {
+                languageCode = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "tr" ? "tr" : "en";
+            }
+
+            var appCulture = CultureInfo.GetCultureInfo(languageCode == "tr" ? "tr-TR" : "en-US");
             CultureInfo.DefaultThreadCurrentCulture = appCulture;
             CultureInfo.CurrentCulture = appCulture;
             LocalizationResourceManager.Instance.SetCulture(appCulture);
