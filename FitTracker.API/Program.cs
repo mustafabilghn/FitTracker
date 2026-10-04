@@ -78,13 +78,12 @@ builder.Services.AddSingleton<IAcsmGuardrailService, AcsmGuardrailService>();
 builder.Services.AddScoped<ISubscriptionService, AlwaysPremiumSubscriptionService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-// IHttpClientFactory'yi GoogleAuthService için kaydet (zaten AiWorkoutCoachService de kullanıyor)
+// IHttpClientFactory'yi GoogleAuthService için kaydet (Groq Semantic Kernel bağlantısı da kullanıyor)
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<PasswordResetService>();
-builder.Services.AddHttpClient<IAiWorkoutCoachService, AiWorkoutCoachService>(client =>
-{
-    client.BaseAddress = new Uri("https://api.groq.com/openai/v1/");
-});
+// FitBot LLM bağlantısı: Semantic Kernel (OpenAI-uyumlu connector) -> Groq
+builder.Services.AddGroqSemanticKernel();
+builder.Services.AddScoped<IAiWorkoutCoachService, AiWorkoutCoachService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
