@@ -15,7 +15,7 @@ namespace FitTrackr.API.Services
     /// </summary>
     public class AcsmGuardrailService : IAcsmGuardrailService
     {
-        private const double MaxProgressionRate = 0.10;
+        // Numerical rule (≤10%) and baseline derivation live in AcsmProgressionRule (shared with plan persistence).
 
         // Matches structured suggestion lines in either language:
         // TR: "ExerciseName: N set × M tekrar @ W kg"  |  EN: "ExerciseName: N sets × M reps @ W kg"
@@ -34,7 +34,7 @@ namespace FitTrackr.API.Services
             if (string.IsNullOrWhiteSpace(llmReply))
                 return new GuardrailResult(llmReply, false, Array.Empty<string>());
 
-            var baseline = BuildBaselineDictionary(context);
+            var baseline = AcsmProgressionRule.BuildBaselines(context);
             if (baseline.Count == 0)
                 return new GuardrailResult(llmReply, false, Array.Empty<string>());
 
@@ -53,8 +53,8 @@ namespace FitTrackr.API.Services
                 if (!TryGetBaseline(exerciseName, baseline, out var baselineKg) || baselineKg <= 0)
                     return match.Value;
 
-                var safeMax = baselineKg * (1 + MaxProgressionRate);
-                if (recommendedKg <= safeMax)
+                var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
+                if (AcsmProgressionRule.IsWithinLimit(recommendedKg, baselineKg))
                     return match.Value;
 
                 var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
@@ -93,7 +93,7 @@ namespace FitTrackr.API.Services
                 if (!TryMatchExercise(line, baseline, out var exerciseName, out var baselineKg) || baselineKg <= 0)
                     continue;
 
-                var safeMax = baselineKg * (1 + MaxProgressionRate);
+                var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
 
                 lines[i] = InlineWeightPattern.Replace(line, weightMatch =>
                 {
@@ -101,7 +101,7 @@ namespace FitTrackr.API.Services
                     if (!double.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out var kg))
                         return weightMatch.Value;
 
-                    if (kg <= safeMax)
+                    if (AcsmProgressionRule.IsWithinLimit(kg, baselineKg))
                         return weightMatch.Value;
 
                     var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
@@ -117,38 +117,6 @@ namespace FitTrackr.API.Services
                 sanitized,
                 intercepted.Count > 0,
                 intercepted.AsReadOnly());
-        }
-
-        // Builds exercise name → most recent max weight dictionary from context.
-        private static Dictionary<string, double> BuildBaselineDictionary(FitBotContextDto context)
-        {
-            var dict = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var trend in context.WeightTrends)
-            {
-                if (string.IsNullOrWhiteSpace(trend.ExerciseName))
-                    continue;
-
-                var recentMax = trend.WeeklyMaxWeights
-                    .Where(w => w.MaxKg > 0)
-                    .OrderBy(w => w.WeeksAgo)
-                    .FirstOrDefault();
-
-                if (recentMax != null)
-                    dict[trend.ExerciseName.Trim()] = recentMax.MaxKg;
-            }
-
-            // Fill in any exercises from recent workouts that are not in WeightTrends
-            foreach (var workout in context.RecentWorkouts)
-            {
-                foreach (var ex in workout.Exercises)
-                {
-                    if (!string.IsNullOrWhiteSpace(ex.ExerciseName) && ex.MaxWeightKg > 0)
-                        dict.TryAdd(ex.ExerciseName.Trim(), ex.MaxWeightKg);
-                }
-            }
-
-            return dict;
         }
 
         private static bool TryGetBaseline(

@@ -86,6 +86,8 @@ builder.Services.AddSingleton<PasswordResetService>();
 builder.Services.AddGroqSemanticKernel();
 // FitBot function calling: request-scoped WorkoutPlugin (kullanıcı server-side belirlenir, modelden alınmaz)
 builder.Services.AddFitBotWorkoutPlugin();
+// FitBot write aksiyonu: SaveWorkoutPlan (doğrulama + egzersiz başına ACSM guardrail + atomik kayıt)
+builder.Services.AddFitBotWorkoutPlanPlugin();
 builder.Services.AddScoped<IAiWorkoutCoachService, AiWorkoutCoachService>();
 
 builder.Services.AddHttpContextAccessor();

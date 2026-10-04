@@ -1,6 +1,7 @@
 using FitTrackr.API.Services;
 using FitTrackr.API.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.SemanticKernel;
 
 namespace FitTrackr.API.Plugins
@@ -26,6 +27,24 @@ namespace FitTrackr.API.Plugins
 
             // Durumsuz (stateless) filter: tool turu sayısını sınırlar (token/rate-limit koruması).
             services.AddSingleton<IAutoFunctionInvocationFilter, ToolRoundLimitFilter>();
+
+            return services;
+        }
+
+        /// <summary>
+        /// FitBot'un write aksiyonu <see cref="WorkoutPlanPlugin"/>'i (SaveWorkoutPlan) okuma plugin'iyle aynı desenle,
+        /// request-scoped olarak ekler. Bağımlılıklar: <see cref="ICurrentUserContext"/>, <see cref="IWorkoutAnalysisService"/>,
+        /// IWorkoutRepository ve mevcut FluentValidation validator'ları (Program.cs'te kayıtlı).
+        /// Tool'lar, okuma tool'larıyla aynı şekilde yalnızca serbest sohbette sunulur (AiWorkoutCoachService gating).
+        /// </summary>
+        public static IServiceCollection AddFitBotWorkoutPlanPlugin(this IServiceCollection services)
+        {
+            services.AddKernel();
+            services.TryAddScoped<ICurrentUserContext, CurrentUserContext>();
+            services.AddScoped<WorkoutPlanValidator>();
+            services.AddScoped<WorkoutPlanPlugin>(); // scoped: mükerrer kayıt koruması request başınadır
+            services.AddTransient<KernelPlugin>(sp =>
+                KernelPluginFactory.CreateFromObject(sp.GetRequiredService<WorkoutPlanPlugin>(), WorkoutPlanPlugin.PluginName));
 
             return services;
         }

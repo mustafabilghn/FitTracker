@@ -23,6 +23,54 @@ namespace FitTrackr.API.Repositories
             return workout;
         }
 
+        public async Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, string intensityLevel, CancellationToken cancellationToken = default)
+        {
+            // Referans veri (seed) doğal anahtarıyla çözülür; uydurma/sabit GUID kullanılmaz.
+            var intensity = await dbContext.Intensities
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Level == intensityLevel, cancellationToken);
+
+            if (intensity is null)
+                return null;
+
+            workout.userId = userId;
+            foreach (var exercise in workout.Exercises ?? Enumerable.Empty<Exercise>())
+                exercise.IntensityId = intensity.Id;
+
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                await dbContext.Workouts.AddAsync(workout, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return workout;
+            }
+            catch
+            {
+                // Transaction dispose edilince geri alınır. Başarısız grafı change tracker'dan da çıkar ki aynı
+                // scope'taki sonraki bir SaveChanges onu tekrar (kısmen) yazmaya çalışmasın.
+                DetachGraph(workout);
+                throw;
+            }
+        }
+
+        private void DetachGraph(Workout workout)
+        {
+            // Önce grafın anlık kopyası alınır: detach sırasında EF Core navigation fixup'ı koleksiyonları değiştirebilir;
+            // canlı koleksiyon üzerinde dolaşmak yarıda kesilip grafın bir kısmını Added bırakırdı.
+            var exercises = (workout.Exercises ?? Enumerable.Empty<Exercise>()).ToList();
+            var graph = new List<object> { workout };
+            graph.AddRange(exercises);
+            graph.AddRange(exercises.SelectMany(e => e.ExerciseSets ?? Enumerable.Empty<ExerciseSet>()).ToList());
+
+            foreach (var entity in graph)
+            {
+                var entry = dbContext.Entry(entity);
+                if (entry.State != EntityState.Detached)
+                    entry.State = EntityState.Detached;
+            }
+        }
+
         public async Task<Workout?> DeleteAsync(Guid id)
         {
             var workout = await dbContext.Workouts
