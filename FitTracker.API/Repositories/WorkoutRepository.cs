@@ -25,19 +25,20 @@ namespace FitTrackr.API.Repositories
             return workout;
         }
 
-        public async Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, string intensityLevel, CancellationToken cancellationToken = default)
+        public async Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, Guid intensityId, CancellationToken cancellationToken = default)
         {
-            // Referans veri (seed) doğal anahtarıyla çözülür; uydurma/sabit GUID kullanılmaz.
-            var intensity = await dbContext.Intensities
+            // Referans kayıt stable ID ile doğrulanır. Level metnine bakılmaz: migration'lı veritabanlarında Level
+            // yerelleştirilmiştir (Orta), model seed'inde değildir (Medium); ID her ikisinde de aynıdır.
+            var intensityExists = await dbContext.Intensities
                 .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.Level == intensityLevel, cancellationToken);
+                .AnyAsync(i => i.Id == intensityId, cancellationToken);
 
-            if (intensity is null)
+            if (!intensityExists)
                 return null;
 
             workout.userId = userId;
             foreach (var exercise in workout.Exercises ?? Enumerable.Empty<Exercise>())
-                exercise.IntensityId = intensity.Id;
+                exercise.IntensityId = intensityId;
 
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             try

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using FitTrackr.API.Data;
 using FitTrackr.API.Models.Domain;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Repositories;
@@ -41,8 +42,9 @@ namespace FitTrackr.API.Plugins
         public const string PluginName = "WorkoutPlan";
         public const string SaveFunctionName = nameof(SaveWorkoutPlan);
 
-        // AI planı yoğunluk bilgisi içermez; seed edilmiş "Medium" seviyesi nötr varsayılandır.
-        public const string DefaultIntensityLevel = "Medium";
+        // AI planı yoğunluk bilgisi içermez; seed edilmiş Medium/Orta seviyesi nötr varsayılandır.
+        // Level metni yerelleştirildiği için stable seed ID'si kullanılır (tek kaynak: IntensitySeedIds).
+        public static readonly Guid DefaultIntensityId = IntensitySeedIds.Medium;
 
         private const int Idle = 0;
         private const int Saving = 1;
@@ -113,10 +115,10 @@ namespace FitTrackr.API.Plugins
 
                 var plan = validation.Plan!;
                 var created = await _workoutRepository.CreateWithExercisesAsync(
-                    ToDomain(plan), userId, DefaultIntensityLevel, cancellationToken);
+                    ToDomain(plan), userId, DefaultIntensityId, cancellationToken);
                 if (created is null)
                 {
-                    _logger.LogError("SaveWorkoutPlan: intensity reference data '{Level}' not found.", DefaultIntensityLevel);
+                    _logger.LogError("SaveWorkoutPlan: intensity reference data {IntensityId} not found.", DefaultIntensityId);
                     return (SaveWorkoutPlanResult.Rejected(SaveWorkoutPlanReasons.SaveFailed), 0, 0, null);
                 }
 

@@ -33,10 +33,10 @@ namespace FitTrackr.API.Repositories
 
         /// <summary>
         /// Workout → Exercise → ExerciseSet grafiğini tek bir transaction içinde, atomik olarak oluşturur.
-        /// Tüm egzersizler seed edilmiş <paramref name="intensityLevel"/> referans kaydına bağlanır; seviye bulunamazsa
-        /// hiçbir şey yazılmaz ve null döner. Hata olursa transaction geri alınır ve graf change tracker'dan çıkarılır.
+        /// Tüm egzersizler <paramref name="intensityId"/> referans kaydına (stable seed ID, bkz. IntensitySeedIds) bağlanır;
+        /// kayıt yoksa hiçbir şey yazılmaz ve null döner. Hata olursa transaction geri alınır ve graf change tracker'dan çıkarılır.
         /// </summary>
-        Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, string intensityLevel, CancellationToken cancellationToken = default);
+        Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, Guid intensityId, CancellationToken cancellationToken = default);
 
         Task<Workout?> UpdateAsync(Guid id, Workout workout);
 

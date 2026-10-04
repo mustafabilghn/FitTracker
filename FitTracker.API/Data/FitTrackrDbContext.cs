@@ -27,17 +27,17 @@ namespace FitTrackr.API.Data
             {
                 new Intensity
                 {
-                    Id = Guid.Parse("04faaf32-4a41-4b4e-888f-9651092caa08"),
+                    Id = IntensitySeedIds.Low,
                     Level = "Low"
                 },
                 new Intensity
                 {
-                    Id = Guid.Parse("153480fc-718b-4610-bd4f-ead66fb24a3d"),
+                    Id = IntensitySeedIds.Medium,
                     Level = "Medium"
                 },
                 new Intensity
                 {
-                    Id = Guid.Parse("7d4ae440-c208-4b50-b252-88730b550d25"),
+                    Id = IntensitySeedIds.High,
                     Level = "High"
                 }
             };
