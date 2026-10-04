@@ -293,9 +293,7 @@ public class WorkoutPlanPersistenceTests
         { "null_sets", "Push", null, "sets_required" },
         { "empty_sets", "Push", null, "sets_required" },
         { "too_many_sets", "Push", null, "too_many_sets" },
-        { "set_number_zero", "Push", null, "invalid_set_numbers" },
-        { "duplicate_set_numbers", "Push", null, "invalid_set_numbers" },
-        { "set_number_gap", "Push", null, "invalid_set_numbers" },
+        { "null_set_entry", "Push", null, "invalid_set" },
         { "zero_reps", "Push", null, "invalid_reps" },
         { "too_many_reps", "Push", null, "invalid_reps" },
         { "negative_weight", "Push", null, "invalid_weight" },
@@ -323,10 +321,10 @@ public class WorkoutPlanPersistenceTests
 
     private static List<WorkoutPlanExerciseDto>? BuildMalformed(string caseName)
     {
-        WorkoutPlanExerciseDto WithSets(params (int n, int reps, double kg)[] sets) => new()
+        WorkoutPlanExerciseDto WithSets(params (int reps, double kg)[] sets) => new()
         {
             ExerciseName = "Bench Press",
-            Sets = sets.Select(s => new WorkoutPlanSetDto { SetNumber = s.n, Reps = s.reps, WeightInKg = s.kg }).ToList()
+            Sets = sets.Select(s => new WorkoutPlanSetDto { Reps = s.reps, WeightInKg = s.kg }).ToList()
         };
 
         return caseName switch
@@ -340,88 +338,177 @@ public class WorkoutPlanPersistenceTests
             "null_sets" => new() { new WorkoutPlanExerciseDto { ExerciseName = "Bench Press", Sets = null } },
             "empty_sets" => new() { new WorkoutPlanExerciseDto { ExerciseName = "Bench Press", Sets = new() } },
             "too_many_sets" => new() { Ex("Bench Press", Enumerable.Repeat(100.0, WorkoutPlanValidator.MaxSetsPerExercise + 1).ToArray()) },
-            "set_number_zero" => new() { WithSets((0, 8, 100)) },
-            "duplicate_set_numbers" => new() { WithSets((1, 8, 100), (1, 8, 100)) },
-            "set_number_gap" => new() { WithSets((1, 8, 100), (3, 8, 100)) },
-            "zero_reps" => new() { WithSets((1, 0, 100)) },
-            "too_many_reps" => new() { WithSets((1, 101, 100)) },
-            "negative_weight" => new() { WithSets((1, 8, -5)) },
-            "absurd_weight" => new() { WithSets((1, 8, 500.01)) },
-            "nan_weight" => new() { WithSets((1, 8, double.NaN)) },
-            "three_decimal_weight" => new() { WithSets((1, 8, 100.005)) },
+            "null_set_entry" => new() { new WorkoutPlanExerciseDto { ExerciseName = "Bench Press", Sets = new() { null! } } },
+            "zero_reps" => new() { WithSets((0, 100)) },
+            "too_many_reps" => new() { WithSets((101, 100)) },
+            "negative_weight" => new() { WithSets((8, -5)) },
+            "absurd_weight" => new() { WithSets((8, 500.01)) },
+            "nan_weight" => new() { WithSets((8, double.NaN)) },
+            "three_decimal_weight" => new() { WithSets((8, 100.005)) },
             _ => new() { Ex("Bench Press", 100) } // geçerli egzersiz; hata workout adı/tarihinde
         };
     }
 
-    // ───────────────────── ORCHESTRATION: model → SaveWorkoutPlan → … → DB → tool result → final ─────────────────────
+    // ───────────────────── ORCHESTRATION (hardened write lifecycle) ─────────────────────
+    // model → SaveWorkoutPlan → validation → guardrail → repository → DB → SERVER-AUTHORITATIVE reply.
+    // Write aksiyonundan sonra LLM'e ikinci kez GİDİLMEZ (429 riski yok, model sonucu çarpıtamaz).
+
+    // Model sözleşmesine uygun plan: setNumber yok. Model kötü niyetli olarak userId eklemeye çalışıyor.
+    private const string PushPlanJson = """
+        {"userId":"user-B","workoutName":"Push","exercises":[
+          {"exerciseName":"Bench Press","userId":"user-B","sets":[{"reps":8,"weightInKg":105},{"reps":8,"weightInKg":105}]},
+          {"exerciseName":"Squat","sets":[{"reps":5,"weightInKg":130}]}]}
+        """;
+
+    private const string UnsafeLegsPlanJson = """
+        {"workoutName":"Legs","exercises":[{"exerciseName":"Squat","sets":[{"reps":5,"weightInKg":150},{"reps":5,"weightInKg":140}]}]}
+        """;
 
     [Fact]
-    public async Task Orchestration_ModelCallsSaveWorkoutPlan_PlanIsValidatedAndPersisted_ResultGoesBackToModel()
+    public async Task Hardening1_SuccessfulSave_NeverCallsTheLlmASecondTime_EvenIfACompletionIsAvailable()
     {
         using var h = Harness.Create();
-        // Model kötü niyetli olarak üst seviyede ve egzersiz içinde userId eklemeye çalışır.
-        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", $$"""
-            {"userId":"{{UserB}}","workoutName":"Push","exercises":[
-              {"exerciseName":"Bench Press","userId":"{{UserB}}","sets":[{"setNumber":1,"reps":8,"weightInKg":105},{"setNumber":2,"reps":8,"weightInKg":105}]},
-              {"exerciseName":"Squat","sets":[{"setNumber":1,"reps":5,"weightInKg":130}]}]}
-            """);
-        h.Handler.EnqueueReply("Push antrenmanını kaydettim.");
+        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", PushPlanJson);
+        h.Handler.EnqueueReply("LLM-FINAL: kaydettim!"); // ikinci completion hazır; kullanılmamalı
 
         var response = await h.ChatAsync(UserA, "Bana bir push antrenmanı oluştur ve kaydet.");
 
-        Assert.Equal("Push antrenmanını kaydettim.", response.Reply);
-        Assert.Equal(2, h.Handler.Requests.Count);
-
-        // Tool sonucu modele geri döndü ve kompakt.
-        var toolMessage = Json(h.Handler.Requests[1]).GetProperty("messages").EnumerateArray().Last();
-        Assert.Equal("tool", toolMessage.GetProperty("role").GetString());
-        using var toolResult = JsonDocument.Parse(toolMessage.GetProperty("content").GetString()!);
-        Assert.True(toolResult.RootElement.GetProperty("success").GetBoolean());
-        var workoutId = Guid.Parse(toolResult.RootElement.GetProperty("workoutId").GetString()!);
-
-        // DB: yalnızca A adına, tam graf.
-        var saved = await h.LoadWorkoutAsync(workoutId);
-        Assert.Equal(UserA, saved.userId);
-        Assert.Equal(3, saved.Exercises.Sum(e => e.ExerciseSets.Count));
-        Assert.Equal(0, await h.NewWorkoutsForAsync(UserB));
-        Assert.Equal((1, 2, 3), await h.NewRowsAsync());
+        Assert.Single(h.Handler.Requests);              // yalnızca 1 LLM çağrısı
+        Assert.Equal(1, h.Handler.PendingResponses);    // hazırdaki ikinci completion hiç tüketilmedi
+        Assert.DoesNotContain("LLM-FINAL", response.Reply);
     }
 
     [Fact]
-    public async Task Orchestration_UnsafePlan_IsRejectedWithCompactReason_AndDbUnchanged()
+    public async Task Hardening2_GuardrailRejection_NeverCallsTheLlmForTheFinalAnswer()
     {
         using var h = Harness.Create();
-        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", """
-            {"workoutName":"Legs","exercises":[{"exerciseName":"Squat","sets":[{"setNumber":1,"reps":5,"weightInKg":150}]}]}
-            """);
-        h.Handler.EnqueueReply("Bu plan güvenli değil, Squat için en fazla 132 kg öneririm.");
+        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", UnsafeLegsPlanJson);
+        h.Handler.EnqueueReply("Planını kaydettim!"); // modelin yalan başarı beyanı: asla kullanıcıya ulaşmamalı
 
         var response = await h.ChatAsync(UserA, "Bana bacak antrenmanı oluştur ve kaydet.");
 
-        Assert.Equal("Bu plan güvenli değil, Squat için en fazla 132 kg öneririm.", response.Reply);
-        var content = Json(h.Handler.Requests[1]).GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString()!;
-        using var toolResult = JsonDocument.Parse(content);
-        Assert.False(toolResult.RootElement.GetProperty("success").GetBoolean());
-        Assert.Equal("guardrail_violation", toolResult.RootElement.GetProperty("reason").GetString());
-        Assert.Equal("Squat", toolResult.RootElement.GetProperty("exercise").GetString());
-        Assert.False(toolResult.RootElement.TryGetProperty("workoutId", out _));
+        Assert.Single(h.Handler.Requests);
+        Assert.Equal(1, h.Handler.PendingResponses);
+        Assert.DoesNotContain("kaydettim", response.Reply);
+        Assert.True(response.GuardrailTriggered); // success=false semantiği DTO'da korunur
+    }
+
+    [Fact]
+    public async Task Hardening3_SuccessfulPersistence_ProducesDeterministicSuccessReply()
+    {
+        using var h = Harness.Create();
+        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", PushPlanJson);
+
+        var response = await h.ChatAsync(UserA, "Bana bir push antrenmanı oluştur ve kaydet.");
+
+        Assert.Equal("\"Push\" antrenman planın başarıyla kaydedildi (2 egzersiz, 3 set).", response.Reply);
+        Assert.False(response.GuardrailTriggered);
+        Assert.Empty(response.InterceptedProgressions);
+        Assert.Single(h.Handler.Requests);
+
+        // DB: 1 workout grafı, yalnızca current user (A) adına; modelin userId denemesi etkisiz.
+        Assert.Equal((1, 2, 3), await h.NewRowsAsync());
+        Assert.Equal(1, await h.NewWorkoutsForAsync(UserA));
+        Assert.Equal(0, await h.NewWorkoutsForAsync(UserB));
+    }
+
+    [Fact]
+    public async Task Hardening4_GuardrailRejection_DbUnchanged_DeterministicRejection_NoFalseSuccess()
+    {
+        using var h = Harness.Create();
+        h.Handler.EnqueueToolCall("call_save", "WorkoutPlan-SaveWorkoutPlan", UnsafeLegsPlanJson);
+        h.Handler.EnqueueReply("Squat planın 150 kg ile kaydedildi."); // yanlış başarı beyanı hazır
+
+        var response = await h.ChatAsync(UserA, "Bana bacak antrenmanı oluştur ve kaydet.");
+
+        Assert.Equal("Plan kaydedilmedi. Squat için önerilen ağırlık güvenli ilerleme sınırını (132.0 kg) aşıyor.", response.Reply);
+        Assert.True(response.GuardrailTriggered);
+        Assert.Equal(new[] { "Squat: 150.0 kg > 132.0 kg (ACSM ≤10% rule, plan not saved)" }, response.InterceptedProgressions.ToArray());
+        Assert.Equal((0, 0, 0), await h.NewRowsAsync());
+        Assert.Single(h.Handler.Requests);
+    }
+
+    [Fact]
+    public async Task Hardening_DeterministicReplies_AreLocalized_English()
+    {
+        using (var ok = Harness.Create())
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+            ok.Handler.EnqueueToolCall("c", "WorkoutPlan-SaveWorkoutPlan", PushPlanJson);
+            var saved = await ok.ChatAsync(UserA, "Create a push workout and save it.");
+            Assert.Equal("Your \"Push\" workout plan was saved successfully (2 exercises, 3 sets).", saved.Reply);
+        }
+
+        using (var bad = Harness.Create())
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+            bad.Handler.EnqueueToolCall("c", "WorkoutPlan-SaveWorkoutPlan", UnsafeLegsPlanJson);
+            var rejected = await bad.ChatAsync(UserA, "Create a leg workout and save it.");
+            Assert.Equal("The plan was not saved. The weight suggested for Squat exceeds the safe progression limit (132.0 kg).", rejected.Reply);
+        }
+    }
+
+    [Fact]
+    public async Task Hardening_InvalidPlan_GetsDeterministicReply_WithoutSecondLlmCall()
+    {
+        using var h = Harness.Create();
+        h.Handler.EnqueueToolCall("c", "WorkoutPlan-SaveWorkoutPlan", """{"workoutName":"Push","exercises":[]}""");
+        h.Handler.EnqueueReply("Kaydettim.");
+
+        var response = await h.ChatAsync(UserA, "kaydet");
+
+        Assert.Equal("Antrenman planındaki bilgiler geçersiz olduğu için kaydedilmedi.", response.Reply);
+        Assert.Single(h.Handler.Requests);
         Assert.Equal((0, 0, 0), await h.NewRowsAsync());
     }
 
     [Fact]
-    public async Task Orchestration_ModelCallsSaveTwiceInOneRequest_SecondIsRejected_SinglePlanPersisted()
+    public async Task Hardening_SetNumbers_AreAssignedByServer_ModelSuppliedNumbersAreIgnored_StringRepsAccepted()
     {
         using var h = Harness.Create();
-        const string plan = """{"workoutName":"Push","exercises":[{"exerciseName":"Bench Press","sets":[{"setNumber":1,"reps":8,"weightInKg":105}]}]}""";
-        h.Handler.EnqueueToolCall("c1", "WorkoutPlan-SaveWorkoutPlan", plan);
-        h.Handler.EnqueueToolCall("c2", "WorkoutPlan-SaveWorkoutPlan", plan);
+        // Eski sözleşmedeki gibi (bozuk) setNumber'lar ve string reps: setNumber güvenilen bir kaynak değil.
+        h.Handler.EnqueueToolCall("c", "WorkoutPlan-SaveWorkoutPlan", """
+            {"workoutName":"Push","exercises":[{"exerciseName":"Bench Press","sets":[
+              {"setNumber":7,"reps":"8","weightInKg":100},{"setNumber":7,"reps":"6","weightInKg":102.5},{"setNumber":0,"reps":5,"weightInKg":105}]}]}
+            """);
+
+        var response = await h.ChatAsync(UserA, "kaydet");
+
+        Assert.StartsWith("\"Push\" antrenman planın başarıyla kaydedildi", response.Reply);
+        var saved = await h.LoadWorkoutAsync(await h.LatestNewWorkoutIdAsync());
+        var sets = saved.Exercises.Single().ExerciseSets.OrderBy(s => s.SetNumber).ToList();
+        Assert.Equal(new[] { 1, 2, 3 }, sets.Select(s => s.SetNumber).ToArray());          // sunucu: index + 1
+        Assert.Equal(new[] { "8", "6", "5" }, sets.Select(s => s.Reps).ToArray());            // modelin sırası korunur
+        Assert.Equal(new[] { 100, 102.5, 105 }, sets.Select(s => s.WeightInKg).ToArray());
+    }
+
+    [Fact]
+    public async Task Hardening_TwoSaveCallsInOneModelResponse_OnlyOnePlanIsPersisted_SingleLlmCall()
+    {
+        using var h = Harness.Create();
+        const string plan = """{"workoutName":"Push","exercises":[{"exerciseName":"Bench Press","sets":[{"reps":8,"weightInKg":105}]}]}""";
+        h.Handler.EnqueueToolCalls(("c1", "WorkoutPlan-SaveWorkoutPlan", plan), ("c2", "WorkoutPlan-SaveWorkoutPlan", plan));
         h.Handler.EnqueueReply("Kaydedildi.");
 
-        await h.ChatAsync(UserA, "kaydet");
+        var response = await h.ChatAsync(UserA, "kaydet");
 
-        var lastTool = Json(h.Handler.Requests[2]).GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString()!;
-        Assert.Contains("duplicate_save", lastTool);
         Assert.Equal((1, 1, 1), await h.NewRowsAsync());
+        Assert.Single(h.Handler.Requests);
+        Assert.StartsWith("\"Push\" antrenman planın başarıyla kaydedildi", response.Reply);
+    }
+
+    [Fact]
+    public async Task Hardening_ReadTools_KeepTheirLlmToolLlmFlow_WhenWritePluginIsRegistered()
+    {
+        using var h = Harness.Create();
+        h.Handler.EnqueueToolCall("r1", "Workout-GetWeightTrends", "{}");
+        h.Handler.EnqueueReply("Bench Press'te 95 kg'dan 100 kg'a çıktın.");
+
+        var response = await h.ChatAsync(UserA, "Bench trendim?");
+
+        Assert.Equal(2, h.Handler.Requests.Count); // okuma tool'u: sonuç LLM'e geri döner
+        Assert.Equal("Bench Press'te 95 kg'dan 100 kg'a çıktın.", response.Reply);
+        Assert.Equal((0, 0, 0), await h.NewRowsAsync());
     }
 
     [Fact]
@@ -456,7 +543,7 @@ public class WorkoutPlanPersistenceTests
         }
         using (var schemaDoc = JsonDocument.Parse(schema)) Collect(schemaDoc.RootElement);
         Assert.Equal(
-            new[] { "exerciseName", "exercises", "reps", "setNumber", "sets", "weightInKg", "workoutDate", "workoutName" },
+            new[] { "exerciseName", "exercises", "reps", "sets", "weightInKg", "workoutDate", "workoutName" }, // setNumber yok
             propertyNames.Distinct().OrderBy(n => n, StringComparer.Ordinal).ToArray());
         Assert.True(schema.Length < 1500, $"SaveWorkoutPlan tool schema is {schema.Length} chars; keep it compact (token budget).");
 
@@ -465,10 +552,11 @@ public class WorkoutPlanPersistenceTests
 
     // ───────────────────── Helpers ─────────────────────
 
+    // Model sözleşmesindeki gibi: set numarası YOK, sunucu 1..N atar.
     private static WorkoutPlanExerciseDto Ex(string name, params double[] weights) => new()
     {
         ExerciseName = name,
-        Sets = weights.Select((w, i) => new WorkoutPlanSetDto { SetNumber = i + 1, Reps = 8, WeightInKg = w }).ToList()
+        Sets = weights.Select(w => new WorkoutPlanSetDto { Reps = 8, WeightInKg = w }).ToList()
     };
 
     private static JsonElement Json(CapturedRequest request)
@@ -483,14 +571,17 @@ public class WorkoutPlanPersistenceTests
     {
         private readonly Queue<string> _responses = new();
         public List<CapturedRequest> Requests { get; } = new();
+        public int PendingResponses => _responses.Count;
 
         public void EnqueueReply(string content) => _responses.Enqueue(Completion(new { role = "assistant", content }, "stop"));
 
-        public void EnqueueToolCall(string id, string name, string argumentsJson) => _responses.Enqueue(Completion(new
+        public void EnqueueToolCall(string id, string name, string argumentsJson) => EnqueueToolCalls((id, name, argumentsJson));
+
+        public void EnqueueToolCalls(params (string Id, string Name, string ArgumentsJson)[] calls) => _responses.Enqueue(Completion(new
         {
             role = "assistant",
             content = (string?)null,
-            tool_calls = new[] { new { id, type = "function", function = new { name, arguments = argumentsJson } } }
+            tool_calls = calls.Select(c => new { id = c.Id, type = "function", function = new { name = c.Name, arguments = c.ArgumentsJson } }).ToArray()
         }, "tool_calls"));
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -672,6 +763,13 @@ public class WorkoutPlanPersistenceTests
             using var scope = Provider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<FitTrackrDbContext>();
             return await db.Workouts.CountAsync(w => w.userId == userId && w.WorkoutName != "Seed");
+        }
+
+        public async Task<Guid> LatestNewWorkoutIdAsync()
+        {
+            using var scope = Provider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<FitTrackrDbContext>();
+            return (await db.Workouts.AsNoTracking().Where(w => w.WorkoutName != "Seed").SingleAsync()).Id;
         }
 
         public async Task<Workout> LoadWorkoutAsync(Guid id)

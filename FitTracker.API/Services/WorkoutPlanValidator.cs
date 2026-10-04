@@ -90,10 +90,12 @@ namespace FitTrackr.API.Services
                 if (setError is not null)
                     return WorkoutPlanValidationResult.Invalid(setError, exerciseName);
 
+                // Set numaraları sunucu tarafından, modelin verdiği sıraya göre atanır (1..N). Domain konvansiyonu
+                // (MAUI de setleri 1'den ardışık numaralar) korunur; modelin numaralandırmasına güvenilmez.
                 validated.Add(new ValidatedPlanExercise(
                     exerciseName,
-                    exercise.Sets!.OrderBy(s => s.SetNumber)
-                        .Select(s => new ValidatedPlanSet(s.SetNumber, s.Reps, s.WeightInKg))
+                    exercise.Sets!
+                        .Select((s, index) => new ValidatedPlanSet(index + 1, s.Reps, s.WeightInKg))
                         .ToList()));
             }
 
@@ -103,9 +105,12 @@ namespace FitTrackr.API.Services
                 if (!baselines.TryGetValue(exercise.Name, out var baselineKg) || baselineKg <= 0)
                     continue; // geçmiş yok → ilerleme kuralı uygulanamaz (chat guardrail ile aynı semantik)
 
-                if (exercise.Sets.Any(s => !AcsmProgressionRule.IsWithinLimit(s.WeightInKg, baselineKg)))
+                var unsafeSets = exercise.Sets.Where(s => !AcsmProgressionRule.IsWithinLimit(s.WeightInKg, baselineKg)).ToList();
+                if (unsafeSets.Count > 0)
                     return WorkoutPlanValidationResult.GuardrailViolation(
-                        exercise.Name, Math.Round(AcsmProgressionRule.SafeMaxKg(baselineKg), 2));
+                        exercise.Name,
+                        Math.Round(AcsmProgressionRule.SafeMaxKg(baselineKg), 2),
+                        unsafeSets.Max(s => s.WeightInKg));
             }
 
             return WorkoutPlanValidationResult.Valid(new ValidatedWorkoutPlan(name, date, validated));
@@ -119,11 +124,6 @@ namespace FitTrackr.API.Services
                 return "too_many_sets";
             if (sets.Any(s => s is null))
                 return "invalid_set";
-
-            // Mevcut uygulama konvansiyonu: set numaraları 1'den başlar ve ardışıktır (1..n). Tekrar/boşluk reddedilir.
-            var numbers = sets.Select(s => s.SetNumber).OrderBy(n => n).ToList();
-            if (!numbers.SequenceEqual(Enumerable.Range(1, sets.Count)))
-                return "invalid_set_numbers";
 
             foreach (var set in sets)
             {
@@ -191,12 +191,15 @@ namespace FitTrackr.API.Services
         public string? Exercise { get; private init; }
         public double? LimitKg { get; private init; }
 
+        /// <summary>Guardrail ihlalinde, ihlal eden en yüksek önerilen ağırlık (yalnızca sunucu cevabı için).</summary>
+        public double? RejectedWeightKg { get; private init; }
+
         public static WorkoutPlanValidationResult Valid(ValidatedWorkoutPlan plan) => new() { Plan = plan };
 
         public static WorkoutPlanValidationResult Invalid(string detail, string? exercise = null) =>
             new() { Reason = "invalid_plan", Detail = detail, Exercise = string.IsNullOrEmpty(exercise) ? null : exercise };
 
-        public static WorkoutPlanValidationResult GuardrailViolation(string exercise, double limitKg) =>
-            new() { Reason = "guardrail_violation", Exercise = exercise, LimitKg = limitKg };
+        public static WorkoutPlanValidationResult GuardrailViolation(string exercise, double limitKg, double rejectedWeightKg) =>
+            new() { Reason = "guardrail_violation", Exercise = exercise, LimitKg = limitKg, RejectedWeightKg = rejectedWeightKg };
     }
 }

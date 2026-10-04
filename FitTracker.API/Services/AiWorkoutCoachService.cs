@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FitTrackr.API.Models.DTO;
+using FitTrackr.API.Plugins;
 using FitTrackr.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -28,6 +29,7 @@ namespace FitTrackr.API.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AiWorkoutCoachService> _logger;
         private readonly ICurrentUserContext? _currentUser;
+        private readonly WorkoutPlanSaveOutcome? _saveOutcome;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
 
@@ -57,9 +59,11 @@ namespace FitTrackr.API.Services
             IHttpContextAccessor httpContextAccessor,
             ILogger<AiWorkoutCoachService> logger,
             IConfiguration configuration,
-            ICurrentUserContext? currentUser = null)
+            ICurrentUserContext? currentUser = null,
+            WorkoutPlanSaveOutcome? saveOutcome = null)
         {
             _currentUser = currentUser;
+            _saveOutcome = saveOutcome;
             _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
@@ -260,6 +264,14 @@ namespace FitTrackr.API.Services
             }
             groqStopwatch.Stop();
 
+            // WRITE aksiyonu (SaveWorkoutPlan) çalıştıysa uygulama durumu authoritative'dir: cevabı LLM değil sunucu üretir.
+            // LLM'e ikinci kez gidilmez; LLM metnine uygulanan sanitization/metin guardrail'i bu cevaba uygulanmaz.
+            if (_saveOutcome?.Result is { } saveResult)
+            {
+                RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                return BuildSaveResponse(saveResult, _saveOutcome, context);
+            }
+
             var reply = SanitizeForeignWords(rawReply);
             reply = SanitizeOutputPatterns(reply);
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
@@ -294,13 +306,66 @@ namespace FitTrackr.API.Services
 
             // Tool turu limiti dolduysa SK döngüyü sonlandırır ve son tool sonucunu (Tool rolü) döndürür.
             // Bu durumda, tool çağrısına izin vermeden (tool_choice: none) tek bir son istekle cevabı al.
+            // İSTİSNA: Döngüyü write aksiyonu bitirdiyse (WriteActionTerminationFilter) yeni completion YAPILMAZ;
+            // cevabı ChatAsync sunucu sonucundan üretir.
             if (result.Role == AuthorRole.Tool && settings.FunctionChoiceBehavior is not null)
             {
+                if (_saveOutcome?.HasResult == true)
+                    return string.Empty;
+
                 settings.FunctionChoiceBehavior = FunctionChoiceBehavior.None();
                 result = await chatService.GetChatMessageContentAsync(history, settings, _kernel);
             }
 
             return result.Content ?? string.Empty;
+        }
+
+        // SaveWorkoutPlan sonucundan kullanıcıya dönen deterministik cevap. Mevcut DTO alanlarının anlamı korunur:
+        // GuardrailTriggered yalnızca ACSM guardrail'i güvensiz bir ilerlemeyi yakaladığında (burada: planı reddettiğinde) true.
+        private static FitBotChatResponseDto BuildSaveResponse(
+            SaveWorkoutPlanResult result, WorkoutPlanSaveOutcome outcome, FitBotContextDto context)
+        {
+            var guardrailRejected = result.Reason == SaveWorkoutPlanReasons.GuardrailViolation;
+            var intercepted = new List<string>();
+            if (guardrailRejected && outcome.RejectedWeightKg is { } rejectedKg && result.LimitKg is { } limitKg)
+                intercepted.Add($"{result.Exercise}: {rejectedKg.ToString("F1", CultureInfo.InvariantCulture)} kg > " +
+                                $"{limitKg.ToString("F1", CultureInfo.InvariantCulture)} kg (ACSM ≤10% rule, plan not saved)");
+
+            return new FitBotChatResponseDto
+            {
+                Reply = BuildSaveReply(result, outcome),
+                PlateauAlerts = context.PlateauExercises,
+                GuardrailTriggered = guardrailRejected,
+                InterceptedProgressions = intercepted
+            };
+        }
+
+        private static string BuildSaveReply(SaveWorkoutPlanResult result, WorkoutPlanSaveOutcome outcome)
+        {
+            if (result.Success)
+                return IsEnglish
+                    ? $"Your \"{result.WorkoutName}\" workout plan was saved successfully ({outcome.ExerciseCount} exercises, {outcome.SetCount} sets)."
+                    : $"\"{result.WorkoutName}\" antrenman planın başarıyla kaydedildi ({outcome.ExerciseCount} egzersiz, {outcome.SetCount} set).";
+
+            var limit = result.LimitKg?.ToString("F1", CultureInfo.InvariantCulture);
+            return result.Reason switch
+            {
+                SaveWorkoutPlanReasons.GuardrailViolation => IsEnglish
+                    ? $"The plan was not saved. The weight suggested for {result.Exercise} exceeds the safe progression limit ({limit} kg)."
+                    : $"Plan kaydedilmedi. {result.Exercise} için önerilen ağırlık güvenli ilerleme sınırını ({limit} kg) aşıyor.",
+                SaveWorkoutPlanReasons.DuplicateSave => IsEnglish
+                    ? "This workout plan was already saved in this request."
+                    : "Bu antrenman planı bu istek kapsamında zaten kaydedildi.",
+                SaveWorkoutPlanReasons.NoCurrentUser => IsEnglish
+                    ? "The plan could not be saved because the user could not be verified."
+                    : "Kullanıcı doğrulanamadığı için plan kaydedilemedi.",
+                SaveWorkoutPlanReasons.InvalidPlan => IsEnglish
+                    ? "The workout plan was not saved because it contains invalid information."
+                    : "Antrenman planındaki bilgiler geçersiz olduğu için kaydedilmedi.",
+                _ => IsEnglish
+                    ? "The workout plan could not be saved right now. Please try again later."
+                    : "Antrenman planı şu anda kaydedilemedi, lütfen daha sonra tekrar dene."
+            };
         }
 
         // Ölçüm/logging amaçlı: context ve Groq çağrı sürelerini response header'ları ve

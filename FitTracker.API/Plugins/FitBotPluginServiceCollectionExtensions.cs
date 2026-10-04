@@ -42,9 +42,13 @@ namespace FitTrackr.API.Plugins
             services.AddKernel();
             services.TryAddScoped<ICurrentUserContext, CurrentUserContext>();
             services.AddScoped<WorkoutPlanValidator>();
+            services.AddScoped<WorkoutPlanSaveOutcome>(); // request başına authoritative write sonucu
             services.AddScoped<WorkoutPlanPlugin>(); // scoped: mükerrer kayıt koruması request başınadır
             services.AddTransient<KernelPlugin>(sp =>
                 KernelPluginFactory.CreateFromObject(sp.GetRequiredService<WorkoutPlanPlugin>(), WorkoutPlanPlugin.PluginName));
+
+            // Write sonrası LLM'e geri dönülmez: döngü SaveWorkoutPlan'dan sonra biter, cevabı sunucu üretir.
+            services.AddSingleton<IAutoFunctionInvocationFilter, WriteActionTerminationFilter>();
 
             return services;
         }
