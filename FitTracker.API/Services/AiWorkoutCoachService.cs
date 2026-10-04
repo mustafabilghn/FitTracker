@@ -3,31 +3,40 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using FitTrackr.API.Models.DTO;
+using FitTrackr.API.Plugins;
 using FitTrackr.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 namespace FitTrackr.API.Services
 {
     public class AiWorkoutCoachService : IAiWorkoutCoachService
     {
-        private readonly HttpClient _httpClient;
+        private readonly Kernel _kernel;
         private readonly IWorkoutAnalysisService _workoutAnalysisService;
         private readonly IAcsmGuardrailService _guardrailService;
         private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AiWorkoutCoachService> _logger;
+        private readonly ICurrentUserContext? _currentUser;
+        private readonly WorkoutPlanSaveOutcome? _saveOutcome;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
+
+        // Hazır (preset) aksiyonlar sabit, değerlendirilmiş prompt'larla çalışır; function calling yalnızca
+        // serbest sohbette (free / bilinmeyen actionType) açılır ki preset çıktıları değişmesin.
+        private static readonly HashSet<string> PresetActionTypes =
+            new(StringComparer.OrdinalIgnoreCase) { "analyze", "today", "program", "motivation" };
 
         private static readonly TimeSpan ContextCacheDuration = TimeSpan.FromMinutes(1);
         private const string ContextCacheKeyPrefix = "fitbot:ctx:";
@@ -43,22 +52,26 @@ namespace FitTrackr.API.Services
         private static bool IsEnglish => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
 
         public AiWorkoutCoachService(
-            HttpClient httpClient,
+            Kernel kernel,
             IWorkoutAnalysisService workoutAnalysisService,
             IAcsmGuardrailService guardrailService,
             IMemoryCache cache,
             IHttpContextAccessor httpContextAccessor,
             ILogger<AiWorkoutCoachService> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ICurrentUserContext? currentUser = null,
+            WorkoutPlanSaveOutcome? saveOutcome = null)
         {
-            _httpClient = httpClient;
+            _currentUser = currentUser;
+            _saveOutcome = saveOutcome;
+            _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _groqApiKey = configuration["Groq:ApiKey"] ?? string.Empty;
-            _groqModel = configuration["Groq:Model"] ?? "llama-3.1-8b-instant";
+            _groqModel = configuration["Groq:Model"] ?? GroqChatCompletion.DefaultModel;
         }
 
         public async Task<AiWorkoutInsightDto> GetInsightsAsync(string userId)
@@ -134,37 +147,27 @@ namespace FitTrackr.API.Services
                 ? $"Workout analysis data (JSON): {analysisJson}. Analyze this data and produce concise insights following the rules above."
                 : $"Antrenman analiz verisi (JSON): {analysisJson}. Bu veriyi analiz et ve kurallara uyan kısa içgörüler üret.";
 
-            var requestBody = new
+            var history = new ChatHistory();
+            history.AddSystemMessage(systemContent);
+            history.AddUserMessage(userContent);
+
+            var settings = new OpenAIPromptExecutionSettings
             {
-                model = _groqModel,
-                temperature = 0.2,
-                response_format = new { type = "json_object" },
-                messages = new object[]
-                {
-                    new { role = "system", content = systemContent },
-                    new { role = "user", content = userContent }
-                }
+                Temperature = 0.2,
+                ResponseFormat = "json_object"
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
+            string? modelJson;
+            try
             {
-                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-            };
-
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
-
-            var response = await _httpClient.SendAsync(request);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+                modelJson = await CompleteAsync(history, settings);
+            }
+            catch (HttpOperationException ex) when (ex.StatusCode.HasValue)
             {
                 throw new InvalidOperationException(
-                    $"Groq API request failed with status code {response.StatusCode}: {responseContent}");
+                    $"Groq API request failed with status code {ex.StatusCode}: {ex.ResponseContent}", ex);
             }
 
-            var chatResponse = JsonSerializer.Deserialize<GroqChatResponse>(responseContent);
-
-            var modelJson = chatResponse?.Choices?[0]?.Message?.Content;
             if (string.IsNullOrWhiteSpace(modelJson))
             {
                 return new AiWorkoutInsightDto();
@@ -190,6 +193,9 @@ namespace FitTrackr.API.Services
             if (string.IsNullOrWhiteSpace(_groqApiKey))
                 throw new InvalidOperationException(IsEnglish ? "Groq configuration is missing." : "Groq yapılandırması eksik.");
 
+            // Function calling'in kullandığı "current user", kimliği doğrulanmış bu userId'dir; modelden alınmaz.
+            _currentUser?.SetUser(userId);
+
             var cacheKey = $"{ContextCacheKeyPrefix}{userId}";
             var contextStopwatch = Stopwatch.StartNew();
             var contextCacheHit = _cache.TryGetValue(cacheKey, out FitBotContextDto context);
@@ -202,44 +208,44 @@ namespace FitTrackr.API.Services
 
             var systemPrompt = BuildSystemPrompt(request.ActionType, context);
 
-            var messages = new List<object> { new { role = "system", content = systemPrompt } };
+            var chatHistory = new ChatHistory(systemPrompt);
 
             var history = (request.ConversationHistory ?? new List<FitBotConversationMessageDto>())
                 .TakeLast(6);
 
             foreach (var msg in history)
             {
-                var role = string.Equals(msg.Role, "user", StringComparison.OrdinalIgnoreCase) ? "user" : "assistant";
-                messages.Add(new { role, content = msg.Content });
+                if (string.Equals(msg.Role, "user", StringComparison.OrdinalIgnoreCase))
+                    chatHistory.AddUserMessage(msg.Content);
+                else
+                    chatHistory.AddAssistantMessage(msg.Content);
             }
 
-            messages.Add(new { role = "user", content = request.Message });
+            chatHistory.AddUserMessage(request.Message);
 
             var temperature = string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase)
                 ? 0.6
                 : 0.3;
 
-            var requestBody = new
-            {
-                model = _groqModel,
-                temperature,
-                messages = messages.ToArray()
-            };
+            var settings = new OpenAIPromptExecutionSettings { Temperature = temperature };
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
-            {
-                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-            };
-            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
+            // Mevcut context injection AYNEN devam eder; function calling bunun üzerine ek bir yetenektir.
+            // Sıralı (sequential) çağrı: paralel tool call varsayılmaz (gpt-oss paralel çağrıyı desteklemez).
+            // Tool turu sayısı ToolRoundLimitFilter ile sınırlıdır (token/rate-limit koruması).
+            if (ShouldOfferTools(request.ActionType))
+                settings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
 
+            string rawReply;
             var groqStopwatch = Stopwatch.StartNew();
-            var response = await _httpClient.SendAsync(httpRequest);
-            var responseContent = await response.Content.ReadAsStringAsync();
-            groqStopwatch.Stop();
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                rawReply = await CompleteAsync(chatHistory, settings);
+            }
+            catch (HttpOperationException ex) when (ex.StatusCode.HasValue)
+            {
+                groqStopwatch.Stop();
+
+                if (ex.StatusCode == HttpStatusCode.TooManyRequests)
                 {
                     RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
                     return new FitBotChatResponseDto
@@ -253,12 +259,19 @@ namespace FitTrackr.API.Services
 
                 throw new InvalidOperationException(
                     IsEnglish
-                        ? $"Groq API error {response.StatusCode}: {responseContent}"
-                        : $"Groq API hatası {response.StatusCode}: {responseContent}");
+                        ? $"Groq API error {ex.StatusCode}: {ex.ResponseContent}"
+                        : $"Groq API hatası {ex.StatusCode}: {ex.ResponseContent}", ex);
+            }
+            groqStopwatch.Stop();
+
+            // WRITE aksiyonu (SaveWorkoutPlan) çalıştıysa uygulama durumu authoritative'dir: cevabı LLM değil sunucu üretir.
+            // LLM'e ikinci kez gidilmez; LLM metnine uygulanan sanitization/metin guardrail'i bu cevaba uygulanmaz.
+            if (_saveOutcome?.Result is { } saveResult)
+            {
+                RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                return BuildSaveResponse(saveResult, _saveOutcome, context);
             }
 
-            var chatResponse = JsonSerializer.Deserialize<GroqChatResponse>(responseContent);
-            var rawReply = chatResponse?.Choices?[0]?.Message?.Content ?? string.Empty;
             var reply = SanitizeForeignWords(rawReply);
             reply = SanitizeOutputPatterns(reply);
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
@@ -275,6 +288,83 @@ namespace FitTrackr.API.Services
                 PlateauAlerts = context.PlateauExercises,
                 GuardrailTriggered = guardrailResult.Triggered,
                 InterceptedProgressions = guardrailResult.InterceptedProgressions.ToList()
+            };
+        }
+
+        // Tool'lar yalnızca: current-user soyutlaması varsa, Kernel'de plugin kayıtlıysa ve serbest sohbetse sunulur.
+        private bool ShouldOfferTools(string? actionType) =>
+            _currentUser is not null
+            && _kernel.Plugins.Count > 0
+            && !PresetActionTypes.Contains(actionType ?? "free");
+
+        // LLM çağrısının tek çıkış noktası: Semantic Kernel chat completion servisi (Groq, OpenAI-uyumlu endpoint).
+        // Kernel'ı da iletiyoruz ki ileride function calling (plugin'ler) aynı noktadan çalışabilsin.
+        private async Task<string> CompleteAsync(ChatHistory history, OpenAIPromptExecutionSettings settings)
+        {
+            var chatService = _kernel.GetRequiredService<IChatCompletionService>();
+            var result = await chatService.GetChatMessageContentAsync(history, settings, _kernel);
+
+            // Tool turu limiti dolduysa SK döngüyü sonlandırır ve son tool sonucunu (Tool rolü) döndürür.
+            // Bu durumda, tool çağrısına izin vermeden (tool_choice: none) tek bir son istekle cevabı al.
+            // İSTİSNA: Döngüyü write aksiyonu bitirdiyse (WriteActionTerminationFilter) yeni completion YAPILMAZ;
+            // cevabı ChatAsync sunucu sonucundan üretir.
+            if (result.Role == AuthorRole.Tool && settings.FunctionChoiceBehavior is not null)
+            {
+                if (_saveOutcome?.HasResult == true)
+                    return string.Empty;
+
+                settings.FunctionChoiceBehavior = FunctionChoiceBehavior.None();
+                result = await chatService.GetChatMessageContentAsync(history, settings, _kernel);
+            }
+
+            return result.Content ?? string.Empty;
+        }
+
+        // SaveWorkoutPlan sonucundan kullanıcıya dönen deterministik cevap. Mevcut DTO alanlarının anlamı korunur:
+        // GuardrailTriggered yalnızca ACSM guardrail'i güvensiz bir ilerlemeyi yakaladığında (burada: planı reddettiğinde) true.
+        private static FitBotChatResponseDto BuildSaveResponse(
+            SaveWorkoutPlanResult result, WorkoutPlanSaveOutcome outcome, FitBotContextDto context)
+        {
+            var guardrailRejected = result.Reason == SaveWorkoutPlanReasons.GuardrailViolation;
+            var intercepted = new List<string>();
+            if (guardrailRejected && outcome.RejectedWeightKg is { } rejectedKg && result.LimitKg is { } limitKg)
+                intercepted.Add($"{result.Exercise}: {rejectedKg.ToString("F1", CultureInfo.InvariantCulture)} kg > " +
+                                $"{limitKg.ToString("F1", CultureInfo.InvariantCulture)} kg (ACSM ≤10% rule, plan not saved)");
+
+            return new FitBotChatResponseDto
+            {
+                Reply = BuildSaveReply(result, outcome),
+                PlateauAlerts = context.PlateauExercises,
+                GuardrailTriggered = guardrailRejected,
+                InterceptedProgressions = intercepted
+            };
+        }
+
+        private static string BuildSaveReply(SaveWorkoutPlanResult result, WorkoutPlanSaveOutcome outcome)
+        {
+            if (result.Success)
+                return IsEnglish
+                    ? $"Your \"{result.WorkoutName}\" workout plan was saved successfully ({outcome.ExerciseCount} exercises, {outcome.SetCount} sets)."
+                    : $"\"{result.WorkoutName}\" antrenman planın başarıyla kaydedildi ({outcome.ExerciseCount} egzersiz, {outcome.SetCount} set).";
+
+            var limit = result.LimitKg?.ToString("F1", CultureInfo.InvariantCulture);
+            return result.Reason switch
+            {
+                SaveWorkoutPlanReasons.GuardrailViolation => IsEnglish
+                    ? $"The plan was not saved. The weight suggested for {result.Exercise} exceeds the safe progression limit ({limit} kg)."
+                    : $"Plan kaydedilmedi. {result.Exercise} için önerilen ağırlık güvenli ilerleme sınırını ({limit} kg) aşıyor.",
+                SaveWorkoutPlanReasons.DuplicateSave => IsEnglish
+                    ? "This workout plan was already saved in this request."
+                    : "Bu antrenman planı bu istek kapsamında zaten kaydedildi.",
+                SaveWorkoutPlanReasons.NoCurrentUser => IsEnglish
+                    ? "The plan could not be saved because the user could not be verified."
+                    : "Kullanıcı doğrulanamadığı için plan kaydedilemedi.",
+                SaveWorkoutPlanReasons.InvalidPlan => IsEnglish
+                    ? "The workout plan was not saved because it contains invalid information."
+                    : "Antrenman planındaki bilgiler geçersiz olduğu için kaydedilmedi.",
+                _ => IsEnglish
+                    ? "The workout plan could not be saved right now. Please try again later."
+                    : "Antrenman planı şu anda kaydedilemedi, lütfen daha sonra tekrar dene."
             };
         }
 
@@ -895,24 +985,6 @@ namespace FitTrackr.API.Services
 
             result.Add(property.ToString());
             return result;
-        }
-
-        private class GroqChatResponse
-        {
-            [JsonPropertyName("choices")]
-            public List<GroqChoice> Choices { get; set; } = new();
-        }
-
-        private class GroqChoice
-        {
-            [JsonPropertyName("message")]
-            public GroqMessage? Message { get; set; }
-        }
-
-        private class GroqMessage
-        {
-            [JsonPropertyName("content")]
-            public string? Content { get; set; }
         }
     }
 }

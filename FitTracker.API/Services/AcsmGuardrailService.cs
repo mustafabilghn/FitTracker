@@ -15,7 +15,7 @@ namespace FitTrackr.API.Services
     /// </summary>
     public class AcsmGuardrailService : IAcsmGuardrailService
     {
-        private const double MaxProgressionRate = 0.10;
+        // Numerical rule (≤10%) and baseline derivation live in AcsmProgressionRule (shared with plan persistence).
 
         // Matches structured suggestion lines in either language:
         // TR: "ExerciseName: N set × M tekrar @ W kg"  |  EN: "ExerciseName: N sets × M reps @ W kg"
@@ -34,7 +34,7 @@ namespace FitTrackr.API.Services
             if (string.IsNullOrWhiteSpace(llmReply))
                 return new GuardrailResult(llmReply, false, Array.Empty<string>());
 
-            var baseline = BuildBaselineDictionary(context);
+            var baseline = AcsmProgressionRule.BuildBaselines(context);
             if (baseline.Count == 0)
                 return new GuardrailResult(llmReply, false, Array.Empty<string>());
 
@@ -53,8 +53,8 @@ namespace FitTrackr.API.Services
                 if (!TryGetBaseline(exerciseName, baseline, out var baselineKg) || baselineKg <= 0)
                     return match.Value;
 
-                var safeMax = baselineKg * (1 + MaxProgressionRate);
-                if (recommendedKg <= safeMax)
+                var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
+                if (AcsmProgressionRule.IsWithinLimit(recommendedKg, baselineKg))
                     return match.Value;
 
                 var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
@@ -93,7 +93,7 @@ namespace FitTrackr.API.Services
                 if (!TryMatchExercise(line, baseline, out var exerciseName, out var baselineKg) || baselineKg <= 0)
                     continue;
 
-                var safeMax = baselineKg * (1 + MaxProgressionRate);
+                var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
 
                 lines[i] = InlineWeightPattern.Replace(line, weightMatch =>
                 {
@@ -101,7 +101,13 @@ namespace FitTrackr.API.Services
                     if (!double.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out var kg))
                         return weightMatch.Value;
 
-                    if (kg <= safeMax)
+                    if (AcsmProgressionRule.IsWithinLimit(kg, baselineKg))
+                        return weightMatch.Value;
+
+                    // The clause itself warns that this value is over the safety limit ("115 kg … %110 sınırını aşıyor"):
+                    // it is not a recommendation. Rewriting only the number would produce a self-contradiction
+                    // ("110.0 kg … sınırını aşıyor"), so leave it as written.
+                    if (IsFlaggedAsOverSafetyLimit(line, weightMatch.Index))
                         return weightMatch.Value;
 
                     var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
@@ -119,37 +125,60 @@ namespace FitTrackr.API.Services
                 intercepted.AsReadOnly());
         }
 
-        // Builds exercise name → most recent max weight dictionary from context.
-        private static Dictionary<string, double> BuildBaselineDictionary(FitBotContextDto context)
+        // Explicit "exceeds" statements only. Negations ("aşmaz", "aşmıyor", "does not exceed") and other subjects
+        // ("rekorunu aşıyorsun") deliberately do not match, so those values are still capped.
+        private static readonly Regex ExceedsVerbPattern = new(
+            @"\baş(ıyor|ar|an|tığı|tığından|maktadır)\b|\bexceeds\b|\bexceeding\b|\bis (over|above) the\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        // Explicit refusal/rejection of the value ("kabul edilmiyor", "izin verilmiyor", "uygun değil", "is rejected",
+        // "not allowed"). Used together with a safety-limit reference, e.g. "… %110'undan yüksek olduğu için kabul edilmiyor".
+        private static readonly Regex RefusalPattern = new(
+            @"kabul edil(miyor|mez|emez)|izin veril(miyor|mez)|uygun değil|önerilmez|reddedil\w*" +
+            @"|onayla(mıyor|maz)|onaylan(mıyor|maz)|kaydedil(miyor|mez|emez)" +
+            @"|\b(is |was |are )?rejected\b|\bnot (allowed|permitted|accepted|recommended|approved)\b|\bcannot be (accepted|allowed|saved)\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex SafetyLimitPattern = new(
+            @"sınır|limit|güvenli|safe|%\s*1?10\b|acsm",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        // A clause that tells the user to do/use the weight is a recommendation, never a warning — always capped.
+        private static readonly Regex RecommendationPattern = new(
+            @"\b(öneriyorum|öneririm|yap|yapabilirsin|çıkar|çıkabilirsin|dene|deneyebilirsin)\b|\bi (recommend|suggest)\b|\btry\b|\bgo for\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        // True when the clause containing the weight is a warning/refusal about a safety limit (not a recommendation):
+        // it references a safety limit AND either says the value exceeds it or explicitly refuses it, and it does not
+        // tell the user to use the weight. Only the clause around the number counts.
+        private static bool IsFlaggedAsOverSafetyLimit(string line, int index)
         {
-            var dict = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var trend in context.WeightTrends)
-            {
-                if (string.IsNullOrWhiteSpace(trend.ExerciseName))
-                    continue;
-
-                var recentMax = trend.WeeklyMaxWeights
-                    .Where(w => w.MaxKg > 0)
-                    .OrderBy(w => w.WeeksAgo)
-                    .FirstOrDefault();
-
-                if (recentMax != null)
-                    dict[trend.ExerciseName.Trim()] = recentMax.MaxKg;
-            }
-
-            // Fill in any exercises from recent workouts that are not in WeightTrends
-            foreach (var workout in context.RecentWorkouts)
-            {
-                foreach (var ex in workout.Exercises)
-                {
-                    if (!string.IsNullOrWhiteSpace(ex.ExerciseName) && ex.MaxWeightKg > 0)
-                        dict.TryAdd(ex.ExerciseName.Trim(), ex.MaxWeightKg);
-                }
-            }
-
-            return dict;
+            var clause = ClauseAround(line, index);
+            return SafetyLimitPattern.IsMatch(clause)
+                   && (ExceedsVerbPattern.IsMatch(clause) || RefusalPattern.IsMatch(clause))
+                   && !RecommendationPattern.IsMatch(clause);
         }
+
+        // Clause = text between sentence/clause delimiters (. ! ? ;). A '.' between digits (decimal weight) is not a delimiter.
+        private static string ClauseAround(string line, int index)
+        {
+            var start = index;
+            while (start > 0 && !IsClauseDelimiter(line, start - 1))
+                start--;
+
+            var end = index;
+            while (end < line.Length && !IsClauseDelimiter(line, end))
+                end++;
+
+            return line[start..end];
+        }
+
+        private static bool IsClauseDelimiter(string text, int i) => text[i] switch
+        {
+            '!' or '?' or ';' => true,
+            '.' => !(i > 0 && char.IsDigit(text[i - 1]) && i + 1 < text.Length && char.IsDigit(text[i + 1])),
+            _ => false
+        };
 
         private static bool TryGetBaseline(
             string exerciseName,

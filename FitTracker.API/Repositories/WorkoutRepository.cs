@@ -17,10 +17,61 @@ namespace FitTrackr.API.Repositories
         public async Task<Workout> CreateAsync(Workout workout, string userId)
         {
             workout.userId = userId;
+            // Kullanıcının kendi kaydettiği antrenman her zaman "yapılmış" antrenmandır (POST /api/Workout).
+            workout.Status = WorkoutStatus.Completed;
 
             await dbContext.Workouts.AddAsync(workout);
             await dbContext.SaveChangesAsync();
             return workout;
+        }
+
+        public async Task<Workout?> CreateWithExercisesAsync(Workout workout, string userId, Guid intensityId, CancellationToken cancellationToken = default)
+        {
+            // Referans kayıt stable ID ile doğrulanır. Level metnine bakılmaz: migration'lı veritabanlarında Level
+            // yerelleştirilmiştir (Orta), model seed'inde değildir (Medium); ID her ikisinde de aynıdır.
+            var intensityExists = await dbContext.Intensities
+                .AsNoTracking()
+                .AnyAsync(i => i.Id == intensityId, cancellationToken);
+
+            if (!intensityExists)
+                return null;
+
+            workout.userId = userId;
+            foreach (var exercise in workout.Exercises ?? Enumerable.Empty<Exercise>())
+                exercise.IntensityId = intensityId;
+
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                await dbContext.Workouts.AddAsync(workout, cancellationToken);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return workout;
+            }
+            catch
+            {
+                // Transaction dispose edilince geri alınır. Başarısız grafı change tracker'dan da çıkar ki aynı
+                // scope'taki sonraki bir SaveChanges onu tekrar (kısmen) yazmaya çalışmasın.
+                DetachGraph(workout);
+                throw;
+            }
+        }
+
+        private void DetachGraph(Workout workout)
+        {
+            // Önce grafın anlık kopyası alınır: detach sırasında EF Core navigation fixup'ı koleksiyonları değiştirebilir;
+            // canlı koleksiyon üzerinde dolaşmak yarıda kesilip grafın bir kısmını Added bırakırdı.
+            var exercises = (workout.Exercises ?? Enumerable.Empty<Exercise>()).ToList();
+            var graph = new List<object> { workout };
+            graph.AddRange(exercises);
+            graph.AddRange(exercises.SelectMany(e => e.ExerciseSets ?? Enumerable.Empty<ExerciseSet>()).ToList());
+
+            foreach (var entity in graph)
+            {
+                var entry = dbContext.Entry(entity);
+                if (entry.State != EntityState.Detached)
+                    entry.State = EntityState.Detached;
+            }
         }
 
         public async Task<Workout?> DeleteAsync(Guid id)
@@ -44,10 +95,48 @@ namespace FitTrackr.API.Repositories
 
         public async Task<List<Workout>> GetAllAsync(string userId)
         {
+            // Geçmiş/ilerleme listesi: yalnızca yapılmış antrenmanlar. Mevcut istemciler (MAUI ilerleme ekranı) bu listeden
+            // ağırlık/hacim/1RM hesaplar; planlar burada olsaydı yapılmış gibi görünürdü. Planlar: GetPlannedAsync.
             return await dbContext.Workouts
-                .Where(w => w.userId == userId)
+                .Where(w => w.userId == userId && w.Status == WorkoutStatus.Completed)
                 .Include(w => w.Exercises)
                 .ToListAsync();
+        }
+
+        public async Task<List<Workout>> GetPlannedAsync(string userId)
+        {
+            return await dbContext.Workouts
+                .AsNoTracking()
+                .Where(w => w.userId == userId && w.Status == WorkoutStatus.Planned)
+                .Include(w => w.Exercises)
+                    .ThenInclude(e => e.ExerciseSets)
+                .OrderBy(w => w.WorkoutDate)
+                .ToListAsync();
+        }
+
+        public async Task<(CompleteWorkoutResult Result, Workout? Workout)> CompletePlannedAsync(Guid id, string userId)
+        {
+            // Sahiplik sorgunun parçasıdır: başka kullanıcının workout'u hiç yüklenmez, "bulunamadı" ile aynı sonuç döner.
+            var workout = await dbContext.Workouts
+                .Include(w => w.Exercises)
+                .FirstOrDefaultAsync(w => w.Id == id && w.userId == userId);
+
+            if (workout is null)
+                return (CompleteWorkoutResult.NotFound, null);
+
+            if (workout.Status == WorkoutStatus.Completed)
+                return (CompleteWorkoutResult.AlreadyCompleted, workout);
+
+            workout.Status = WorkoutStatus.Completed;
+
+            // İleri tarihli bir plan bugün tamamlanıyorsa tarih bugüne çekilir: aksi halde "yapılmış" bir antrenman gelecekte
+            // görünür ve analizdeki gün hesapları (son antrenmandan bu yana geçen gün vb.) negatife düşerdi.
+            var today = DateTime.UtcNow.Date;
+            if (workout.WorkoutDate.Date > today)
+                workout.WorkoutDate = today;
+
+            await dbContext.SaveChangesAsync();
+            return (CompleteWorkoutResult.Completed, workout);
         }
 
         public async Task<Workout?> GetByIdAsync(Guid id)
@@ -60,8 +149,9 @@ namespace FitTrackr.API.Repositories
 
         public async Task<DashboardSummaryDto> GetDashboardAsync(string userId)
         {
+            // Dashboard (aktif günler / PR'lar): yalnızca yapılmış antrenmanlar.
             var workouts = await dbContext.Workouts
-                .Where(w => w.userId == userId)
+                .Where(w => w.userId == userId && w.Status == WorkoutStatus.Completed)
                 .Include(w => w.Exercises)
                     .ThenInclude(e => e.ExerciseSets)
                 .AsNoTracking()

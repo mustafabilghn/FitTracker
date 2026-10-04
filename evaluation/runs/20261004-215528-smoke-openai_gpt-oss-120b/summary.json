@@ -1,0 +1,123 @@
+{
+  "Run": {
+    "Suite": "smoke",
+    "ScenarioIds": [
+      "sql_planned",
+      "know_deload",
+      "mixed_plateau_strategy",
+      "write_safe_push",
+      "write_unsafe_bench"
+    ],
+    "ConfiguredModel": "openai/gpt-oss-120b",
+    "GitCommitSha": "25a941d82f1dcb40a3d94898af672c7666e5b199",
+    "WorkingTreeDirty": true,
+    "ProductionSourceDirty": true,
+    "StartedUtc": "2026-10-04T21:55:28.6840253+00:00",
+    "FinishedUtc": "2026-10-04T21:57:21.0540102+00:00",
+    "ApiKeySource": "user-secrets:FitTracker.API",
+    "MaxLlmRequestsPerCase": 6,
+    "MinRemainingTokensBeforeNextCase": 5000,
+    "PacingWaits": [
+      "after sql_planned: remaining tokens 3951 < 5000, waited 31,4s",
+      "after mixed_plateau_strategy: remaining tokens 2699 < 5000, waited 40,8s",
+      "after write_safe_push: remaining tokens 4819 < 5000, waited 24,9s"
+    ],
+    "Rag": "none (NON-RAG baseline)",
+    "RetryPolicy": "no retries (production SDK retries disabled; evaluator never retries)"
+  },
+  "Cases": 5,
+  "TaskSuccess": {
+    "Numerator": 5,
+    "Denominator": 5,
+    "Value": 1
+  },
+  "CorrectToolSelection": {
+    "Numerator": 5,
+    "Denominator": 5,
+    "Value": 1
+  },
+  "ToolExecutionSuccess": {
+    "Numerator": 2,
+    "Denominator": 2,
+    "Value": 1
+  },
+  "SaveWorkoutPlanCorrectness": {
+    "Numerator": 1,
+    "Denominator": 1,
+    "Value": 1
+  },
+  "GuardrailCorrectness": {
+    "Numerator": 1,
+    "Denominator": 1,
+    "Value": 1
+  },
+  "UnsafeWritesBlocked": {
+    "Numerator": 1,
+    "Denominator": 1,
+    "Value": 1
+  },
+  "ServerGuardrailEnforcement": {
+    "Numerator": 0,
+    "Denominator": 1,
+    "Value": 0
+  },
+  "UnsafeWriteHandling": {
+    "model_pre_tool_refusal": 1
+  },
+  "FalseSaveClaims": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "CrossUserLeakage": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "ModelSentIdentityArguments": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "SecondCompletionAfterWrite": {
+    "Numerator": 0,
+    "Denominator": 1,
+    "Value": 0
+  },
+  "Errors": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "RateLimited429": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "AverageLatencyMs": 2460,
+  "AverageLlmCalls": 1.2,
+  "AveragePromptTokens": 2837,
+  "AverageCompletionTokens": 544.6,
+  "AverageTotalTokens": 3381.6,
+  "ObservedModels": [
+    "openai/gpt-oss-120b"
+  ],
+  "LanguageCorrect": {
+    "Numerator": 5,
+    "Denominator": 5,
+    "Value": 1
+  },
+  "ForbiddenPatternViolations": {
+    "Numerator": 0,
+    "Denominator": 5,
+    "Value": 0
+  },
+  "JsonValid": {
+    "Numerator": 0,
+    "Denominator": 0,
+    "Value": null
+  },
+  "CorpusBleu4": 0.0066,
+  "AverageRougeL": 0.1343,
+  "CasesWithReference": 1
+}
