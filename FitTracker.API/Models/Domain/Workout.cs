@@ -14,5 +14,7 @@ namespace FitTrackr.API.Models.Domain
         public List<Exercise> Exercises { get; set; }
 
         public string userId { get; set; }
+
+        public WorkoutStatus Status { get; set; } = WorkoutStatus.Completed;
     }
 }

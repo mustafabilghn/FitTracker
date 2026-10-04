@@ -66,6 +66,36 @@ namespace FitTrackr.API.Controllers
             return Ok(mapper.Map<List<WorkoutSummaryDto>>(workout));
         }
 
+        /// <summary>Current user'ın kayıtlı (Planned) antrenman planları; yapılmış antrenmanlardan ayrı.</summary>
+        [HttpGet("planned")]
+        public async Task<IActionResult> GetPlanned()
+        {
+            var userId = getUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var planned = await repository.GetPlannedAsync(userId);
+            return Ok(mapper.Map<List<WorkoutSummaryDto>>(planned));
+        }
+
+        /// <summary>
+        /// Planned bir antrenmanı yapıldı olarak işaretler (Planned → Completed). Zaten Completed ise idempotent (değişiklik yok).
+        /// Başka kullanıcının antrenmanı için 404 döner ve hiçbir şey değişmez.
+        /// </summary>
+        [HttpPost("{id:guid}/complete")]
+        public async Task<IActionResult> Complete([FromRoute] Guid id)
+        {
+            var userId = getUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var (result, workout) = await repository.CompletePlannedAsync(id, userId);
+            if (result == CompleteWorkoutResult.NotFound)
+                return NotFound();
+
+            return Ok(mapper.Map<WorkoutSummaryDto>(workout));
+        }
+
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetDashboard()
         {

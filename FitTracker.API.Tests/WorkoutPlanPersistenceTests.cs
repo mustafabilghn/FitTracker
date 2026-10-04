@@ -524,7 +524,7 @@ public class WorkoutPlanPersistenceTests
         var free = Json(h.Handler.Requests[0]).GetProperty("tools").EnumerateArray()
             .ToDictionary(t => t.GetProperty("function").GetProperty("name").GetString()!, t => t.GetRawText());
         Assert.Contains("WorkoutPlan-SaveWorkoutPlan", free.Keys);
-        Assert.Equal(4, free.Count); // 3 okuma + 1 yazma
+        Assert.Equal(5, free.Count); // 3 okuma + 1 yazma + 1 plan okuma (Phase 4: GetPlannedWorkouts)
 
         var schema = free["WorkoutPlan-SaveWorkoutPlan"];
         // Şemadaki hiçbir alan adı kimlik/gizli bilgi taşımaz (açıklama metnindeki "current user" ifadesi hariç).

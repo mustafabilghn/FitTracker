@@ -140,10 +140,51 @@ namespace FitTrackr.API.Plugins
             }
         }
 
+        [KernelFunction, Description("Current user's saved workout plans that are not done yet, soonest first.")]
+        public async Task<object> GetPlannedWorkouts()
+        {
+            var userId = _currentUser.UserId;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("GetPlannedWorkouts called without a current user.");
+                return new PlanToolError("The current user could not be identified.");
+            }
+
+            try
+            {
+                // Planned workout'lar yapılmış antrenman geçmişinden AYRI okunur (Completed history ile karışmaz).
+                var plans = await _workoutRepository.GetPlannedAsync(userId);
+                return plans
+                    .Take(MaxPlannedWorkoutsReturned)
+                    .Select(w => new PlannedWorkoutSummary(
+                        w.Id,
+                        w.WorkoutName,
+                        w.WorkoutDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        (w.Exercises ?? new List<Exercise>()).Select(e => new PlannedExerciseSummary(
+                            e.ExerciseName,
+                            e.ExerciseSets?.Count ?? 0,
+                            e.ExerciseSets is { Count: > 0 } sets ? sets.Max(s => s.WeightInKg) : 0)).ToList()))
+                    .ToList();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetPlannedWorkouts failed.");
+                return new PlanToolError("Workout plans are temporarily unavailable.");
+            }
+        }
+
+        private const int MaxPlannedWorkoutsReturned = 10;
+
         private static Workout ToDomain(ValidatedWorkoutPlan plan) => new()
         {
             WorkoutName = plan.WorkoutName,
             WorkoutDate = plan.WorkoutDate,
+            // FitBot planı henüz yapılmamış bir antrenmandır: analiz/trend/baseline'a girmez.
+            Status = WorkoutStatus.Planned,
             Exercises = plan.Exercises.Select(e => new Exercise
             {
                 ExerciseName = e.Name,
@@ -156,6 +197,20 @@ namespace FitTrackr.API.Plugins
             }).ToList()
         };
     }
+
+    /// <summary>GetPlannedWorkouts için kompakt plan özeti (token bütçesi).</summary>
+    public sealed record PlannedWorkoutSummary(
+        [property: JsonPropertyName("workoutId")] Guid WorkoutId,
+        [property: JsonPropertyName("workoutName")] string WorkoutName,
+        [property: JsonPropertyName("date")] string Date,
+        [property: JsonPropertyName("exercises")] List<PlannedExerciseSummary> Exercises);
+
+    public sealed record PlannedExerciseSummary(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("sets")] int Sets,
+        [property: JsonPropertyName("maxKg")] double MaxKg);
+
+    internal sealed record PlanToolError([property: JsonPropertyName("error")] string Error);
 
     public static class SaveWorkoutPlanReasons
     {

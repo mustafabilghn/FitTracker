@@ -27,9 +27,10 @@ namespace FitTrackr.API.Services
                 return new WorkoutAnalysisDto();
             }
 
+            // Analiz yalnızca YAPILMIŞ antrenmanlardan yapılır; Planned (ör. FitBot planları) geçmiş veri değildir.
             var workouts = await _dbContext.Workouts
                 .AsNoTracking()
-                .Where(w => w.userId == userId)
+                .Where(w => w.userId == userId && w.Status == WorkoutStatus.Completed)
                 .Include(w => w.Exercises)
                     .ThenInclude(e => e.ExerciseSets)
                 .Include(w => w.Exercises)
@@ -131,9 +132,11 @@ namespace FitTrackr.API.Services
             var cutoff30 = today.AddDays(-30);
             var cutoff28 = today.AddDays(-28);
 
+            // FitBot context'i (son antrenmanlar, trendler, plateau, frekans ve ACSM baseline'ları) yalnızca YAPILMIŞ
+            // antrenmanlardan kurulur. Planned workout'lar geçmişi ve güvenlik baseline'ını kirletmemelidir.
             var workouts = await _dbContext.Workouts
                 .AsNoTracking()
-                .Where(w => w.userId == userId)
+                .Where(w => w.userId == userId && w.Status == WorkoutStatus.Completed)
                 .Include(w => w.Exercises)
                     .ThenInclude(e => e.ExerciseSets)
                 .OrderByDescending(w => w.WorkoutDate)
