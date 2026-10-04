@@ -59,6 +59,57 @@ public class AcsmGuardrailWarningContextTests
         Assert.False(result.Triggered);
     }
 
+    // ── Ret/uyarı bağlamları (TR + EN): değer olduğu gibi kalmalı, çelişki oluşmamalı ──
+
+    [Theory]
+    // Production smoke (2. tekrar): "…%110'undan yüksek olduğu için … kabul edilmiyor"
+    [InlineData("Bench Press için 115 kg, 3 set × 5 tekrar isteğin, son kaydedilen maksimum ağırlığın %110'undan yüksek olduğu için sistem tarafından kabul edilmiyor.")]
+    // Production smoke (3. tekrar): "…yüksek olduğu için sistem bu planı kaydetmeyi onaylamıyor"
+    [InlineData("İstediğin 115 kg, Bench Press için son kaydedilen maksimum ağırlığın %110’undan (110 kg) yüksek olduğu için sistem bu planı kaydetmeyi onaylamıyor.")]
+    [InlineData("Bench Press için 115 kg güvenli sınırın üzerinde olduğu için plan kaydedilemez.")]
+    [InlineData("For Bench Press, 115 kg is above the safe limit, so the plan is not approved.")]
+    [InlineData("Bench Press için 115 kg limitin üzerinde olduğu için izin verilmiyor.")]
+    [InlineData("Bench Press için 115 kg güvenli sınırı aşıyor.")]
+    [InlineData("Bench Press için 115 kg güvenli sınırın üzerinde, bu nedenle uygun değil.")]
+    [InlineData("Bench Press 115 kg %110 kuralına göre reddedildi.")]
+    [InlineData("Bench Press için 115.5 kg güvenli sınırı aştığı için kabul edilmiyor.")] // ondalık nokta cümle sonu değil
+    [InlineData("For Bench Press, 115 kg is higher than the 110% safety limit and is rejected.")]
+    [InlineData("For Bench Press, 115 kg is above the safe limit and is not allowed.")]
+    [InlineData("For Bench Press, 115 kg exceeds the safe limit.")]
+    [InlineData("For Bench Press, 115 kg is over the safe limit, therefore not allowed.")]
+    public void WarningOrRefusalAboutTheSafetyLimit_IsLeftAsWritten(string reply)
+    {
+        var result = _sut.Validate(reply, Context());
+
+        Assert.Equal(reply, result.SanitizedReply);
+        Assert.DoesNotContain("110.0 kg", result.SanitizedReply);
+        Assert.False(result.Triggered);
+    }
+
+    // ── Öneriler (güvenlik sınırı kelimeleri geçse bile) hâlâ kısılmalı ──
+
+    [Theory]
+    [InlineData("Bench Press 115 kg yap.")]
+    [InlineData("Bench Press için 115 kg öneriyorum.")]
+    [InlineData("Bench Press'i 115 kg'a çıkar.")]
+    [InlineData("Bench Press 115 kg ile 3x5 yap.")]
+    [InlineData("Bench Press 115 kg biraz yüksek ama dene.")]                          // güvenlik sınırı yok
+    [InlineData("Bench Press 115 kg senin için yüksek, uygun değil.")]                // ret var ama güvenlik sınırı yok
+    [InlineData("Bench Press 115 kg yap, %110 sınırını aşıyor ama sorun değil.")]      // aynı cümlecikte emir → öneri
+    [InlineData("Bench Press için 115 kg öneriyorum, güvenli sınırın üzerinde olsa da kabul edilmiyor değil.")]
+    [InlineData("I recommend 115 kg for Bench Press even though it exceeds the safe limit.")]
+    [InlineData("Try 115 kg on Bench Press; it is fine.")]
+    [InlineData("Go for 115 kg on Bench Press, above the safe limit but not allowed to stop you.")]
+    [InlineData("Bench Press'i 115 kg'a çıkar, güvenli sınırın üzerinde ama sistem onaylamıyor diye bırakma.")]
+    public void RecommendationsAreStillCapped_EvenWithLimitOrRefusalWords(string reply)
+    {
+        var result = _sut.Validate(reply, Context());
+
+        Assert.True(result.Triggered);
+        Assert.Contains("110.0 kg", result.SanitizedReply);
+        Assert.DoesNotContain("115", result.SanitizedReply);
+    }
+
     // ── Güvenlik zayıflamamalı: öneriler hâlâ kısılır ──
 
     [Fact]

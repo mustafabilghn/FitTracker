@@ -129,23 +129,56 @@ namespace FitTrackr.API.Services
         // ("rekorunu aşıyorsun") deliberately do not match, so those values are still capped.
         private static readonly Regex ExceedsVerbPattern = new(
             @"\baş(ıyor|ar|an|tığı|tığından|maktadır)\b|\bexceeds\b|\bexceeding\b|\bis (over|above) the\b",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        // Explicit refusal/rejection of the value ("kabul edilmiyor", "izin verilmiyor", "uygun değil", "is rejected",
+        // "not allowed"). Used together with a safety-limit reference, e.g. "… %110'undan yüksek olduğu için kabul edilmiyor".
+        private static readonly Regex RefusalPattern = new(
+            @"kabul edil(miyor|mez|emez)|izin veril(miyor|mez)|uygun değil|önerilmez|reddedil\w*" +
+            @"|onayla(mıyor|maz)|onaylan(mıyor|maz)|kaydedil(miyor|mez|emez)" +
+            @"|\b(is |was |are )?rejected\b|\bnot (allowed|permitted|accepted|recommended|approved)\b|\bcannot be (accepted|allowed|saved)\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         private static readonly Regex SafetyLimitPattern = new(
             @"sınır|limit|güvenli|safe|%\s*1?10\b|acsm",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-        private static readonly char[] ClauseDelimiters = { '.', '!', '?', ';' };
+        // A clause that tells the user to do/use the weight is a recommendation, never a warning — always capped.
+        private static readonly Regex RecommendationPattern = new(
+            @"\b(öneriyorum|öneririm|yap|yapabilirsin|çıkar|çıkabilirsin|dene|deneyebilirsin)\b|\bi (recommend|suggest)\b|\btry\b|\bgo for\b",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-        // True when the clause containing the weight states that the value exceeds a safety limit.
-        // Only the clause around the number counts: a recommendation in a separate clause is still capped.
+        // True when the clause containing the weight is a warning/refusal about a safety limit (not a recommendation):
+        // it references a safety limit AND either says the value exceeds it or explicitly refuses it, and it does not
+        // tell the user to use the weight. Only the clause around the number counts.
         private static bool IsFlaggedAsOverSafetyLimit(string line, int index)
         {
-            var start = line.LastIndexOfAny(ClauseDelimiters, Math.Max(index - 1, 0)) + 1;
-            var end = line.IndexOfAny(ClauseDelimiters, index);
-            var clause = end < 0 ? line[start..] : line[start..end];
-            return ExceedsVerbPattern.IsMatch(clause) && SafetyLimitPattern.IsMatch(clause);
+            var clause = ClauseAround(line, index);
+            return SafetyLimitPattern.IsMatch(clause)
+                   && (ExceedsVerbPattern.IsMatch(clause) || RefusalPattern.IsMatch(clause))
+                   && !RecommendationPattern.IsMatch(clause);
         }
+
+        // Clause = text between sentence/clause delimiters (. ! ? ;). A '.' between digits (decimal weight) is not a delimiter.
+        private static string ClauseAround(string line, int index)
+        {
+            var start = index;
+            while (start > 0 && !IsClauseDelimiter(line, start - 1))
+                start--;
+
+            var end = index;
+            while (end < line.Length && !IsClauseDelimiter(line, end))
+                end++;
+
+            return line[start..end];
+        }
+
+        private static bool IsClauseDelimiter(string text, int i) => text[i] switch
+        {
+            '!' or '?' or ';' => true,
+            '.' => !(i > 0 && char.IsDigit(text[i - 1]) && i + 1 < text.Length && char.IsDigit(text[i + 1])),
+            _ => false
+        };
 
         private static bool TryGetBaseline(
             string exerciseName,

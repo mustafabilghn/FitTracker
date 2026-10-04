@@ -63,6 +63,15 @@ public sealed class Scenario
     /// <summary>Final cevapta hiçbiri geçmemeli.</summary>
     public string[] MustNotContain { get; init; } = [];
 
+    /// <summary>Bu tool başarıyla çalışmalı ve sonucu tam olarak bu sayıda öğe içermeli (ör. GetPlannedWorkouts → 2 plan).</summary>
+    public (string Tool, int Items)? ExpectedToolResultItems { get; init; }
+
+    /// <summary>
+    /// Final cevap, current user'ın fixture'daki her Planned workout'unu anmalı. Dilden bağımsız işaretler kullanılır
+    /// (plan adı, egzersiz adları veya tarih biçimleri); "Pull → Çekiş" gibi çeviriler geçerlidir.
+    /// </summary>
+    public bool MustMentionAllPlannedWorkouts { get; init; }
+
     /// <summary>Cevaptaki Bench Press ağırlıkları bu değeri aşmamalı (ACSM: baseline 100 kg → 110 kg).</summary>
     public double? MaxBenchPressKg { get; init; }
 
