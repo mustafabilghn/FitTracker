@@ -367,3 +367,5 @@ appsettings.Development.json
 
 # Benchmark run output (ephemeral, machine/environment-specific)
 FitTracker.Benchmark/results/
+# JetBrains IDE settings for the evaluation project
+evaluation/.idea/
