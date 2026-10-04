@@ -1,5 +1,14 @@
 # FitTracker-AI Evaluation Package
 
+> **Current baseline:** the production-path NON-RAG evaluator lives in
+> [`FitTracker.Evaluation/`](../FitTracker.Evaluation/README.md) (model `openai/gpt-oss-120b`, real C# services,
+> fixture DB). Its runs are written to `evaluation/runs/`.
+>
+> **Legacy (section 1 below):** `evaluate_fitbot.py`, `reference_plans.py` and `evaluation_results.json` are kept
+> unchanged for the paper. They call `llama-3.3-70b-versatile` directly with a re-implemented prompt and do **not**
+> exercise production FitBot (no sanitization, guardrail, tools, SaveWorkoutPlan or Planned/Completed data).
+> Their scores are not comparable with the new baseline and must not be mixed with it.
+
 This directory contains the evaluation artefacts referenced in the accompanying
 paper: a lexical-overlap evaluation of FitBot's generated coaching text, and a
 pointer to the separate numerical-guardrail safety test set.
