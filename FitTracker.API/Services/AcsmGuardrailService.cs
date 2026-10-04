@@ -104,6 +104,12 @@ namespace FitTrackr.API.Services
                     if (AcsmProgressionRule.IsWithinLimit(kg, baselineKg))
                         return weightMatch.Value;
 
+                    // The clause itself warns that this value is over the safety limit ("115 kg … %110 sınırını aşıyor"):
+                    // it is not a recommendation. Rewriting only the number would produce a self-contradiction
+                    // ("110.0 kg … sınırını aşıyor"), so leave it as written.
+                    if (IsFlaggedAsOverSafetyLimit(line, weightMatch.Index))
+                        return weightMatch.Value;
+
                     var safeStr = safeMax.ToString("F1", CultureInfo.InvariantCulture);
                     intercepted.Add($"{exerciseName}: {kg:F1} kg → {safeStr} kg (ACSM ≤10% rule)");
                     return $"{safeStr} kg";
@@ -117,6 +123,28 @@ namespace FitTrackr.API.Services
                 sanitized,
                 intercepted.Count > 0,
                 intercepted.AsReadOnly());
+        }
+
+        // Explicit "exceeds" statements only. Negations ("aşmaz", "aşmıyor", "does not exceed") and other subjects
+        // ("rekorunu aşıyorsun") deliberately do not match, so those values are still capped.
+        private static readonly Regex ExceedsVerbPattern = new(
+            @"\baş(ıyor|ar|an|tığı|tığından|maktadır)\b|\bexceeds\b|\bexceeding\b|\bis (over|above) the\b",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex SafetyLimitPattern = new(
+            @"sınır|limit|güvenli|safe|%\s*1?10\b|acsm",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly char[] ClauseDelimiters = { '.', '!', '?', ';' };
+
+        // True when the clause containing the weight states that the value exceeds a safety limit.
+        // Only the clause around the number counts: a recommendation in a separate clause is still capped.
+        private static bool IsFlaggedAsOverSafetyLimit(string line, int index)
+        {
+            var start = line.LastIndexOfAny(ClauseDelimiters, Math.Max(index - 1, 0)) + 1;
+            var end = line.IndexOfAny(ClauseDelimiters, index);
+            var clause = end < 0 ? line[start..] : line[start..end];
+            return ExceedsVerbPattern.IsMatch(clause) && SafetyLimitPattern.IsMatch(clause);
         }
 
         private static bool TryGetBaseline(

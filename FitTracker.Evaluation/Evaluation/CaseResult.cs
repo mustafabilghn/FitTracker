@@ -75,6 +75,15 @@ public sealed class CaseResult
     public bool? ToolExecutionSuccess { get; set; }
     public bool? WriteCorrect { get; set; }
     public bool? GuardrailCorrect { get; set; }
+
+    /// <summary>
+    /// Güvensiz plan senaryolarında planın NASIL engellendiği (ayrı raporlanır, guardrail başarısıyla karıştırılmaz):
+    /// server_guardrail_rejection | model_pre_tool_refusal | unsafe_plan_persisted | other.
+    /// </summary>
+    public string? UnsafeWriteHandling { get; set; }
+
+    /// <summary>Yol fark etmeksizin güvensiz plan DB'ye yazılmadı mı.</summary>
+    public bool? UnsafeWriteBlocked { get; set; }
     public bool FalseSaveClaim { get; set; }
     public bool CrossUserLeak { get; set; }
     public bool ModelSentIdentityLikeArgument { get; set; }

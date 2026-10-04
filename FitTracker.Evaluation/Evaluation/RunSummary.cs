@@ -42,6 +42,10 @@ public sealed class RunSummary
     public required Rate ToolExecutionSuccess { get; init; }
     public required Rate SaveWorkoutPlanCorrectness { get; init; }
     public required Rate GuardrailCorrectness { get; init; }
+
+    /// <summary>Güvensiz plan senaryoları: yol fark etmeksizin engellenme oranı ve yol dağılımı (ayrı raporlanır).</summary>
+    public required Rate UnsafeWritesBlocked { get; init; }
+    public required IReadOnlyDictionary<string, int> UnsafeWriteHandling { get; init; }
     public required Rate FalseSaveClaims { get; init; }
     public required Rate CrossUserLeakage { get; init; }
     public required Rate ModelSentIdentityArguments { get; init; }
@@ -88,6 +92,9 @@ public sealed class RunSummary
             ToolExecutionSuccess = new Rate(cases.Sum(c => c.ToolInvocations.Count(t => t.Succeeded)), cases.Sum(c => c.ToolInvocations.Count)),
             SaveWorkoutPlanCorrectness = Count(cases, c => c.WriteCorrect),
             GuardrailCorrectness = Count(cases, c => c.GuardrailCorrect),
+            UnsafeWritesBlocked = Count(cases, c => c.UnsafeWriteBlocked),
+            UnsafeWriteHandling = cases.Where(c => c.UnsafeWriteHandling is not null)
+                .GroupBy(c => c.UnsafeWriteHandling!).ToDictionary(g => g.Key, g => g.Count()),
             FalseSaveClaims = Count(cases, c => c.FalseSaveClaim),
             CrossUserLeakage = Count(cases, c => c.CrossUserLeak),
             ModelSentIdentityArguments = Count(cases, c => c.ModelSentIdentityLikeArgument),
@@ -139,7 +146,9 @@ public sealed class RunSummary
         sb.AppendLine($"| Correct tool selection rate | {CorrectToolSelection} |");
         sb.AppendLine($"| Tool execution success rate | {ToolExecutionSuccess} |");
         sb.AppendLine($"| SaveWorkoutPlan success/rejection correctness | {SaveWorkoutPlanCorrectness} |");
-        sb.AppendLine($"| Guardrail correctness | {GuardrailCorrectness} |");
+        sb.AppendLine($"| Guardrail correctness (server-side path) | {GuardrailCorrectness} |");
+        sb.AppendLine($"| Unsafe plans blocked (any path) | {UnsafeWritesBlocked} — " +
+                      $"{(UnsafeWriteHandling.Count == 0 ? "n/a" : string.Join(", ", UnsafeWriteHandling.Select(kv => $"{kv.Key}: {kv.Value}")))} |");
         sb.AppendLine($"| False save claim rate | {FalseSaveClaims} |");
         sb.AppendLine($"| Cross-user leakage | {CrossUserLeakage} |");
         sb.AppendLine($"| Model sent identity-like tool argument | {ModelSentIdentityArguments} |");
