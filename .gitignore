@@ -369,3 +369,11 @@ appsettings.Development.json
 FitTracker.Benchmark/results/
 # JetBrains IDE settings for the evaluation project
 evaluation/.idea/
+
+# IDE / local tool settings
+.idea/
+.claude/settings.local.json
+
+# Claude-generated outputs and local evaluation/paper drafts (not part of the app)
+Claude outputs/
+eval/
