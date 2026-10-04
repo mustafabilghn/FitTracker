@@ -27,8 +27,14 @@ namespace FitTrackr.API.Services
         private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<AiWorkoutCoachService> _logger;
+        private readonly ICurrentUserContext? _currentUser;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
+
+        // Hazır (preset) aksiyonlar sabit, değerlendirilmiş prompt'larla çalışır; function calling yalnızca
+        // serbest sohbette (free / bilinmeyen actionType) açılır ki preset çıktıları değişmesin.
+        private static readonly HashSet<string> PresetActionTypes =
+            new(StringComparer.OrdinalIgnoreCase) { "analyze", "today", "program", "motivation" };
 
         private static readonly TimeSpan ContextCacheDuration = TimeSpan.FromMinutes(1);
         private const string ContextCacheKeyPrefix = "fitbot:ctx:";
@@ -50,8 +56,10 @@ namespace FitTrackr.API.Services
             IMemoryCache cache,
             IHttpContextAccessor httpContextAccessor,
             ILogger<AiWorkoutCoachService> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ICurrentUserContext? currentUser = null)
         {
+            _currentUser = currentUser;
             _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
@@ -181,6 +189,9 @@ namespace FitTrackr.API.Services
             if (string.IsNullOrWhiteSpace(_groqApiKey))
                 throw new InvalidOperationException(IsEnglish ? "Groq configuration is missing." : "Groq yapılandırması eksik.");
 
+            // Function calling'in kullandığı "current user", kimliği doğrulanmış bu userId'dir; modelden alınmaz.
+            _currentUser?.SetUser(userId);
+
             var cacheKey = $"{ContextCacheKeyPrefix}{userId}";
             var contextStopwatch = Stopwatch.StartNew();
             var contextCacheHit = _cache.TryGetValue(cacheKey, out FitBotContextDto context);
@@ -213,6 +224,12 @@ namespace FitTrackr.API.Services
                 : 0.3;
 
             var settings = new OpenAIPromptExecutionSettings { Temperature = temperature };
+
+            // Mevcut context injection AYNEN devam eder; function calling bunun üzerine ek bir yetenektir.
+            // Sıralı (sequential) çağrı: paralel tool call varsayılmaz (gpt-oss paralel çağrıyı desteklemez).
+            // Tool turu sayısı ToolRoundLimitFilter ile sınırlıdır (token/rate-limit koruması).
+            if (ShouldOfferTools(request.ActionType))
+                settings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
 
             string rawReply;
             var groqStopwatch = Stopwatch.StartNew();
@@ -262,12 +279,27 @@ namespace FitTrackr.API.Services
             };
         }
 
+        // Tool'lar yalnızca: current-user soyutlaması varsa, Kernel'de plugin kayıtlıysa ve serbest sohbetse sunulur.
+        private bool ShouldOfferTools(string? actionType) =>
+            _currentUser is not null
+            && _kernel.Plugins.Count > 0
+            && !PresetActionTypes.Contains(actionType ?? "free");
+
         // LLM çağrısının tek çıkış noktası: Semantic Kernel chat completion servisi (Groq, OpenAI-uyumlu endpoint).
         // Kernel'ı da iletiyoruz ki ileride function calling (plugin'ler) aynı noktadan çalışabilsin.
         private async Task<string> CompleteAsync(ChatHistory history, OpenAIPromptExecutionSettings settings)
         {
             var chatService = _kernel.GetRequiredService<IChatCompletionService>();
             var result = await chatService.GetChatMessageContentAsync(history, settings, _kernel);
+
+            // Tool turu limiti dolduysa SK döngüyü sonlandırır ve son tool sonucunu (Tool rolü) döndürür.
+            // Bu durumda, tool çağrısına izin vermeden (tool_choice: none) tek bir son istekle cevabı al.
+            if (result.Role == AuthorRole.Tool && settings.FunctionChoiceBehavior is not null)
+            {
+                settings.FunctionChoiceBehavior = FunctionChoiceBehavior.None();
+                result = await chatService.GetChatMessageContentAsync(history, settings, _kernel);
+            }
+
             return result.Content ?? string.Empty;
         }
 

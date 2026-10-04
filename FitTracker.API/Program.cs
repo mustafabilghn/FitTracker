@@ -2,6 +2,7 @@ using FitTrackr.API.Data;
 using FitTrackr.API.Mappings;
 using FitTrackr.API.Middlewares;
 using FitTrackr.API.Models.Domain;
+using FitTrackr.API.Plugins;
 using FitTrackr.API.Repositories;
 using FitTrackr.API.Validations;
 using FitTrackr.API.Services;
@@ -83,6 +84,8 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<PasswordResetService>();
 // FitBot LLM bağlantısı: Semantic Kernel (OpenAI-uyumlu connector) -> Groq
 builder.Services.AddGroqSemanticKernel();
+// FitBot function calling: request-scoped WorkoutPlugin (kullanıcı server-side belirlenir, modelden alınmaz)
+builder.Services.AddFitBotWorkoutPlugin();
 builder.Services.AddScoped<IAiWorkoutCoachService, AiWorkoutCoachService>();
 
 builder.Services.AddHttpContextAccessor();
