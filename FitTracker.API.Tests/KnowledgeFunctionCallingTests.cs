@@ -58,7 +58,16 @@ public class KnowledgeFunctionCallingTests
         Assert.Contains("KULLANICI VERİSİ", system);                         // mevcut context injection aynen duruyor
         Assert.Contains("=== GENEL FİTNESS BİLGİSİ (SearchFitnessKnowledge) ===", system);
         Assert.Contains("kullanıcının antrenman geçmişi DEĞİLDİR", system);
+        Assert.Contains("Kişisel geçmiş, performans, trend, plato veya planlı antrenman sorusu", system);
+        Assert.Contains("kişisel tool sonucunun YERİNE GEÇMEZ", system);
+        Assert.Contains("özel sayı, yüzde, aralık, eşik", system);
         Assert.Contains("ACSM %10", system);
+
+        var knowledgeTool = body.GetProperty("tools").EnumerateArray()
+            .Single(t => t.GetProperty("function").GetProperty("name").GetString() == ToolName)
+            .GetProperty("function");
+        Assert.Contains("never to answer a personal history", knowledgeTool.GetProperty("description").GetString());
+        Assert.Contains("do not invent numbers", knowledgeTool.GetProperty("description").GetString());
     }
 
     [Theory]
@@ -119,6 +128,33 @@ public class KnowledgeFunctionCallingTests
         Assert.Contains("Bench Press", tool);
         Assert.Contains("100", tool);
         Assert.Empty(h.Embeddings.Queries); // bilgi tabanı hiç sorgulanmadı
+    }
+
+    [Fact]
+    public async Task PersonalPerformanceQuestion_IsContractuallyRequiredToUsePersonalTool()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("p1", "Workout-GetPlateauExercises", "{}");
+        h.Llm.EnqueueReply("Bench Press platosu için kişisel verine göre değerlendirme yapıldı.");
+
+        await h.ChatAsync(UserA, "Bench Press performansım ve platom hakkında ne düşünüyorsun?");
+
+        Assert.Contains("Workout-GetPlateauExercises", h.Llm.Requests[0]);
+        Assert.Empty(h.Embeddings.Queries);
+    }
+
+    [Fact]
+    public async Task KnowledgeGroundingContract_RequiresUnsupportedNumbersToBeQualified()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"deload nedir"}""");
+        h.Llm.EnqueueReply("Kaynakta belirli bir yüzde veya aralık belirtilmiyor.");
+
+        var response = await h.ChatAsync(UserA, "Deload için kaynakta olmayan yüzde kaç azaltmalıyım?");
+
+        Assert.Contains("belirtilmiyor", response.Reply);
+        Assert.DoesNotContain("Kaynak: %30", response.Reply);
+        Assert.DoesNotContain("Kaynak: %40", response.Reply);
     }
 
     // ───────────────────── 12. General knowledge → SearchFitnessKnowledge ─────────────────────

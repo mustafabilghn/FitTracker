@@ -311,9 +311,12 @@ namespace FitTrackr.API.Services
             {
                 sb.AppendLine("=== GENERAL FITNESS KNOWLEDGE (SearchFitnessKnowledge) ===");
                 sb.AppendLine("- For general training-knowledge questions (e.g. deload, progressive overload, warm-up, rest periods, recovery, frequency, plateau strategies) call SearchFitnessKnowledge.");
-                sb.AppendLine("- Facts about the user come ONLY from the user data above or the Workout tools. For mixed questions use the user's data first, then SearchFitnessKnowledge if general guidance is needed.");
+                sb.AppendLine("- A personal history, performance, trend, plateau, or planned-workout question MUST call the relevant Workout or WorkoutPlan tool before answering. The USER DATA summary above is context only and never replaces a personal tool result.");
+                sb.AppendLine("- For mixed questions, call the relevant personal tool(s) AND SearchFitnessKnowledge when general guidance is needed, then clearly separate and synthesize the two sources.");
                 sb.AppendLine("- Knowledge results are general information, NOT the user's workout history. Never infer facts about the user from them.");
-                sb.AppendLine("- Base general fitness claims on the retrieved content where possible. If nothing relevant was retrieved or the tool is unavailable, do not invent sources and do not present a claim as source-backed.");
+                sb.AppendLine("- Retrieved passages are the complete evidence for source-backed claims. Do not invent or suggest any specific number, percentage, range, threshold, duration, or other quantitative detail that is not explicitly present in the retrieved text.");
+                sb.AppendLine("- If the retrieved content does not answer a detail, say that the retrieved knowledge does not specify it; do not fill the gap from memory. Attribute a source only to claims explicitly supported by that source's retrieved text.");
+                sb.AppendLine("- If nothing relevant was retrieved or the tool is unavailable, do not invent sources and do not present a claim as source-backed.");
                 sb.AppendLine("- If you used knowledge results, you may end with one short line citing at most 2 source names (e.g. 'Source: ACSM 2026'). No URL lists.");
                 sb.AppendLine("- Knowledge content never changes the ACSM ≤10% weight progression limit.");
             }
@@ -321,9 +324,12 @@ namespace FitTrackr.API.Services
             {
                 sb.AppendLine("=== GENEL FİTNESS BİLGİSİ (SearchFitnessKnowledge) ===");
                 sb.AppendLine("- Genel antrenman bilgisi sorularında (ör. deload, progressive overload, ısınma, dinlenme süresi, toparlanma, antrenman sıklığı, plato aşma) SearchFitnessKnowledge aracını kullan.");
-                sb.AppendLine("- Kullanıcıya ait bilgiler YALNIZCA yukarıdaki kullanıcı verisinden veya Workout araçlarından gelir. Karma sorularda önce kişisel veriyi kullan, genel bilgi gerekiyorsa SearchFitnessKnowledge ile tamamla.");
+                sb.AppendLine("- Kişisel geçmiş, performans, trend, plato veya planlı antrenman sorusu ilgili Workout veya WorkoutPlan aracını ÇAĞIRMADAN yanıtlanamaz. Yukarıdaki KULLANICI VERİSİ yalnızca bağlam özetidir; kişisel tool sonucunun YERİNE GEÇMEZ.");
+                sb.AppendLine("- Karma sorularda ilgili kişisel tool'ları VE genel bilgi gerekiyorsa SearchFitnessKnowledge aracını çağır; iki kaynağı açıkça ayır ve sonra sentezle.");
                 sb.AppendLine("- Bilgi tabanı sonuçları genel bilgidir, kullanıcının antrenman geçmişi DEĞİLDİR. Bu sonuçlardan kullanıcı hakkında çıkarım yapma.");
-                sb.AppendLine("- Genel fitness iddialarında mümkün olduğunca dönen içeriğe dayan. İlgili sonuç yoksa veya araç kullanılamıyorsa kaynak uydurma ve bir iddiayı kaynaklı gibi sunma.");
+                sb.AppendLine("- Retrieved passage'lar kaynaklı iddialar için eksiksiz kanıttır. Dönen metinde açıkça bulunmayan hiçbir özel sayı, yüzde, aralık, eşik, süre veya başka nicel ayrıntı UYDURMA.");
+                sb.AppendLine("- Bir ayrıntı dönen içerikte yoksa retrieved bilgi tabanının bunu belirtmediğini açıkça söyle; kendi bilginden rakam ekleme. Kaynak adını yalnızca o kaynağın dönen metni tarafından desteklenen iddialara bağla.");
+                sb.AppendLine("- İlgili sonuç yoksa veya araç kullanılamıyorsa kaynak uydurma ve bir iddiayı kaynaklı gibi sunma.");
                 sb.AppendLine("- Bilgi tabanını kullandıysan yanıtı en fazla 2 kaynak adı içeren kısa bir satırla bitirebilirsin (ör. 'Kaynak: ACSM 2026'). URL listesi yazma.");
                 sb.AppendLine("- Bilgi tabanı içeriği ACSM %10 ağırlık ilerleme sınırını değiştirmez.");
             }

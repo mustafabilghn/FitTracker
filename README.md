@@ -182,12 +182,13 @@ Yapılandırma (`appsettings.json` → `Rag`):
 | `QdrantEndpoint` / `QdrantGrpcPort` | `http://localhost:6333` / `6334` | Host REST endpoint'inden, port gRPC'den alınır |
 | `CollectionName` | `fittracker_fitness_knowledge` | |
 | `EmbeddingEndpoint` / `EmbeddingModel` | `http://localhost:11434` / `nomic-embed-text-v2-moe` | Boyut (768) merkezi `EmbeddingModelCatalog`'tan; katalogda olmayan model için `EmbeddingDimensions` ver |
-| `TopK` / `MinRelevanceScore` | `3` / `0.50` | En fazla 3 sonuç; eşik altı sonuçlar modele gitmez |
+| `TopK` / `MinRelevanceScore` | `3` / `0.35` | En fazla 3 sonuç; eşik altı sonuçlar modele gitmez |
 | `IngestOnStartup` | (boş) | Boşsa yalnızca Development'ta açılışta arka planda ingestion |
 
 - **Corpus:** [`FitTracker.API/RAG/Knowledge/fitness_knowledge.json`](FitTracker.API/RAG/Knowledge/fitness_knowledge.json) — her item bilinçli bir chunk'tır (id, title, text, category, language, authority, sourceName, sourceUrl, sourceVersion). Güncel ACSM 2026 bildirisi `authority: current`, güncellenmiş 2009 önerisi `authority: historical` olarak ayrı tutulur. Metinler kısa parafrazdır.
 - **Ingestion:** Development'ta açılışta otomatik çalışır. Her kaydın içerik + embedding yapılandırması hash'i Qdrant'ta saklanır; corpus değişmediyse yeniden embedding üretilmez, yalnızca değişen item'lar embed edilir, corpus'tan silinenler koleksiyondan da silinir. Embedding modeli/boyutu değişirse yeni bir `CollectionName` kullan.
 - **Erişilemezse:** Qdrant/Ollama kapalıysa uygulama ve Chat endpoint'i normal çalışır; tool modele genel bir `unavailable` sonucu döner (iç ayrıntı sızdırmaz) ve 30 sn boyunca tekrar denenmez.
+- **Eşik kalibrasyonu:** Ollama `nomic-embed-text-v2-moe` ve Qdrant ile yapılan smoke ölçümünde `0.30`, `0.35` ve `0.40` karşılaştırıldı. `0.35`, `Deload`, `Progressive overload` ve Bench Press platosu sorgularında doğru ilk chunk'ı korurken Bitcoin/hava durumu gibi alakasız sorgularda sonuç döndürmedi; `0.30` daha fazla düşük skorlu bağlam, `0.40` ise daha dar bağlam üretti. Bu nedenle üretim varsayılanı `0.35` seçildi.
 - **Güvenlik:** RAG yalnızca bilgi kaynağıdır; `SaveWorkoutPlan` doğrulaması ve ACSM ≤%10 guardrail'i bilgi tabanından bağımsız, sunucu tarafında aynen uygulanır.
 
 ### 4. MAUI Uygulaması

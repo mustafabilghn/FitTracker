@@ -171,6 +171,27 @@ public class FitnessKnowledgeRagTests
         Assert.True(result.Hits.SequenceEqual(result.Hits.OrderByDescending(x => x.Score)));
     }
 
+    [Theory]
+    [InlineData(0.30)]
+    [InlineData(0.35)]
+    [InlineData(0.40)]
+    public async Task Search_CandidateThresholdsFilterByConfiguredScore(double threshold)
+    {
+        using var unfiltered = RagHarness.Create(minRelevance: -1);
+        await unfiltered.Ingestion.IngestAsync();
+        var raw = await unfiltered.Search.SearchAsync("Bench Press'te plato yaşıyorum, ne yapabilirim?");
+        Assert.NotEmpty(raw.Hits);
+
+        using var filtered = RagHarness.Create(minRelevance: threshold);
+        await filtered.Ingestion.IngestAsync();
+        var result = await filtered.Search.SearchAsync("Bench Press'te plato yaşıyorum, ne yapabilirim?");
+
+        var expected = raw.Hits.Count(hit => hit.Score >= threshold);
+        Assert.Equal(expected == 0 ? KnowledgeSearchStatus.NoResults : KnowledgeSearchStatus.Ok, result.Status);
+        Assert.Equal(expected, result.Hits.Count);
+        Assert.All(result.Hits, hit => Assert.True(hit.Score >= threshold));
+    }
+
     [Fact]
     public async Task Search_UnrelatedQuery_ReturnsNothingAboveThreshold()
     {

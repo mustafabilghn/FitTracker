@@ -37,9 +37,11 @@ namespace FitTrackr.API.Plugins
         [KernelFunction, Description(
             "Searches FitTracker's curated GENERAL fitness knowledge base (progressive overload, strength, hypertrophy, recovery, " +
             "deload/fatigue, training frequency, warm-up, rest periods, technique/safety, returning after a break). " +
-            "Returns up to 3 short source-backed passages. Contains NO data about the user; use Workout tools for the user's own workouts.")]
+            "Returns up to 3 short source-backed passages. Contains NO data about the user; use Workout tools for the user's own workouts. " +
+            "Use this only for general fitness knowledge, never to answer a personal history, performance, trend, plateau, or planned-workout question. " +
+            "Treat returned passages as the complete evidence for source-backed claims: do not invent numbers, percentages, ranges, thresholds, or source attributions that are not explicitly supported by the passages.")]
         public async Task<string> SearchFitnessKnowledge(
-            [Description("Short general fitness question or keywords, e.g. 'deload nedir' or 'plato aşma'. No personal data.")] string query,
+            [Description("Short general fitness question or keywords, e.g. 'deload nedir' or 'plato aşma'. No personal data, user history, weights, trends, or planned workouts.")] string query,
             CancellationToken cancellationToken = default)
         {
             var result = await _search.SearchAsync(query, cancellationToken);
