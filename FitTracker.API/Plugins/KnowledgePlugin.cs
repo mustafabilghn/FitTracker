@@ -31,8 +31,13 @@ namespace FitTrackr.API.Plugins
         };
 
         private readonly IFitnessKnowledgeSearchService _search;
+        private readonly IRagGroundingContext? _groundingContext;
 
-        public KnowledgePlugin(IFitnessKnowledgeSearchService search) => _search = search;
+        public KnowledgePlugin(IFitnessKnowledgeSearchService search, IRagGroundingContext? groundingContext = null)
+        {
+            _search = search;
+            _groundingContext = groundingContext;
+        }
 
         [KernelFunction, Description(
             "Searches FitTracker's curated GENERAL fitness knowledge base (progressive overload, strength, hypertrophy, recovery, " +
@@ -45,6 +50,7 @@ namespace FitTrackr.API.Plugins
             CancellationToken cancellationToken = default)
         {
             var result = await _search.SearchAsync(query, cancellationToken);
+            _groundingContext?.Record(result);
             return JsonSerializer.Serialize(ToToolResult(result), ResultJson);
         }
 

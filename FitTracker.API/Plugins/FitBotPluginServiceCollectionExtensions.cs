@@ -93,9 +93,10 @@ namespace FitTrackr.API.Plugins
             services.TryAddSingleton<FitnessKnowledgeCollectionProvider>();
             services.TryAddSingleton<IKnowledgeIngestionService, KnowledgeIngestionService>();
             services.TryAddSingleton<IFitnessKnowledgeSearchService, FitnessKnowledgeSearchService>();
+            services.TryAddScoped<IRagGroundingContext, RagGroundingContext>();
 
-            // Kullanıcıya bağlı durum taşımaz (yalnızca bilgi tabanı): singleton plugin, diğerleriyle aynı transient KernelPlugin deseni.
-            services.TryAddSingleton<KnowledgePlugin>();
+            // Tool sonucu request-scoped grounding state'e yazılır; plugin bu nedenle request-scoped'tur.
+            services.TryAddScoped<KnowledgePlugin>();
             services.AddTransient<KernelPlugin>(sp =>
                 KernelPluginFactory.CreateFromObject(sp.GetRequiredService<KnowledgePlugin>(), KnowledgePlugin.PluginName));
 

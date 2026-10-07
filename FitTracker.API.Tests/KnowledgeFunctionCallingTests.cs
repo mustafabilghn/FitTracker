@@ -206,6 +206,52 @@ public class KnowledgeFunctionCallingTests
         Assert.False(response.GuardrailTriggered); // 100 kg baseline içinde
     }
 
+    [Fact]
+    public async Task MixedQuestion_SanitizesUnsupportedNumericClaims_ButKeepsPersonalWeight()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Bench Press"}""");
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
+        h.Llm.EnqueueReply("Bench Press ağırlığın 97.5 kg'dan 100 kg'a çıktı. Yükü %30-40 azalt ve %80-85 yoğunluk kullan. Ayrıca 10+ set ve 3-5 tekrar, 8-12 hafta boyunca %2-5 artış uygula.");
+
+        var response = await h.ChatAsync(UserA, "Bench Press'te plato yaşıyorum. Son performansıma bakıp ne yapabileceğimi anlat.");
+
+        Assert.Contains("100 kg", response.Reply);
+        Assert.DoesNotContain("%30-40", response.Reply);
+        Assert.DoesNotContain("%80-85", response.Reply);
+        Assert.DoesNotContain("10+ set", response.Reply);
+        Assert.DoesNotContain("3-5 tekrar", response.Reply);
+        Assert.DoesNotContain("8-12 hafta", response.Reply);
+        Assert.DoesNotContain("%2-5", response.Reply);
+        Assert.Contains("sayısal", response.Reply);
+    }
+
+    [Fact]
+    public async Task DeloadRange_IsKeptOnlyWhenTheSourceCaveatIsPreserved()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"deload zamanlama"}""");
+        h.Llm.EnqueueReply("Literatürde 4-6 haftalık aralıklar geçiyor, ancak Bell paneli sabit bir aralık önermedi.");
+
+        var response = await h.ChatAsync(UserA, "Deload ne zaman düşünülür?");
+
+        Assert.Contains("4-6", response.Reply);
+        Assert.Contains("sabit bir aralık önermedi", response.Reply);
+    }
+
+    [Fact]
+    public async Task DeloadRange_PrescriptiveMeaningIsReplacedWithSourceCaveat()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"deload zamanlama"}""");
+        h.Llm.EnqueueReply("Her 4-6 haftada bir deload yapmalısın.");
+
+        var response = await h.ChatAsync(UserA, "Deload ne zaman düşünülür?");
+
+        Assert.DoesNotContain("4-6", response.Reply);
+        Assert.Contains("sabit bir aralık önermiyor", response.Reply);
+    }
+
     // ───────────────────── 9. Personal data never flows through knowledge search ─────────────────────
 
     [Fact]

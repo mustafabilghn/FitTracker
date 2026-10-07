@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using FitTrackr.API.Models.DTO;
 using FitTrackr.API.Plugins;
+using FitTrackr.API.RAG;
 using FitTrackr.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using System.Text.RegularExpressions;
 
 namespace FitTrackr.API.Services
 {
@@ -30,6 +32,7 @@ namespace FitTrackr.API.Services
         private readonly ILogger<AiWorkoutCoachService> _logger;
         private readonly ICurrentUserContext? _currentUser;
         private readonly WorkoutPlanSaveOutcome? _saveOutcome;
+        private readonly IRagGroundingContext? _ragGroundingContext;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
 
@@ -60,10 +63,12 @@ namespace FitTrackr.API.Services
             ILogger<AiWorkoutCoachService> logger,
             IConfiguration configuration,
             ICurrentUserContext? currentUser = null,
-            WorkoutPlanSaveOutcome? saveOutcome = null)
+            WorkoutPlanSaveOutcome? saveOutcome = null,
+            IRagGroundingContext? ragGroundingContext = null)
         {
             _currentUser = currentUser;
             _saveOutcome = saveOutcome;
+            _ragGroundingContext = ragGroundingContext;
             _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
@@ -277,6 +282,7 @@ namespace FitTrackr.API.Services
 
             var reply = SanitizeForeignWords(rawReply);
             reply = SanitizeOutputPatterns(reply);
+            reply = SanitizeUnsupportedRagNumbers(reply, context);
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
                 reply = TruncateToSentences(reply, 4);
 
@@ -894,6 +900,92 @@ namespace FitTrackr.API.Services
                 text = System.Text.RegularExpressions.Regex.Replace(text, pattern, replacement);
 
             return text.Trim();
+        }
+
+        private string SanitizeUnsupportedRagNumbers(string text, FitBotContextDto personalContext)
+        {
+            if (string.IsNullOrWhiteSpace(text) || _ragGroundingContext?.WasSearchInvoked != true)
+                return text;
+
+            var personalNumbers = ExtractNumericExpressions(JsonSerializer.Serialize(personalContext));
+            var changed = false;
+            var safeSentences = new List<string>();
+
+            foreach (var sentence in Regex.Split(text, @"(?<=[.!?])\s+"))
+            {
+                if (string.IsNullOrWhiteSpace(sentence))
+                    continue;
+
+                var sanitized = sentence;
+                var numericMatches = Regex.Matches(sentence, NumericExpressionPattern).Cast<Match>().ToList();
+                var unsupported = numericMatches
+                    .Where(m => !IsAllowedNumber(m.Value, personalNumbers))
+                    .ToList();
+
+                if (unsupported.Count == 0 && !IsFixedSchedulePrescription(sentence, numericMatches))
+                {
+                    safeSentences.Add(sentence);
+                    continue;
+                }
+
+                // A retrieved range must not be turned into a fixed prescription when the source explicitly
+                // rejects a fixed schedule. This keeps the semantic caveat in the corpus intact.
+                if (IsFixedSchedulePrescription(sentence, numericMatches))
+                {
+                    safeSentences.Add(IsEnglish
+                        ? "The retrieved source does not recommend a fixed schedule."
+                        : "Retrieved kaynak sabit bir aralık önermiyor.");
+                    changed = true;
+                    continue;
+                }
+
+                foreach (var number in unsupported)
+                    sanitized = sanitized.Replace(number.Value, IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.OrdinalIgnoreCase);
+
+                if (sanitized.Contains(IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.Ordinal))
+                {
+                    safeSentences.Add(sanitized);
+                    changed = true;
+                }
+            }
+
+            if (!changed)
+                return text;
+
+            var result = string.Join(" ", safeSentences).Trim();
+            var fallback = IsEnglish
+                ? "The retrieved source does not specify the removed numeric detail."
+                : "Retrieved kaynak kaldırılan sayısal ayrıntıyı belirtmiyor.";
+            return string.IsNullOrWhiteSpace(result) ? fallback : $"{result} {fallback}";
+        }
+
+        private const string NumericExpressionPattern =
+            @"(?<![\w])%?\d+(?:[.,]\d+)?(?:\s*[-–‑]\s*%?\d+(?:[.,]\d+)?)?\+?%?(?![\w])";
+
+        private bool IsAllowedNumber(string value, HashSet<string> personalNumbers)
+        {
+            var normalized = RagGroundingContext.NormalizeNumber(value);
+            return personalNumbers.Contains(normalized)
+                || _ragGroundingContext!.ContainsNumericExpression(value);
+        }
+
+        private static HashSet<string> ExtractNumericExpressions(string text) =>
+            Regex.Matches(text, NumericExpressionPattern)
+                .Cast<Match>()
+                .Select(m => RagGroundingContext.NormalizeNumber(m.Value))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        private bool IsFixedSchedulePrescription(string sentence, IReadOnlyCollection<Match> numericMatches)
+        {
+            if (numericMatches.Count == 0 || !_ragGroundingContext!.Passages.Any())
+                return false;
+
+            var source = string.Join(" ", _ragGroundingContext.Passages.Select(p => p.Text));
+            var hasScheduleCaveat = Regex.IsMatch(source, @"(?i)(sabit|kesin).{0,40}(aralık|takvim).{0,40}(öner|tavsiye)");
+            var isPrescription = Regex.IsMatch(sentence, IsEnglish
+                ? @"(?i)\b(should|must|recommend|recommended|do)\b"
+                : @"(?i)\b(yapmalısın|uygula|öneriyorum|önerilir|yapılmalı)\b");
+            return hasScheduleCaveat && isPrescription;
         }
 
         // Türkçe hedefte: bilinen yabancı bağlaç/dolgu kelimelerini güvenli kelime sınırı

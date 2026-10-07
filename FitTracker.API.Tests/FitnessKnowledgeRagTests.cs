@@ -249,9 +249,10 @@ public class FitnessKnowledgeRagTests
         Assert.True(parameter.IsRequired);
         Assert.Contains("NO data about the user", function.Description);
 
-        // Plugin yalnızca bilgi araması servisine bağımlıdır: kullanıcı/DB/kimlik bağımlılığı yok.
+        // Plugin yalnızca bilgi araması ve request-scoped grounding state'ine bağımlıdır: kullanıcı/DB/kimlik bağımlılığı yok.
         var ctorParameters = typeof(KnowledgePlugin).GetConstructors().Single().GetParameters();
-        Assert.Equal(new[] { typeof(IFitnessKnowledgeSearchService) }, ctorParameters.Select(p => p.ParameterType).ToArray());
+        Assert.Equal(new[] { typeof(IFitnessKnowledgeSearchService), typeof(IRagGroundingContext) },
+            ctorParameters.Select(p => p.ParameterType).ToArray());
     }
 
     [Fact]
