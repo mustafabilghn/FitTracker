@@ -1,0 +1,238 @@
+{
+  "corpus": "fittracker-fitness-knowledge",
+  "version": "2026-10-07.1",
+  "description": "FitBot genel fitness bilgi tabanı. Her item bilinçli olarak yazılmış tek bir retrieval chunk'ıdır (otomatik bölme yok). Metinler kaynakların kısa Türkçe parafrazıdır; birebir alıntı içermez. authority=current: güncel/otoriter kaynak; authority=historical: güncellenmiş eski öneri (yalnızca bağlam için, güncel kaynakla çelişirse güncel olan esastır). Kişisel kullanıcı verisi İÇERMEZ.",
+  "items": [
+    {
+      "id": "rt-fundamentals-any-training",
+      "title": "Direnç antrenmanının temeli: hiç yapmamaktan düzenli antrenmana geçmek",
+      "category": "resistance_training_fundamentals",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM'nin 2026 pozisyon bildirisi, 137 sistematik derlemeyi bir araya getiren bir 'derlemeler derlemesi'dir. Bildiriye göre sağlıklı yetişkinlerde direnç antrenmanı, hiç egzersiz yapmamaya kıyasla kuvveti, kas kütlesini (hipertrofi), gücü, kas dayanıklılığını ve yürüme hızı, denge, merdiven çıkma gibi günlük fiziksel fonksiyonları anlamlı şekilde geliştirir. Ana mesaj, en büyük kazancın hiç antrenman yapmamaktan düzenli ve ilerleyen (progressive) bir direnç antrenmanına geçişte elde edildiğidir. Antrenmana düzenli katılımı artıran kişiselleştirme, belirli bir set-tekrar formülüne katı şekilde bağlı kalmaktan daha önemli görülür. Tükenişe kadar çalışma, ekipman seçimi (serbest ağırlık ya da makine) ve karmaşık periyodizasyon, ortalama sağlıklı yetişkinde sonuçları tutarlı biçimde değiştirmemiştir. Öneriler, hiç deneyimi olmayan yeni başlayanlardan deneyimli sporculara kadar sağlıklı yetişkinleri kapsar."
+    },
+    {
+      "id": "rt-fundamentals-weekly-minimum",
+      "title": "Halk sağlığı için asgari hedef: haftada en az 2 gün kas güçlendirme",
+      "category": "resistance_training_fundamentals",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)",
+      "sourceUrl": "https://www.who.int/publications/i/item/9789240015128",
+      "sourceVersion": "WHO 2020",
+      "text": "Dünya Sağlık Örgütü'nün 2020 fiziksel aktivite kılavuzu, yetişkinlerin haftada en az 2 gün, tüm büyük kas gruplarını çalıştıran orta veya daha yüksek yoğunlukta kas güçlendirici aktiviteler yapmasını önerir; bu öneri haftalık aerobik aktivite hedeflerine ek olarak verilir. 65 yaş üstü yetişkinler için ayrıca dengeyi ve kuvveti birlikte çalıştıran, orta veya daha yüksek yoğunlukta çok bileşenli aktiviteler haftada en az 3 gün önerilir. Kılavuz, hiç yapmamaktansa biraz aktivitenin daha iyi olduğunu ve aktivitenin zamanla kademeli olarak artırılmasını vurgular. Bu öneriler halk sağlığı düzeyinde bir asgari hedeftir; kuvveti veya kas kütlesini artırmaya yönelik ayrıntılı antrenman reçetesi için ACSM 2026 pozisyon bildirisi gibi spor bilimi kaynakları esas alınmalıdır."
+    },
+    {
+      "id": "progressive-overload-principle",
+      "title": "Progressive overload (aşamalı yüklenme) nedir?",
+      "category": "progressive_overload",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "Progressive overload (aşamalı yüklenme), vücudun alıştığı antrenman uyaranını zaman içinde kademeli olarak artırma ilkesidir. Artış; kullanılan ağırlık, aynı ağırlıkla yapılan tekrar sayısı, set sayısı (haftalık hacim) veya sete harcanan efor ile sağlanabilir. ACSM 2026 bildirisi, sağlıklı yetişkinlerin ilerleyen (progressive) bir direnç antrenmanı yapmasını önerir. Bildiriye göre başlangıçtaki faydalar için sürekli artış şart olmayabilir; ancak uzun vadede ilerlemeye devam etmek isteyenler için aşamalı yüklenme büyük olasılıkla gereklidir ve yeni başlayanların anlamlı kazanç için ilerlemeye ihtiyaç duyabileceği belirtilir. Artışlar küçük ve kontrollü tutulmalı, teknik bozuluyorsa yük artırılmamalıdır. Ağırlığın ne zaman artırılacağına dair somut bir kural, ACSM'nin 2009 bildirisindeki %2-10 kuralında tarif edilir (tarihsel kaynak)."
+    },
+    {
+      "id": "progressive-overload-acsm-2009-load-rule",
+      "title": "ACSM 2009: ağırlığı %2-10 artırma kuralı ve FitTracker'ın %10 güvenlik sınırı (tarihsel kaynak)",
+      "category": "progressive_overload",
+      "language": "tr",
+      "authority": "historical",
+      "sourceName": "ACSM Position Stand: Progression Models in Resistance Training (2009)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0b013e3181915670",
+      "sourceVersion": "Med Sci Sports Exerc 2009;41(3):687-708 (2026 bildirisiyle güncellendi)",
+      "text": "ACSM'nin 2009 tarihli 'Progression Models in Resistance Training for Healthy Adults' bildirisi, belirli bir tekrar maksimumuyla (RM) çalışırken kişi mevcut yükle hedef tekrar sayısının 1-2 tekrar fazlasını art arda iki antrenmanda yapabildiğinde yükün %2-10 artırılmasını önerir. Bu bildiri 2026'da yayımlanan yeni ACSM pozisyon bildirisiyle güncellenmiştir; genel antrenman reçetesi için 2026 bildirisi esas alınır. FitTracker ise bu kuraldan türetilen ölçütü temkinli bir güvenlik sınırı olarak uygular: önerilen veya kaydedilen bir plandaki ağırlık, o egzersizin son referans maksimum ağırlığının en fazla %10 üstünde olabilir. Bu sınır uygulamanın sunucu tarafında sabit bir kuralıdır; bilgi tabanındaki hiçbir içerik bu sınırı gevşetmez veya ortadan kaldırmaz."
+    },
+    {
+      "id": "strength-load-sets-frequency",
+      "title": "Maksimal kuvvet için yük, set ve sıklık",
+      "category": "strength_training",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisine göre maksimal kuvvet kazanımları en iyi, daha ağır yüklerle, yani bir tekrar maksimumunun (1RM) yaklaşık %80'i ve üzerinde yapılan antrenmanla elde edilir; yük ile kuvvet artışı arasında doz-yanıt ilişkisi vardır. Kuvvet için egzersiz başına seansta 2-3 set ve haftada en az 2 seans önerilir. Bildirinin aktardığı analizlere göre egzersiz başına yaklaşık 2-3 setin ötesinde eklenen setlerin kuvvete getirisi azalır. Bildiri, sağlıklı yetişkinlerin egzersiz başına en az iki set yapmasını tavsiye eder. Set arası kısa (1 dakikadan az) ve uzun (1 dakikadan fazla) dinlenme arasında kuvvet açısından anlamlı fark bulunmamış, serbest ağırlık ile makine arasında da kuvvet kazanımı açısından fark görülmemiştir."
+    },
+    {
+      "id": "hypertrophy-volume-and-load",
+      "title": "Kas büyümesi (hipertrofi) için haftalık hacim ve yük",
+      "category": "hypertrophy",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisine göre hipertrofi için en belirleyici değişkenlerden biri haftalık hacimdir: kas grubu başına haftada 10 set ve üzeri daha yüksek kas büyümesiyle ilişkilidir. Hacim arttıkça getiri azalır; bildirinin aktardığı meta-regresyona göre yaklaşık 18-20 haftalık setin ötesinde ek fayda küçülür. Yük konusunda geniş bir aralık etkilidir: setler yeterli eforla, yani tükenişe yakın yapıldığında, düşük (1RM'nin yaklaşık %30'u) ile yüksek (1RM'ye yakın) yükler arasında kas büyümesi açısından fark bulunmamıştır. Böylece kişi eklemlerine, ekipmanına ve tercihine uygun bir tekrar aralığı seçebilir. Toplam haftalık hacim eşitlendiğinde, haftada 1 gün ile 5 günden fazla çalışmak arasında hipertrofi açısından fark görülmemiştir; hacim haftaya pratik şekilde dağıtılabilir."
+    },
+    {
+      "id": "effort-proximity-to-failure",
+      "title": "Tükenişe kadar çalışmak gerekli mi? (efor ve RIR)",
+      "category": "hypertrophy",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisi, setleri anlık kas yorgunluğuna, yani tükenişe (failure) kadar götürmenin kuvvet, hipertrofi ve güç kazanımlarını tutarlı biçimde artırmadığını bildirir. Bunun yerine tükenişe yakın çalışmak yeterli görünür; bildiri pratik bir hedef olarak setin sonunda yaklaşık 2-3 tekrar daha yapabilecek durumda kalmayı (2-3 RIR, 'reps in reserve') önerir. Bununla birlikte kesin RIR ve algılanan zorluk hedeflerini belirlemek için kanıtın henüz yetersiz olduğunu da not eder. Tükenişe kadar kaldırmak, damar sistemi ve sakatlanma riskleri nedeniyle bazı gruplarda, örneğin yaşlı bireylerde, uygun olmayabilir. Hafif yüklerle çalışırken kas büyümesi için setlerin tükenişe yakın bitirilmesi önemlidir; hafif yük ve düşük eforla yapılan setler yeterli uyaran sağlamayabilir."
+    },
+    {
+      "id": "training-frequency",
+      "title": "Haftada kaç gün antrenman yapılmalı? (antrenman sıklığı)",
+      "category": "training_frequency",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisi, kas gruplarını haftada en az 2 kez çalıştırmayı birincil öneri olarak verir; kuvvet kazanımları haftada 2 ve daha fazla seansla ilişkilidir. Hipertrofi açısından ise toplam haftalık hacim eşitlendiğinde haftada 1 gün ile 5 günden fazla antrenman arasında anlamlı fark bulunmamıştır. Yani sıklık, kendi başına bir hedef olmaktan çok haftalık set hedefine ulaşmayı kolaylaştıran bir araçtır. Haftalık hacmi birkaç seansa bölmek, seans süresini kısaltarak her seansın kalitesini korumaya yardımcı olabilir. Dünya Sağlık Örgütü de (2020) tüm büyük kas gruplarını çalıştıran kas güçlendirici aktiviteyi haftada en az 2 gün önerir. Bildirinin genel mesajına göre programın kişinin takvimine uyması ve sürdürülebilir olması, belirli bir bölünmüş program (split) seçmekten daha önemlidir."
+    },
+    {
+      "id": "rest-periods-between-sets",
+      "title": "Setler arası dinlenme süresi",
+      "category": "rest_periods",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Grgic et al., Rest Interval Duration and Muscular Strength: Systematic Review (2018); ACSM Position Stand (2026)",
+      "sourceUrl": "https://doi.org/10.1007/s40279-017-0788-x",
+      "sourceVersion": "Sports Med 2018;48(1):137-151; Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisinde kuvvet kazanımı için set arası kısa (1 dakikadan az) ve uzun (1 dakikadan fazla) dinlenme arasında anlamlı fark bulunmamış, hipertrofi için ise veri yetersiz bulunmuştur; bildiri belirli bir dinlenme süresi reçetesi vermez. Grgic ve arkadaşlarının 2018 sistematik derlemesine (23 çalışma) göre 60 saniyeden kısa dinlenmelerle de kayda değer kuvvet artışı mümkündür. Antrenmanlı kişilerde kuvveti en üst düzeye çıkarmak için 2 dakikadan uzun dinlenme gerekli görünürken, antrenmansız kişilerde yaklaşık 60-120 saniye yeterli görünmektedir. Derleme ayrıca mevcut önerilerin önemli kısmının kısa süreli (akut) çalışmalara dayandığını not eder. Pratikte ağır ve çok eklemli hareketlerde (Squat, Bench Press gibi), bir sonraki sette tekrar sayısını ve tekniği koruyabilecek kadar dinlenmek mantıklıdır."
+    },
+    {
+      "id": "warm-up-before-resistance-training",
+      "title": "Direnç antrenmanından önce ısınma",
+      "category": "warm_up",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Ribeiro et al., Warm-up in Resistance Training and Strength Performance: Systematic Review (2021)",
+      "sourceUrl": "https://revistas.rcaap.pt/motricidade/article/view/21143",
+      "sourceVersion": "Motricidade 2021;17",
+      "text": "Ribeiro ve arkadaşlarının 2021 sistematik derlemesi (11 çalışma), ısınmanın direnç antrenmanı performansına, özellikle maksimal kuvvete ve tükenişe kadar yapılabilen tekrar sayısına etkisini incelemiştir. Genel ısınmanın (ör. hafif kardiyo) ardından spesifik ısınma yapmanın etkisi konusunda sonuçlar tutarlı değildir; bazı çalışmalarda spesifik ısınma ısınmasız duruma göre fark yaratmamış, bazılarında ise en iyi maksimal kuvvet sonucunu yalnızca spesifik ısınma vermiştir. Derleme, asıl çalışma yüküne yakın yüklerle yapılan spesifik ısınmanın maksimal kuvveti ve tekrar sayısını olumlu etkileyebileceğini öne sürer. Genel bir uygulama olarak (derlemenin doğrudan bulgusu değildir), kısa ve hafif bir genel ısınmanın ardından ilk çalışma hareketini hafif ağırlıkla başlayıp birkaç kademeyle çalışma ağırlığına yaklaşmak (ısınma setleri) ve bu setleri yorgunluk yaratmayacak kadar kısa tutmak tercih edilir."
+    },
+    {
+      "id": "recovery-and-sleep",
+      "title": "Toparlanma ve uyku",
+      "category": "recovery",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Vitale et al., Sleep Hygiene for Optimizing Recovery in Athletes (2019)",
+      "sourceUrl": "https://doi.org/10.1055/a-0905-3103",
+      "sourceVersion": "Int J Sports Med 2019;40(8):535-543",
+      "text": "Toparlanma (recovery), antrenmanın oluşturduğu yorgunluğun giderilip vücudun bir sonraki antrenmana hazır hale gelmesidir ve uyku bunun temel bileşenlerinden biridir. Vitale ve arkadaşlarının 2019 derlemesine göre uyku kısıtlaması Bench Press, Leg Press ve Deadlift gibi hareketlerde maksimal ve submaksimal kaldırış performansını düşürebilir; reaksiyon süresi, doğruluk, karar verme ve ruh hali de olumsuz etkilenir. Derleme, gece başına temel olarak 7-9 saat uyku hedeflenmesini, sporcuların daha fazlasına ihtiyaç duyabileceğini belirtir. Önerilen uyku hijyeni uygulamaları arasında hafta sonu dahil her gün aynı saatte uyanmak, öğleden sonra kafeinden kaçınmak, yatmadan yaklaşık 2 saat önce ekranı bırakmak, sessiz, karanlık ve serin bir yatak odası, kısa ve öğleden sonra erken bitirilen şekerlemeler ve yatmadan hemen önce çok yoğun antrenmandan kaçınmak yer alır."
+    },
+    {
+      "id": "deload-definition",
+      "title": "Deload nedir?",
+      "category": "deload_fatigue",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Bell et al., Integrating Deloading into Strength and Physique Sports Training: Delphi Consensus (2023)",
+      "sourceUrl": "https://doi.org/10.1186/s40798-023-00633-0",
+      "sourceVersion": "Sports Med Open 2023;9:87",
+      "text": "Deload, fiziksel ve zihinsel yorgunluğu azaltmak, toparlanmayı desteklemek ve sonraki antrenman dönemine hazırlığı artırmak için planlanan, antrenman yükünün geçici olarak azaltıldığı dönemdir. Bell ve arkadaşlarının 2023 uluslararası Delphi uzlaşı çalışmasında kuvvet ve fizik sporlarında çalışan antrenörler; deload'un toplam antrenman talebini azaltmak olduğu, yorgunluğu hafifletme, sakatlık ve aşırı yüklenme (overreaching) riskini azaltma ve normal antrenmana bağlılığı artırma amaçlarına hizmet ettiği konusunda uzlaşmıştır. En sık yöntem hacmi düşürmektir: antrenman günü, set veya tekrar sayısını azaltmak. Hacim düşürüldüğünde yoğunluk aynı kalabilir. Egzersizlerin değiştirilmemesi, alışılmamış hareketlerden kaynaklanan kas ağrısını önlemek için önerilir; ana çok eklemli hareketler korunup teknik üzerine odaklanılabilir. Literatürde sıkça yaklaşık bir haftalık süre anılsa da panel süre için sabit bir değerde uzlaşmamıştır."
+    },
+    {
+      "id": "deload-timing-and-fatigue",
+      "title": "Ne zaman deload yapılmalı? (yorgunluk ve zamanlama)",
+      "category": "deload_fatigue",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Bell et al., Integrating Deloading into Strength and Physique Sports Training: Delphi Consensus (2023)",
+      "sourceUrl": "https://doi.org/10.1186/s40798-023-00633-0",
+      "sourceVersion": "Sports Med Open 2023;9:87",
+      "text": "Bell ve arkadaşlarının 2023 Delphi uzlaşısına göre deload'un zamanlaması ve sıklığı sabit bir takvime bağlı değildir; kişinin antrenmana verdiği yanıta ve diğer spor yüklerine göre belirlenir. Antrenörler deload'un önceden planlanabileceği (ör. bir antrenman bloğunun son haftası veya iki blok arası), kişinin fiziksel ya da zihinsel olarak yorgun hissettiği anda bloğun hangi haftasında olursa olsun uygulanabileceği (autoregulation) veya performans verilerine dayandırılabileceği konusunda uzlaşmıştır. Literatürde 4-6 haftada bir gibi aralıklar geçse de panel sabit bir aralık önermemiştir. Birkaç antrenman boyunca performansın düşmesi veya durması ve geçmeyen yorgunluk hissi, planlı bir deload'u değerlendirmek için pratik işaretler olarak kullanılabilir."
+    },
+    {
+      "id": "plateau-options",
+      "title": "Plato (takılma noktası) aşmak için seçenekler",
+      "category": "progressive_overload",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand (2026); Bell et al., Deloading Delphi Consensus (2023)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872; Sports Med Open 2023;9:87",
+      "text": "Plato, bir egzersizde birkaç hafta boyunca ağırlık veya tekrar artışının durmasıdır. ACSM 2026 bildirisi uzun vadeli ilerlemenin büyük olasılıkla aşamalı yüklenme gerektirdiğini belirtir; platoda antrenman uyaranını ve yorgunluğu birlikte yönetmek gerekir. Seçenekler: (1) yorgunluk birikmişse kısa bir deload ile hacmi geçici olarak azaltıp toparlanmak (Bell ve ark. 2023); (2) haftalık hacmi gözden geçirmek, örneğin kas grubu başına haftalık seti kademeli artırmak (hipertrofi kazanımları haftada 10 ve üzeri setle ilişkilidir) veya toparlanmayı aşan fazla hacmi azaltmak; (3) tekrar aralığını değiştirmek: kuvvet için daha ağır (1RM'nin yaklaşık %80'i ve üzeri) düşük tekrarlı setler, kas büyümesi için tükenişe yakın daha yüksek tekrarlı setler; (4) hareketin bir varyasyonunu denemek (bu konuda kanıt sınırlıdır); (5) uyku ve toparlanmayı gözden geçirmek. Yük artışları küçük adımlarla yapılmalıdır; FitTracker'da önerilen ağırlık, son referans maksimumun en fazla %10 üstünde olabilir."
+    },
+    {
+      "id": "exercise-technique-and-safety",
+      "title": "Egzersiz tekniği ve genel güvenlik",
+      "category": "technique_safety",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Physical Activity Guidelines for Americans, 2nd ed. (2018); ACSM Position Stand (2026)",
+      "sourceUrl": "https://odphp.health.gov/our-work/nutrition-physical-activity/physical-activity-guidelines/current-guidelines",
+      "sourceVersion": "US HHS 2018; Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisi direnç antrenmanını her yaştan sağlıklı yetişkin için güvenli olarak tanımlar; tükenişe kadar kaldırmanın ise bazı gruplarda, örneğin yaşlı bireylerde, damar sistemi ve sakatlanma riskleri nedeniyle uygun olmayabileceğini belirtir. ABD Fiziksel Aktivite Kılavuzu (2018) güvenli aktivite için şunları önerir: aktivite miktarını zaman içinde kademeli artırmak, hareketsiz kişilerin düşük seviyeden başlayıp yavaş ilerlemesi ('start low, go slow'), uygun ekipman ve güvenli ortam seçmek, kronik hastalığı veya belirtisi olan kişilerin bir sağlık profesyonelinin gözetiminde olması. Genel bir uygulama olarak kontrollü bir tempo, ağrısız hareket açıklığı ve tekniği bozmadan yapılabilen bir yük tercih edilir. Keskin veya batıcı ağrı, göğüs ağrısı, nefes darlığı ya da baş dönmesi gibi belirtilerde egzersiz bırakılmalı ve bir sağlık profesyoneline başvurulmalıdır."
+    },
+    {
+      "id": "detraining-after-a-break",
+      "title": "Antrenmana ara verince ne kaybedilir? (detraining)",
+      "category": "return_to_training",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Bosquet et al., Effect of Training Cessation on Muscular Performance: Meta-analysis (2013)",
+      "sourceUrl": "https://doi.org/10.1111/sms.12047",
+      "sourceVersion": "Scand J Med Sci Sports 2013;23(3):e140-e149",
+      "text": "Bosquet ve arkadaşlarının 2013 meta-analizi (103 çalışma), direnç antrenmanına ara vermenin kas performansının ölçülen tüm bileşenlerini azalttığını göstermiştir: en büyük düşüş submaksimal kuvvette, ardından maksimal kuvvette ve maksimal güçte görülmüştür. Kayıp, aranın süresi uzadıkça artar (doz-yanıt ilişkisi). 65 yaş üstü bireylerde kayıp daha büyüktür; maksimal kuvvet ve güç kaybı, hareketsiz kişilerde rekreasyonel sporculara göre daha fazladır. Bu meta-analize dayanan sonraki yorumlara göre aranın ilk haftalarındaki kuvvet kaybı ağırlıklı olarak sinirsel uyumlardaki gerilemeden, birkaç haftayı aşan aralarda ise kas yapısındaki değişikliklerden kaynaklanır. Dönüşte aradan önceki yüklere hemen dönmek yerine kademeli bir geri dönüş planlamak gerekir."
+    },
+    {
+      "id": "return-to-training-after-inactivity",
+      "title": "Uzun aradan sonra antrenmana geri dönüş",
+      "category": "return_to_training",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "Physical Activity Guidelines for Americans, 2nd ed. (2018); Bosquet et al. (2013); ACSM Position Stand (2026)",
+      "sourceUrl": "https://odphp.health.gov/our-work/nutrition-physical-activity/physical-activity-guidelines/current-guidelines",
+      "sourceVersion": "US HHS 2018; Scand J Med Sci Sports 2013; Med Sci Sports Exerc 2026",
+      "text": "Birkaç hafta veya daha uzun bir aradan sonra kuvvet ve güç bir miktar azalmış olabilir ve kayıp aranın süresiyle artar (Bosquet ve ark., 2013). ABD Fiziksel Aktivite Kılavuzu (2018), aktivitenin zamanla kademeli artırılmasını ve hareketsiz bir dönemden gelenlerin düşük seviyeden başlayıp yavaş ilerlemesini önerir. Genel bir uygulama olarak ilk seanslarda aradan önceki ağırlıkların belirgin şekilde altında ve daha az setle başlamak, setleri tükenişten uzak bitirmek, teknik ve hareket açıklığına odaklanmak, ardından birkaç hafta içinde yükü ve hacmi kademeli artırmak mantıklıdır. ACSM 2026 bildirisi kas gruplarını haftada en az 2 kez çalıştırmayı önerdiği için dönüşte haftada 2 tüm vücut seansı makul bir başlangıçtır. FitTracker'da önerilen ağırlıklar dönüşte de %10 ilerleme sınırına tabidir."
+    },
+    {
+      "id": "exercise-selection-free-weights-vs-machines",
+      "title": "Serbest ağırlık mı, makine mi? (egzersiz seçimi)",
+      "category": "resistance_training_fundamentals",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "ACSM 2026 bildirisinde serbest ağırlık ile makine kullanımı arasında kuvvet kazanımı açısından fark bulunmamıştır; bu sonuç tek bir derlemeye dayanır. Hipertrofi için ise bu karşılaştırmayı yapacak veri yetersizdir. Tek eklemli ve çok eklemli hareketlerin karşılaştırılması ve egzersiz çeşitliliğinin etkisi konusunda da bildiri net bir sonuç çıkarmak için yeterli kanıt bulamamıştır. Bildirinin genel mesajı, programı kişinin tercihine, erişebildiği ekipmana ve kendini güvende hissettiği hareketlere göre kişiselleştirmenin, düzenli katılımı artırdığı için belirli bir ekipman türünü seçmekten daha önemli olduğudur. Genel bir uygulama olarak çok eklemli hareketler (Squat, Bench Press, Row gibi) az sayıda egzersizle birçok kas grubunu çalıştırmanın pratik bir yoludur."
+    },
+    {
+      "id": "periodization",
+      "title": "Periyodizasyon gerekli mi?",
+      "category": "resistance_training_fundamentals",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "Periyodizasyon, antrenman değişkenlerinin (yük, hacim, tekrar aralığı) dönemler halinde planlı olarak değiştirilmesidir. ACSM 2026 bildirisine göre periyodizasyon sağlıklı yetişkinlerde sonuçları tutarlı biçimde değiştirmemiştir ve periyodize programlar, periyodize olmayan programlardan anlamlı şekilde üstün bulunmamıştır. Yalnızca bir derleme, hacim eşitlendiğinde kuvvet için periyodize programları hafifçe avantajlı bulmuştur. Ortalama bir yetişkin için karmaşık periyodizasyon modelleri yerine düzenli, aşamalı ilerleyen ve sürdürülebilir bir program yeterlidir. Daha ileri seviyede veya belirli bir yarışma hedefi olan sporcularda planlı antrenman blokları ve deload dönemleri yorgunluk yönetimi için kullanılabilir (bkz. deload)."
+    },
+    {
+      "id": "power-training",
+      "title": "Güç (patlayıcı kuvvet) antrenmanı",
+      "category": "strength_training",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand: Resistance Training Prescription (2026)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872",
+      "text": "Güç (power), kuvvetin hızlı üretilebilmesidir; sıçrama veya hızlı ayağa kalkma gibi hareketlerde belirleyicidir. ACSM 2026 bildirisine göre güç gelişimi için Olimpik tarz kaldırışlar, kaldırma (konsantrik) fazının mümkün olduğunca hızlı yapıldığı güç odaklı direnç antrenmanı, orta yükler (1RM'nin yaklaşık %30-70'i) ve düşük-orta hacim (bildiride en fazla yaklaşık 24 tekrar×set olarak tanımlanır) etkilidir; eksantrik flywheel antrenmanı da etkili yöntemler arasında listelenmiştir. Bildiri, tükenişe kadar çalışmanın güç kazanımını artırmadığını da belirtir. Genel bir uygulama olarak güç antrenmanında her tekrar yüksek hızla ve iyi teknikle yapılır; hız belirgin şekilde düşmeye başladığında set bitirilir."
+    },
+    {
+      "id": "beginner-starting-framework",
+      "title": "Yeni başlayanlar için direnç antrenmanı çerçevesi",
+      "category": "resistance_training_fundamentals",
+      "language": "tr",
+      "authority": "current",
+      "sourceName": "ACSM Position Stand (2026); WHO Guidelines (2020); Physical Activity Guidelines for Americans (2018)",
+      "sourceUrl": "https://doi.org/10.1249/MSS.0000000000003897",
+      "sourceVersion": "Med Sci Sports Exerc 2026;58(4):851-872; WHO 2020; US HHS 2018",
+      "text": "ACSM 2026 bildirisinin önerileri hiç direnç antrenmanı deneyimi olmayanları da kapsar ve en büyük kazancın hiç yapmamaktan düzenli antrenmana geçişte elde edildiğini vurgular. Yeni başlayan bir yetişkin için kanıta dayalı temel çerçeve şöyledir: tüm büyük kas gruplarını haftada en az 2 gün çalıştırmak (ACSM 2026; WHO 2020), egzersiz başına en az 2 set yapmak, setleri tükenişe kadar değil tükenişe yakın (yaklaşık 2-3 tekrar yedekte) bitirmek ve yükü zamanla kademeli artırmak. Bildiri, yeni başlayanların anlamlı kazanç için ilerlemeye (progression) ihtiyaç duyabileceğini belirtir. Hareketsiz bir dönemden gelenler için ABD Fiziksel Aktivite Kılavuzu (2018) düşük seviyeden başlayıp yavaş ilerlemeyi önerir. Kişinin keyif aldığı ve sürdürebileceği bir program seçmesi, düzenli katılım için belirleyicidir."
+    }
+  ]
+}

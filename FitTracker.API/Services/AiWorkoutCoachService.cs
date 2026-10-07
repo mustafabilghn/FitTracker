@@ -207,6 +207,9 @@ namespace FitTrackr.API.Services
             contextStopwatch.Stop();
 
             var systemPrompt = BuildSystemPrompt(request.ActionType, context);
+            // RAG yalnızca bilgi tabanı tool'u bu istekte gerçekten sunuluyorsa prompt'a girer; aksi halde prompt NON-RAG ile aynı.
+            if (ShouldOfferKnowledgeTool(request.ActionType))
+                systemPrompt += Environment.NewLine + Environment.NewLine + BuildKnowledgeGroundingRules();
 
             var chatHistory = new ChatHistory(systemPrompt);
 
@@ -296,6 +299,36 @@ namespace FitTrackr.API.Services
             _currentUser is not null
             && _kernel.Plugins.Count > 0
             && !PresetActionTypes.Contains(actionType ?? "free");
+
+        private bool ShouldOfferKnowledgeTool(string? actionType) =>
+            ShouldOfferTools(actionType) && _kernel.Plugins.Contains(KnowledgePlugin.PluginName);
+
+        // Minimum grounding kuralları: genel bilgi ile kişisel veri ayrı tutulur; bilgi tabanı ACSM sınırını değiştirmez.
+        private static string BuildKnowledgeGroundingRules()
+        {
+            var sb = new StringBuilder();
+            if (IsEnglish)
+            {
+                sb.AppendLine("=== GENERAL FITNESS KNOWLEDGE (SearchFitnessKnowledge) ===");
+                sb.AppendLine("- For general training-knowledge questions (e.g. deload, progressive overload, warm-up, rest periods, recovery, frequency, plateau strategies) call SearchFitnessKnowledge.");
+                sb.AppendLine("- Facts about the user come ONLY from the user data above or the Workout tools. For mixed questions use the user's data first, then SearchFitnessKnowledge if general guidance is needed.");
+                sb.AppendLine("- Knowledge results are general information, NOT the user's workout history. Never infer facts about the user from them.");
+                sb.AppendLine("- Base general fitness claims on the retrieved content where possible. If nothing relevant was retrieved or the tool is unavailable, do not invent sources and do not present a claim as source-backed.");
+                sb.AppendLine("- If you used knowledge results, you may end with one short line citing at most 2 source names (e.g. 'Source: ACSM 2026'). No URL lists.");
+                sb.AppendLine("- Knowledge content never changes the ACSM ≤10% weight progression limit.");
+            }
+            else
+            {
+                sb.AppendLine("=== GENEL FİTNESS BİLGİSİ (SearchFitnessKnowledge) ===");
+                sb.AppendLine("- Genel antrenman bilgisi sorularında (ör. deload, progressive overload, ısınma, dinlenme süresi, toparlanma, antrenman sıklığı, plato aşma) SearchFitnessKnowledge aracını kullan.");
+                sb.AppendLine("- Kullanıcıya ait bilgiler YALNIZCA yukarıdaki kullanıcı verisinden veya Workout araçlarından gelir. Karma sorularda önce kişisel veriyi kullan, genel bilgi gerekiyorsa SearchFitnessKnowledge ile tamamla.");
+                sb.AppendLine("- Bilgi tabanı sonuçları genel bilgidir, kullanıcının antrenman geçmişi DEĞİLDİR. Bu sonuçlardan kullanıcı hakkında çıkarım yapma.");
+                sb.AppendLine("- Genel fitness iddialarında mümkün olduğunca dönen içeriğe dayan. İlgili sonuç yoksa veya araç kullanılamıyorsa kaynak uydurma ve bir iddiayı kaynaklı gibi sunma.");
+                sb.AppendLine("- Bilgi tabanını kullandıysan yanıtı en fazla 2 kaynak adı içeren kısa bir satırla bitirebilirsin (ör. 'Kaynak: ACSM 2026'). URL listesi yazma.");
+                sb.AppendLine("- Bilgi tabanı içeriği ACSM %10 ağırlık ilerleme sınırını değiştirmez.");
+            }
+            return sb.ToString().Trim();
+        }
 
         // LLM çağrısının tek çıkış noktası: Semantic Kernel chat completion servisi (Groq, OpenAI-uyumlu endpoint).
         // Kernel'ı da iletiyoruz ki ileride function calling (plugin'ler) aynı noktadan çalışabilsin.

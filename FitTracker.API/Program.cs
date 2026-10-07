@@ -88,6 +88,8 @@ builder.Services.AddGroqSemanticKernel();
 builder.Services.AddFitBotWorkoutPlugin();
 // FitBot write aksiyonu: SaveWorkoutPlan (doğrulama + egzersiz başına ACSM guardrail + atomik kayıt)
 builder.Services.AddFitBotWorkoutPlanPlugin();
+// FitBot genel fitness bilgi tabanı (RAG): SearchFitnessKnowledge (lokal Qdrant + Ollama embedding; Rag:Enabled ile açılır)
+builder.Services.AddFitBotKnowledgePlugin(builder.Configuration);
 builder.Services.AddScoped<IAiWorkoutCoachService, AiWorkoutCoachService>();
 
 builder.Services.AddHttpContextAccessor();
