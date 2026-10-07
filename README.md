@@ -157,7 +157,40 @@ dotnet ef database update --context FitTrackrAuthDbContext
 dotnet run   # Swagger: https://localhost:7100/swagger
 ```
 
-### 3. MAUI Uygulaması
+### 3. FitBot Bilgi Tabanı (RAG) — lokal bağımlılıklar
+
+FitBot, genel fitness soruları için `SearchFitnessKnowledge` tool'unu kullanır (kişisel antrenman verisi RAG'e taşınmaz;
+o veriler mevcut SQL/function tool'larından gelir). Vector store lokal **Qdrant**, embedding lokal **Ollama**'dır.
+API key veya cloud servisi gerekmez.
+
+```bash
+# Qdrant (REST 6333, .NET client'ın kullandığı gRPC 6334)
+docker run -d --name fittracker-qdrant -p 6333:6333 -p 6334:6334 -v qdrant_data:/qdrant/storage qdrant/qdrant:latest
+
+# Ollama: https://ollama.com adresinden kur ya da Docker ile çalıştır
+docker run -d --name fittracker-ollama -p 11434:11434 -v ollama_data:/root/.ollama ollama/ollama:latest
+
+# Embedding modeli lokal olarak çekilmeli (Docker kullanıyorsan: docker exec fittracker-ollama ollama pull ...)
+ollama pull nomic-embed-text-v2-moe
+```
+
+Yapılandırma (`appsettings.json` → `Rag`):
+
+| Anahtar | Varsayılan | Açıklama |
+|---|---|---|
+| `Enabled` | `true` | `false` ise tool ve prompt kuralları hiç eklenmez (NON-RAG davranışı) |
+| `QdrantEndpoint` / `QdrantGrpcPort` | `http://localhost:6333` / `6334` | Host REST endpoint'inden, port gRPC'den alınır |
+| `CollectionName` | `fittracker_fitness_knowledge` | |
+| `EmbeddingEndpoint` / `EmbeddingModel` | `http://localhost:11434` / `nomic-embed-text-v2-moe` | Boyut (768) merkezi `EmbeddingModelCatalog`'tan; katalogda olmayan model için `EmbeddingDimensions` ver |
+| `TopK` / `MinRelevanceScore` | `3` / `0.50` | En fazla 3 sonuç; eşik altı sonuçlar modele gitmez |
+| `IngestOnStartup` | (boş) | Boşsa yalnızca Development'ta açılışta arka planda ingestion |
+
+- **Corpus:** [`FitTracker.API/RAG/Knowledge/fitness_knowledge.json`](FitTracker.API/RAG/Knowledge/fitness_knowledge.json) — her item bilinçli bir chunk'tır (id, title, text, category, language, authority, sourceName, sourceUrl, sourceVersion). Güncel ACSM 2026 bildirisi `authority: current`, güncellenmiş 2009 önerisi `authority: historical` olarak ayrı tutulur. Metinler kısa parafrazdır.
+- **Ingestion:** Development'ta açılışta otomatik çalışır. Her kaydın içerik + embedding yapılandırması hash'i Qdrant'ta saklanır; corpus değişmediyse yeniden embedding üretilmez, yalnızca değişen item'lar embed edilir, corpus'tan silinenler koleksiyondan da silinir. Embedding modeli/boyutu değişirse yeni bir `CollectionName` kullan.
+- **Erişilemezse:** Qdrant/Ollama kapalıysa uygulama ve Chat endpoint'i normal çalışır; tool modele genel bir `unavailable` sonucu döner (iç ayrıntı sızdırmaz) ve 30 sn boyunca tekrar denenmez.
+- **Güvenlik:** RAG yalnızca bilgi kaynağıdır; `SaveWorkoutPlan` doğrulaması ve ACSM ≤%10 guardrail'i bilgi tabanından bağımsız, sunucu tarafında aynen uygulanır.
+
+### 4. MAUI Uygulaması
 
 `FitTrackr.MAUI/MauiProgram.cs` içinde API adresini ayarla (lokal: `http://10.0.2.2:5187/`, prod: Azure URL'in), Visual Studio'da Android hedefini seçip **F5**.
 
