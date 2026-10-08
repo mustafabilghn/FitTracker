@@ -932,31 +932,31 @@ namespace FitTrackr.API.Services
                 // rejects a fixed schedule. This keeps the semantic caveat in the corpus intact.
                 if (IsFixedSchedulePrescription(sentence, numericMatches))
                 {
-                    safeSentences.Add(IsEnglish
-                        ? "The retrieved source does not recommend a fixed schedule."
-                        : "Retrieved kaynak sabit bir aralık önermiyor.");
                     changed = true;
                     continue;
                 }
 
-                foreach (var number in unsupported)
-                    sanitized = sanitized.Replace(number.Value, IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.OrdinalIgnoreCase);
-
-                if (sanitized.Contains(IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.Ordinal))
+                // A sentence containing an unsupported quantitative claim is removed as a unit.
+                // Replacing only the number leaves unnatural and potentially misleading advice.
+                if (unsupported.Count > 0)
                 {
-                    safeSentences.Add(sanitized);
                     changed = true;
+                    continue;
                 }
+
+                safeSentences.Add(sanitized);
             }
 
             if (!changed)
                 return text;
 
             var result = string.Join(" ", safeSentences).Trim();
-            var fallback = IsEnglish
-                ? "The retrieved source does not specify the removed numeric detail."
-                : "Retrieved kaynak kaldırılan sayısal ayrıntıyı belirtmiyor.";
-            return string.IsNullOrWhiteSpace(result) ? fallback : $"{result} {fallback}";
+            if (!string.IsNullOrWhiteSpace(result))
+                return result;
+
+            return IsEnglish
+                ? "Focus on recovery, training technique, and how your body responds rather than relying on an unsupported numeric target."
+                : "Desteklenmeyen sayısal hedefler yerine toparlanmaya, antrenman tekniğine ve vücudunun verdiği yanıta odaklanabilirsin.";
         }
 
         private const string NumericExpressionPattern =

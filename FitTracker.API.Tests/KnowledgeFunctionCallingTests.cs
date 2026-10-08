@@ -212,7 +212,7 @@ public class KnowledgeFunctionCallingTests
         using var h = ChatHarness.Create();
         h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Bench Press"}""");
         h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
-        h.Llm.EnqueueReply("Bench Press ağırlığın 97.5 kg'dan 100 kg'a çıktı. Yükü %30-40 azalt ve %80-85 yoğunluk kullan. Ayrıca 10+ set ve 3-5 tekrar, 8-12 hafta boyunca %2-5 artış uygula.");
+        h.Llm.EnqueueReply("Bench Press maksimumun 100 kg. Yükü %30-40 azalt ve %80-85 yoğunluk kullan. Ayrıca 10+ set ve 3-5 tekrar, 8-12 hafta boyunca %2-5 artış uygula.");
 
         var response = await h.ChatAsync(UserA, "Bench Press'te plato yaşıyorum. Son performansıma bakıp ne yapabileceğimi anlat.");
 
@@ -223,7 +223,39 @@ public class KnowledgeFunctionCallingTests
         Assert.DoesNotContain("3-5 tekrar", response.Reply);
         Assert.DoesNotContain("8-12 hafta", response.Reply);
         Assert.DoesNotContain("%2-5", response.Reply);
-        Assert.Contains("sayısal", response.Reply);
+        Assert.DoesNotContain("spesifik bir değer", response.Reply);
+        Assert.DoesNotContain("Retrieved kaynak kaldırılan sayısal ayrıntıyı belirtmiyor.", response.Reply);
+        Assert.DoesNotContain("Retrieved kaynak sabit bir aralık önermiyor.", response.Reply);
+    }
+
+    [Fact]
+    public async Task UnsupportedNumericSentence_IsRemoved_WhileSafeSentenceIsKept()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
+        h.Llm.EnqueueReply("Haftada 10+ set yapabilirsin. Formuna dikkat et ve toparlanmanı izle.");
+
+        var response = await h.ChatAsync(UserA, "Bench Press platosu için ne yapabilirim?");
+
+        Assert.DoesNotContain("10+", response.Reply);
+        Assert.DoesNotContain("spesifik bir değer", response.Reply);
+        Assert.Contains("Formuna dikkat et ve toparlanmanı izle.", response.Reply);
+        Assert.DoesNotContain("Retrieved kaynak", response.Reply);
+    }
+
+    [Fact]
+    public async Task UnsupportedNumericOnlyResponse_UsesNaturalUserFacingFallback()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
+        h.Llm.EnqueueReply("Yükü %30-40 azalt ve %80-85 yoğunluk kullan.");
+
+        var response = await h.ChatAsync(UserA, "Bench Press platosu için ne yapabilirim?");
+
+        Assert.Contains("toparlan", response.Reply);
+        Assert.DoesNotContain("spesifik bir değer", response.Reply);
+        Assert.DoesNotContain("Retrieved kaynak", response.Reply);
+        Assert.DoesNotContain("sayısal ayrıntı", response.Reply);
     }
 
     [Fact]
@@ -249,7 +281,8 @@ public class KnowledgeFunctionCallingTests
         var response = await h.ChatAsync(UserA, "Deload ne zaman düşünülür?");
 
         Assert.DoesNotContain("4-6", response.Reply);
-        Assert.Contains("sabit bir aralık önermiyor", response.Reply);
+        Assert.Contains("toparlan", response.Reply);
+        Assert.DoesNotContain("Retrieved kaynak", response.Reply);
     }
 
     // ───────────────────── 9. Personal data never flows through knowledge search ─────────────────────
