@@ -171,6 +171,27 @@ public class FitnessKnowledgeRagTests
         Assert.True(result.Hits.SequenceEqual(result.Hits.OrderByDescending(x => x.Score)));
     }
 
+    [Theory]
+    [InlineData(0.30)]
+    [InlineData(0.35)]
+    [InlineData(0.40)]
+    public async Task Search_CandidateThresholdsFilterByConfiguredScore(double threshold)
+    {
+        using var unfiltered = RagHarness.Create(minRelevance: -1);
+        await unfiltered.Ingestion.IngestAsync();
+        var raw = await unfiltered.Search.SearchAsync("Bench Press'te plato yaşıyorum, ne yapabilirim?");
+        Assert.NotEmpty(raw.Hits);
+
+        using var filtered = RagHarness.Create(minRelevance: threshold);
+        await filtered.Ingestion.IngestAsync();
+        var result = await filtered.Search.SearchAsync("Bench Press'te plato yaşıyorum, ne yapabilirim?");
+
+        var expected = raw.Hits.Count(hit => hit.Score >= threshold);
+        Assert.Equal(expected == 0 ? KnowledgeSearchStatus.NoResults : KnowledgeSearchStatus.Ok, result.Status);
+        Assert.Equal(expected, result.Hits.Count);
+        Assert.All(result.Hits, hit => Assert.True(hit.Score >= threshold));
+    }
+
     [Fact]
     public async Task Search_UnrelatedQuery_ReturnsNothingAboveThreshold()
     {
@@ -228,9 +249,10 @@ public class FitnessKnowledgeRagTests
         Assert.True(parameter.IsRequired);
         Assert.Contains("NO data about the user", function.Description);
 
-        // Plugin yalnızca bilgi araması servisine bağımlıdır: kullanıcı/DB/kimlik bağımlılığı yok.
+        // Plugin yalnızca bilgi araması ve request-scoped grounding state'ine bağımlıdır: kullanıcı/DB/kimlik bağımlılığı yok.
         var ctorParameters = typeof(KnowledgePlugin).GetConstructors().Single().GetParameters();
-        Assert.Equal(new[] { typeof(IFitnessKnowledgeSearchService) }, ctorParameters.Select(p => p.ParameterType).ToArray());
+        Assert.Equal(new[] { typeof(IFitnessKnowledgeSearchService), typeof(IRagGroundingContext) },
+            ctorParameters.Select(p => p.ParameterType).ToArray());
     }
 
     [Fact]

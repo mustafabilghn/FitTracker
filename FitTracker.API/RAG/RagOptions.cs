@@ -38,7 +38,7 @@ namespace FitTrackr.API.RAG
         public int TopK { get; set; } = MaxTopK;
 
         /// <summary>Cosine similarity eşiği: bunun altındaki sonuçlar modele hiç gönderilmez.</summary>
-        public double MinRelevanceScore { get; set; } = 0.50;
+        public double MinRelevanceScore { get; set; } = 0.35;
 
         /// <summary>null: yalnızca Development ortamında açılışta (arka planda) ingestion yapılır.</summary>
         public bool? IngestOnStartup { get; set; }
