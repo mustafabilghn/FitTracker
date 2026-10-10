@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FitTracker.RagEvaluation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FitTracker.API\FitTrackr.API.csproj" />
+  </ItemGroup>
+
+  <!-- Reuse the existing fixture, scenarios, production-path case runner and metrics without changing them. -->
+  <ItemGroup>
+    <Compile Include="..\FitTracker.Evaluation\Evaluation\CaseRunner.cs" Link="Shared\Evaluation\CaseRunner.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Evaluation\CaseResult.cs" Link="Shared\Evaluation\CaseResult.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Evaluation\ResponseChecks.cs" Link="Shared\Evaluation\ResponseChecks.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Evaluation\TextMetrics.cs" Link="Shared\Evaluation\TextMetrics.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Harness\FixtureBuilder.cs" Link="Shared\Harness\FixtureBuilder.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Harness\RepoInfo.cs" Link="Shared\Harness\RepoInfo.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Instrumentation\LlmCallRecorder.cs" Link="Shared\Instrumentation\LlmCallRecorder.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Instrumentation\Redactor.cs" Link="Shared\Instrumentation\Redactor.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Instrumentation\ToolInvocationRecorder.cs" Link="Shared\Instrumentation\ToolInvocationRecorder.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Scenarios\Scenario.cs" Link="Shared\Scenarios\Scenario.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Scenarios\ScenarioCatalog.cs" Link="Shared\Scenarios\ScenarioCatalog.cs" />
+  </ItemGroup>
+
+</Project>
