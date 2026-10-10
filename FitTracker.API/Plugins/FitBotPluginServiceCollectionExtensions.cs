@@ -28,12 +28,14 @@ namespace FitTrackr.API.Plugins
         {
             services.AddKernel();
             services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+            services.AddScoped<IFitBotToolInvocationState, FitBotToolInvocationState>();
             services.AddScoped<WorkoutPlugin>();
             services.AddTransient<KernelPlugin>(sp =>
                 KernelPluginFactory.CreateFromObject(sp.GetRequiredService<WorkoutPlugin>(), WorkoutPlugin.PluginName));
 
             // Durumsuz (stateless) filter: tool turu sayısını sınırlar (token/rate-limit koruması).
             services.AddSingleton<IAutoFunctionInvocationFilter, ToolRoundLimitFilter>();
+            services.AddScoped<IAutoFunctionInvocationFilter, FitBotToolInvocationStateFilter>();
 
             return services;
         }

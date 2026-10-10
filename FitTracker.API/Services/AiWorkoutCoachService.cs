@@ -33,6 +33,7 @@ namespace FitTrackr.API.Services
         private readonly ICurrentUserContext? _currentUser;
         private readonly WorkoutPlanSaveOutcome? _saveOutcome;
         private readonly IRagGroundingContext? _ragGroundingContext;
+        private readonly IFitBotToolInvocationState? _toolInvocationState;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
 
@@ -64,11 +65,13 @@ namespace FitTrackr.API.Services
             IConfiguration configuration,
             ICurrentUserContext? currentUser = null,
             WorkoutPlanSaveOutcome? saveOutcome = null,
-            IRagGroundingContext? ragGroundingContext = null)
+            IRagGroundingContext? ragGroundingContext = null,
+            IFitBotToolInvocationState? toolInvocationState = null)
         {
             _currentUser = currentUser;
             _saveOutcome = saveOutcome;
             _ragGroundingContext = ragGroundingContext;
+            _toolInvocationState = toolInvocationState;
             _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
@@ -280,6 +283,17 @@ namespace FitTrackr.API.Services
                 return BuildSaveResponse(saveResult, _saveOutcome, context);
             }
 
+            var safetyReply = BuildMissingToolSafetyReply(request.Message);
+            if (safetyReply is not null)
+            {
+                RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                return new FitBotChatResponseDto
+                {
+                    Reply = safetyReply,
+                    PlateauAlerts = context.PlateauExercises
+                };
+            }
+
             var reply = SanitizeForeignWords(rawReply);
             reply = SanitizeOutputPatterns(reply);
             reply = SanitizeUnsupportedRagNumbers(reply, context);
@@ -308,6 +322,32 @@ namespace FitTrackr.API.Services
 
         private bool ShouldOfferKnowledgeTool(string? actionType) =>
             ShouldOfferTools(actionType) && _kernel.Plugins.Contains(KnowledgePlugin.PluginName);
+
+        private string? BuildMissingToolSafetyReply(string message)
+        {
+            if (!ShouldOfferTools("free") || !LooksPersonal(message))
+                return null;
+
+            var personalMissing = _toolInvocationState?.PersonalReadToolSucceeded != true;
+            var knowledgeRequired = LooksKnowledgeSeeking(message);
+            var knowledgeMissing = knowledgeRequired && _ragGroundingContext?.Passages.Count is not > 0;
+            if (!personalMissing && !knowledgeMissing)
+                return null;
+
+            if (personalMissing && knowledgeMissing)
+                return "Kişisel verilerini ve genel bilgi kaynağını doğrulamadan bu konuda güvenilir bir değerlendirme yapamam.";
+            if (personalMissing)
+                return "Kişisel antrenman verilerini incelemeden güvenilir bir kişisel değerlendirme yapamam.";
+            return "Genel bilgi kaynağını doğrulamadan bu konuda sayısal veya kaynaklı bir öneri veremem.";
+        }
+
+        private static bool LooksPersonal(string message) =>
+            Regex.IsMatch(message ?? string.Empty,
+                @"(?i)(verilerim|verilerime|performansım|performansımı|trendim|trendimi|platom|platomu|geçmişim|son yaptığım|ilerlemem|ağırlığım|benim|my data|my performance|my trend|my plateau)");
+
+        private static bool LooksKnowledgeSeeking(string message) =>
+            Regex.IsMatch(message ?? string.Empty,
+                @"(?i)(nasıl aş|nasıl çöz|ne yapabil|ne yapmal|öner|deload|progressive overload|toparlan|strateji|yol)");
 
         // Minimum grounding kuralları: genel bilgi ile kişisel veri ayrı tutulur; bilgi tabanı ACSM sınırını değiştirmez.
         private static string BuildKnowledgeGroundingRules()

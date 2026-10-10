@@ -144,6 +144,31 @@ public class KnowledgeFunctionCallingTests
     }
 
     [Fact]
+    public async Task PersonalQuestionWithoutPersonalTool_ReturnsSafeResponse()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("Maks ağırlık üç hafta boyunca aynı kaldı. %10-15 artırabilirsin.");
+
+        var response = await h.ChatAsync(UserA, "Squat performansımı ve trendimi değerlendir.");
+
+        Assert.Equal("Kişisel antrenman verilerini incelemeden güvenilir bir kişisel değerlendirme yapamam.", response.Reply);
+        Assert.Empty(h.Embeddings.Queries);
+    }
+
+    [Fact]
+    public async Task MixedQuestionWithoutKnowledgeRetrieval_ReturnsSafeResponse()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Squat"}""");
+        h.Llm.EnqueueReply("Maks ağırlık sabit. %10-15 azalt ve 4 set × 5 tekrar yap.");
+
+        var response = await h.ChatAsync(UserA, "Squat'ta takıldım. Verilerime bakarak bunu nasıl aşabilirim?");
+
+        Assert.Equal("Genel bilgi kaynağını doğrulamadan bu konuda sayısal veya kaynaklı bir öneri veremem.", response.Reply);
+        Assert.Empty(h.Embeddings.Queries);
+    }
+
+    [Fact]
     public async Task KnowledgeGroundingContract_RequiresUnsupportedNumbersToBeQualified()
     {
         using var h = ChatHarness.Create();
