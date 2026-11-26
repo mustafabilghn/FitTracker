@@ -127,6 +127,49 @@ public class AcsmGuardrailEdgeCaseTests
         Assert.Contains("132.0 kg", result.SanitizedReply);
     }
 
+    // Gap 4 follow-ups: every weight is evaluated against its OWN exercise's baseline.
+    [Fact]
+    public void Gap4_FirstExerciseUnsafe_SecondSafe_EachUsesOwnBaseline()
+    {
+        var result = _sut.Validate("Bugün Squat 140 kg ve Bench Press 105 kg deneyebilirsin.", BuildContext());
+
+        Assert.True(result.Triggered);
+        Assert.Contains("Squat 132.0 kg", result.SanitizedReply);
+        Assert.Contains("Bench Press 105 kg", result.SanitizedReply);
+        Assert.Single(result.InterceptedProgressions);
+        Assert.StartsWith("Squat:", result.InterceptedProgressions[0]);
+    }
+
+    [Fact]
+    public void Gap4_BothExercisesUnsafe_EachCappedToItsOwnLimit()
+    {
+        var result = _sut.Validate("Bench Press 120 kg ve Squat 150 kg deneyebilirsin.", BuildContext());
+
+        Assert.Contains("Bench Press 110.0 kg", result.SanitizedReply);
+        Assert.Contains("Squat 132.0 kg", result.SanitizedReply);
+        Assert.Equal(2, result.InterceptedProgressions.Count);
+    }
+
+    [Fact]
+    public void Gap4_WeightBeforeExerciseName_IsPairedWithItsOwnSegment()
+    {
+        var result = _sut.Validate("105 kg ile Bench Press, 140 kg ile Squat deneyebilirsin.", BuildContext());
+
+        Assert.Contains("105 kg ile Bench Press", result.SanitizedReply);
+        Assert.Contains("132.0 kg ile Squat", result.SanitizedReply);
+        Assert.Single(result.InterceptedProgressions);
+    }
+
+    [Fact]
+    public void Gap4_TwoSafeExercisesSameLine_AreLeftUnchanged()
+    {
+        const string input = "Bench Press 105 kg ve Squat 130 kg deneyebilirsin.";
+        var result = _sut.Validate(input, BuildContext());
+
+        Assert.False(result.Triggered);
+        Assert.Equal(input, result.SanitizedReply);
+    }
+
     // ─────────────────────────────────────────────────────────────────
     // GAP 5 — Exercise alias not present in the baseline dictionary.
     // TryGetBaseline/TryMatchExercise only do case-insensitive substring

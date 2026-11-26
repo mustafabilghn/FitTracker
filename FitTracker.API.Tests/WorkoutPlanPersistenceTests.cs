@@ -129,15 +129,17 @@ public class WorkoutPlanPersistenceTests
     }
 
     [Fact]
-    public async Task E_Gap4TextLimitation_StillExistsInChat_ButIsNotCarriedIntoStructuredPersistence()
+    public async Task E_Gap4Fixed_ChatGuardrailAndStructuredPersistenceUseTheSameExerciseBaseline()
     {
         using var h = Harness.Create();
         var context = await h.ContextForAsync(UserA);
 
-        // Chat guardrail (değiştirilmedi): aynı satırdaki Squat 130, Bench'in 110 sınırına yanlışlıkla kısılır (Gap4).
+        // Gap4 düzeltildi: aynı satırdaki Squat 130, Bench'in 110 sınırıyla değil kendi baseline'ı (120 → 132) ile
+        // değerlendirilir; güvenli olduğu için değişmez. Chat ve plan kaydı artık aynı kararı verir.
         var chat = new AcsmGuardrailService().Validate("Bugün Bench Press 105 kg ve Squat 130 kg deneyebilirsin.", context);
-        Assert.True(chat.Triggered);
-        Assert.Contains("Squat 110.0 kg", chat.SanitizedReply);
+        Assert.False(chat.Triggered);
+        Assert.Contains("Squat 130 kg", chat.SanitizedReply);
+        Assert.DoesNotContain("110.0 kg", chat.SanitizedReply);
 
         // Aynı öneri yapılandırılmış planla: Squat kendi baseline'ı (120 → 132) ile değerlendirilir ve aynen kaydedilir.
         var result = await h.SaveAsync(UserA, "Mix", Ex("Bench Press", 105), Ex("Squat", 130));

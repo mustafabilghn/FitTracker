@@ -89,14 +89,19 @@ namespace FitTrackr.API.Services
                 if (SuggestionLinePattern.IsMatch(line))
                     continue;
 
-                // Find if a known exercise appears in this line
-                if (!TryMatchExercise(line, baseline, out var exerciseName, out var baselineKg) || baselineKg <= 0)
+                // Find the known exercises mentioned in this line (with positions). Each weight is evaluated against the
+                // baseline of the exercise it belongs to — not the first exercise found in the line (Gap 4).
+                var mentions = FindExerciseMentions(line, baseline);
+                if (mentions.Count == 0)
                     continue;
-
-                var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
 
                 lines[i] = InlineWeightPattern.Replace(line, weightMatch =>
                 {
+                    var (exerciseName, baselineKg) = ResolveExerciseForWeight(line, mentions, weightMatch.Index, weightMatch.Length);
+                    if (baselineKg <= 0)
+                        return weightMatch.Value;
+
+                    var safeMax = AcsmProgressionRule.SafeMaxKg(baselineKg);
                     var raw = weightMatch.Groups["weight"].Value.Replace(',', '.');
                     if (!double.TryParse(raw, NumberStyles.Number, CultureInfo.InvariantCulture, out var kg))
                         return weightMatch.Value;
@@ -203,25 +208,85 @@ namespace FitTrackr.API.Services
             return false;
         }
 
-        private static bool TryMatchExercise(
-            string line,
-            Dictionary<string, double> baseline,
-            out string exerciseName,
-            out double baselineKg)
+        private readonly record struct ExerciseMention(int Start, int End, string Name, double BaselineKg);
+
+        // All known-exercise mentions in the line. A mention contained in a longer one ("Squat" inside "Zercher Squat")
+        // is dropped so that the more specific exercise wins.
+        private static List<ExerciseMention> FindExerciseMentions(string line, Dictionary<string, double> baseline)
         {
+            var all = new List<ExerciseMention>();
             foreach (var kvp in baseline)
             {
-                if (line.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(kvp.Key))
+                    continue;
+
+                var index = line.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase);
+                while (index >= 0)
                 {
-                    exerciseName = kvp.Key;
-                    baselineKg = kvp.Value;
-                    return true;
+                    all.Add(new ExerciseMention(index, index + kvp.Key.Length, kvp.Key, kvp.Value));
+                    index = line.IndexOf(kvp.Key, index + kvp.Key.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
 
-            exerciseName = string.Empty;
-            baselineKg = 0;
-            return false;
+            return all
+                .Where(m => !all.Any(o => o != m && o.Start <= m.Start && o.End >= m.End && (o.End - o.Start) > (m.End - m.Start)))
+                .OrderBy(m => m.Start)
+                .ToList();
+        }
+
+        // A weight belongs to the exercise of its own segment: "Bench Press 105 kg ve Squat 140 kg" and
+        // "105 kg ile Bench Press, 140 kg ile Squat" both pair each weight with its own exercise. Segments are split by
+        // , ; . ! ? and the conjunctions "ve" / "and" / "sonra" / "then". Inside the segment the nearest mention wins;
+        // if the segment names no exercise, the nearest preceding mention (else the nearest following one) is used.
+        private static (string Name, double BaselineKg) ResolveExerciseForWeight(
+            string line, List<ExerciseMention> mentions, int weightIndex, int weightLength)
+        {
+            var (segStart, segEnd) = SegmentAround(line, weightIndex);
+            var weightEnd = weightIndex + weightLength;
+
+            var inSegment = mentions.Where(m => m.Start >= segStart && m.End <= segEnd).ToList();
+            if (inSegment.Count > 0)
+            {
+                var nearest = inSegment
+                    .OrderBy(m => m.End <= weightIndex ? weightIndex - m.End : Math.Max(0, m.Start - weightEnd))
+                    .ThenBy(m => m.End <= weightIndex ? 0 : 1) // tie → preceding mention
+                    .First();
+                return (nearest.Name, nearest.BaselineKg);
+            }
+
+            var preceding = mentions.Where(m => m.End <= weightIndex).OrderByDescending(m => m.End).FirstOrDefault();
+            if (preceding != default)
+                return (preceding.Name, preceding.BaselineKg);
+
+            var following = mentions.OrderBy(m => m.Start).First();
+            return (following.Name, following.BaselineKg);
+        }
+
+        private static readonly Regex SegmentConjunctionPattern = new(
+            @"\s(ve|and|sonra|then)\s", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static (int Start, int End) SegmentAround(string line, int index)
+        {
+            var boundaries = new List<(int Start, int End)>();
+            for (var i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+                var isDecimalSeparator = (c == '.' || c == ',') && i > 0 && i + 1 < line.Length
+                                         && char.IsDigit(line[i - 1]) && char.IsDigit(line[i + 1]);
+                if (!isDecimalSeparator && c is ',' or ';' or '.' or '!' or '?')
+                    boundaries.Add((i, i + 1));
+            }
+            foreach (Match m in SegmentConjunctionPattern.Matches(line))
+                boundaries.Add((m.Index, m.Index + m.Length));
+
+            var start = 0;
+            var end = line.Length;
+            foreach (var b in boundaries)
+            {
+                if (b.End <= index && b.End > start) start = b.End;
+                if (b.Start >= index && b.Start < end) end = b.Start;
+            }
+            return (start, end);
         }
     }
 }
