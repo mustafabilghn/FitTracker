@@ -33,8 +33,13 @@ namespace FitTrackr.API.Services
         private readonly ICurrentUserContext? _currentUser;
         private readonly WorkoutPlanSaveOutcome? _saveOutcome;
         private readonly IRagGroundingContext? _ragGroundingContext;
+        private readonly IFitBotToolInvocationState? _toolInvocationState;
         private readonly string _groqApiKey;
         private readonly string _groqModel;
+        // Opsiyonel (Groq:ReasoningEffort = low|medium|high). Boşsa istek değişmez. gpt-oss modelleri varsayılan çabada
+        // tüm completion bütçesini reasoning'e harcayıp boş içerik döndürebiliyor (finish_reason=length).
+        private readonly string? _reasoningEffort;
+        private readonly double _citationMinScore;
 
         // Hazır (preset) aksiyonlar sabit, değerlendirilmiş prompt'larla çalışır; function calling yalnızca
         // serbest sohbette (free / bilinmeyen actionType) açılır ki preset çıktıları değişmesin.
@@ -64,11 +69,13 @@ namespace FitTrackr.API.Services
             IConfiguration configuration,
             ICurrentUserContext? currentUser = null,
             WorkoutPlanSaveOutcome? saveOutcome = null,
-            IRagGroundingContext? ragGroundingContext = null)
+            IRagGroundingContext? ragGroundingContext = null,
+            IFitBotToolInvocationState? toolInvocationState = null)
         {
             _currentUser = currentUser;
             _saveOutcome = saveOutcome;
             _ragGroundingContext = ragGroundingContext;
+            _toolInvocationState = toolInvocationState;
             _kernel = kernel;
             _workoutAnalysisService = workoutAnalysisService;
             _guardrailService = guardrailService;
@@ -77,6 +84,10 @@ namespace FitTrackr.API.Services
             _logger = logger;
             _groqApiKey = configuration["Groq:ApiKey"] ?? string.Empty;
             _groqModel = configuration["Groq:Model"] ?? GroqChatCompletion.DefaultModel;
+            _reasoningEffort = string.IsNullOrWhiteSpace(configuration["Groq:ReasoningEffort"]) ? null : configuration["Groq:ReasoningEffort"]!.Trim();
+            _citationMinScore = double.TryParse(configuration["Rag:CitationMinScore"], System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture, out var citationMin)
+                ? citationMin
+                : RagAnswerGrounding.CitationMinScore;
         }
 
         public async Task<AiWorkoutInsightDto> GetInsightsAsync(string userId)
@@ -161,6 +172,8 @@ namespace FitTrackr.API.Services
                 Temperature = 0.2,
                 ResponseFormat = "json_object"
             };
+            if (_reasoningEffort is not null)
+                settings.ReasoningEffort = _reasoningEffort;
 
             string? modelJson;
             try
@@ -235,7 +248,7 @@ namespace FitTrackr.API.Services
                 ? 0.6
                 : 0.3;
 
-            var settings = new OpenAIPromptExecutionSettings { Temperature = temperature };
+            var settings = CreateChatSettings(temperature);
 
             // Mevcut context injection AYNEN devam eder; function calling bunun üzerine ek bir yetenektir.
             // Sıralı (sequential) çağrı: paralel tool call varsayılmaz (gpt-oss paralel çağrıyı desteklemez).
@@ -280,9 +293,61 @@ namespace FitTrackr.API.Services
                 return BuildSaveResponse(saveResult, _saveOutcome, context);
             }
 
+            // Model gerekli okuma tool'unu çağırmadıysa sunucu, her tool'u en fazla BİR kez, deterministik olarak çalıştırır.
+            // Yalnızca okuma tool'ları kullanılır (SaveWorkoutPlan asla); retry tool'suz tek bir completion'dır.
+            var deterministicToolContext = await RunMissingIntentToolsAsync(request.ActionType, request.Message);
+            if (deterministicToolContext is not null)
+            {
+                var retryHistory = BuildRetryHistory(request, systemPrompt);
+
+                var retrySettings = CreateChatSettings(temperature);
+                try
+                {
+                    rawReply = await CompleteAsync(retryHistory, retrySettings);
+                }
+                catch (HttpOperationException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                    return new FitBotChatResponseDto
+                    {
+                        Reply = IsEnglish
+                            ? "Too many requests right now — wait a moment and try again."
+                            : "Şu an çok fazla istek var, biraz bekleyip tekrar dene.",
+                        PlateauAlerts = new List<string>()
+                    };
+                }
+            }
+
+            // Model içerik üretmeden döndüyse (ör. reasoning bütçesi bitti: finish_reason=length) kullanıcıya boş cevap gitmez.
+            if (string.IsNullOrWhiteSpace(rawReply))
+            {
+                _logger.LogWarning("FitBot LLM returned empty content (model={Model}).", _groqModel);
+                RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                return new FitBotChatResponseDto
+                {
+                    Reply = IsEnglish
+                        ? "I couldn't generate an answer this time. Please ask again in a moment."
+                        : "Bu sefer bir yanıt oluşturamadım. Lütfen sorunu birazdan tekrar sor.",
+                    PlateauAlerts = context.PlateauExercises
+                };
+            }
+
+            var safetyReply = BuildMissingToolSafetyReply(request.ActionType, request.Message);
+            if (safetyReply is not null)
+            {
+                RecordTimingTelemetry(contextStopwatch.ElapsedMilliseconds, contextCacheHit, groqStopwatch.ElapsedMilliseconds);
+                return new FitBotChatResponseDto
+                {
+                    Reply = safetyReply,
+                    PlateauAlerts = context.PlateauExercises
+                };
+            }
+
             var reply = SanitizeForeignWords(rawReply);
             reply = SanitizeOutputPatterns(reply);
-            reply = SanitizeUnsupportedRagNumbers(reply, context);
+            reply = SanitizeUnsupportedRagNumbers(reply, context, request.Message);
+            if (ShouldOfferKnowledgeTool(request.ActionType))
+                reply = ApplyCitationPolicy(reply);
             if (string.Equals(request.ActionType, "motivation", StringComparison.OrdinalIgnoreCase))
                 reply = TruncateToSentences(reply, 4);
 
@@ -300,6 +365,14 @@ namespace FitTrackr.API.Services
             };
         }
 
+        private OpenAIPromptExecutionSettings CreateChatSettings(double temperature)
+        {
+            var settings = new OpenAIPromptExecutionSettings { Temperature = temperature };
+            if (_reasoningEffort is not null)
+                settings.ReasoningEffort = _reasoningEffort;
+            return settings;
+        }
+
         // Tool'lar yalnızca: current-user soyutlaması varsa, Kernel'de plugin kayıtlıysa ve serbest sohbetse sunulur.
         private bool ShouldOfferTools(string? actionType) =>
             _currentUser is not null
@@ -308,6 +381,269 @@ namespace FitTrackr.API.Services
 
         private bool ShouldOfferKnowledgeTool(string? actionType) =>
             ShouldOfferTools(actionType) && _kernel.Plugins.Contains(KnowledgePlugin.PluginName);
+
+        private async Task<string?> RunMissingIntentToolsAsync(string? actionType, string message)
+        {
+            if (!ShouldOfferTools(actionType))
+                return null;
+
+            if (_toolInvocationState is null)
+                return null;
+
+            var personalIntent = LooksPersonal(message);
+            // Bilgi tabanı yalnızca bu istekte gerçekten sunuluyorsa (RAG açık) zorunlu tutulur; RAG kapalıyken NON-RAG davranışı.
+            var knowledgeRequired = ShouldOfferKnowledgeTool(actionType) && LooksKnowledgeSeeking(message);
+
+            if (!personalIntent && !knowledgeRequired)
+                return null;
+
+            // Model herhangi bir kişisel okuma tool'unu zaten denediyse (başarılı ya da değil) tekrar çalıştırılmaz.
+            var requiredPersonalTool = personalIntent && !_toolInvocationState.WasAnyPersonalToolAttempted
+                ? SelectPersonalTool(message)
+                : null;
+            var knowledgeMissing = knowledgeRequired && !_toolInvocationState.WasAttempted(KnowledgeToolName);
+
+            if (requiredPersonalTool is null && !knowledgeMissing)
+                return null;
+
+            var recoveredAny = false;
+            if (requiredPersonalTool is { } personalTool)
+                recoveredAny |= await InvokeToolAsync(personalTool.Plugin, personalTool.Function, personalTool.Arguments) is not null;
+
+            if (knowledgeMissing)
+            {
+                var query = BuildKnowledgeQuery(message);
+                if (query.Length > 0)
+                    recoveredAny |= await InvokeToolAsync(
+                        KnowledgePlugin.PluginName,
+                        nameof(KnowledgePlugin.SearchFitnessKnowledge),
+                        new KernelArguments { ["query"] = query }) is not null;
+            }
+
+            // Hiçbir tool yeni kanıt üretmediyse ikinci LLM çağrısı yapılmaz: modelin ilk cevabı (ve güvenlik kontrolleri) kullanılır.
+            return recoveredAny ? BuildSuccessfulToolContext() : null;
+        }
+
+        private const string KnowledgeToolName = "Knowledge-SearchFitnessKnowledge";
+
+
+        private (string Plugin, string Function, string ToolName, KernelArguments Arguments)? SelectPersonalTool(string message)
+        {
+            // Kayıtlı plan/program soruları.
+            if (Regex.IsMatch(message, @"(?i)(planlar[ıi]m|planlanan|planl[ıi]|program[ıi]m|programlar[ıi]m|programl[ıi]|kay[ıi]tl[ıi] plan)"))
+                return (WorkoutPlanPlugin.PluginName, nameof(WorkoutPlanPlugin.GetPlannedWorkouts),
+                    $"{WorkoutPlanPlugin.PluginName}-{nameof(WorkoutPlanPlugin.GetPlannedWorkouts)}", new KernelArguments());
+
+            // Açık bir trend veya performans değişimi inceleme isteği.
+            if (Regex.IsMatch(message, @"(?i)(trend|ilerlem|ağırlık|son haftalarda|son performans.{0,30}(bak|incele|değerlendir))"))
+            {
+                var exerciseName = ExtractExerciseName(message);
+                return (
+                    WorkoutPlugin.PluginName,
+                    nameof(WorkoutPlugin.GetWeightTrends),
+                    $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetWeightTrends)}",
+                    string.IsNullOrWhiteSpace(exerciseName)
+                        ? new KernelArguments()
+                        : new KernelArguments { ["exerciseName"] = exerciseName });
+            }
+
+            // Plato ifadesi varsa, tek başına kullanılan "performans" kelimesinden
+            // daha belirleyici kabul et.
+            if (Regex.IsMatch(message, @"(?i)(plato|takıldım|takılı|takılma|sabit kaldı)"))
+                return (WorkoutPlugin.PluginName, nameof(WorkoutPlugin.GetPlateauExercises),
+                    $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetPlateauExercises)}", new KernelArguments());
+
+            // Plato ifadesi olmayan genel performans soruları.
+            if (Regex.IsMatch(message, @"(?i)performans"))
+            {
+                var exerciseName = ExtractExerciseName(message);
+                return (
+                    WorkoutPlugin.PluginName,
+                    nameof(WorkoutPlugin.GetWeightTrends),
+                    $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetWeightTrends)}",
+                    string.IsNullOrWhiteSpace(exerciseName)
+                        ? new KernelArguments()
+                        : new KernelArguments { ["exerciseName"] = exerciseName });
+            }
+
+            if (Regex.IsMatch(message, @"(?i)(\bmy (planned|scheduled) workouts?\b|\bmy (workout )?plans?\b)"))
+                return (WorkoutPlanPlugin.PluginName, nameof(WorkoutPlanPlugin.GetPlannedWorkouts),
+                    $"{WorkoutPlanPlugin.PluginName}-{nameof(WorkoutPlanPlugin.GetPlannedWorkouts)}", new KernelArguments());
+
+            if (Regex.IsMatch(message, @"(?i)(\bplateau|\bstuck\b|\bstalled\b)"))
+                return (WorkoutPlugin.PluginName, nameof(WorkoutPlugin.GetPlateauExercises),
+                    $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetPlateauExercises)}", new KernelArguments());
+
+            if (Regex.IsMatch(message, @"(?i)(\btrend|\bprogress|\bperformance\b|\bweights?\b)"))
+            {
+                var exerciseName = ExtractExerciseName(message);
+                return (WorkoutPlugin.PluginName, nameof(WorkoutPlugin.GetWeightTrends),
+                    $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetWeightTrends)}",
+                    string.IsNullOrWhiteSpace(exerciseName)
+                        ? new KernelArguments()
+                        : new KernelArguments { ["exerciseName"] = exerciseName });
+            }
+
+            // Diğer kişisel sorular için son antrenmanlar.
+            return (WorkoutPlugin.PluginName, nameof(WorkoutPlugin.GetRecentWorkouts),
+                $"{WorkoutPlugin.PluginName}-{nameof(WorkoutPlugin.GetRecentWorkouts)}", new KernelArguments());
+        }
+
+
+        private async Task<string?> InvokeToolAsync(
+            string pluginName,
+            string functionName,
+            KernelArguments arguments)
+        {
+            if (!_kernel.Plugins.TryGetPlugin(pluginName, out var plugin)
+                || !plugin.TryGetFunction(functionName, out var function))
+                return null;
+
+            try
+            {
+                var toolName = $"{pluginName}-{functionName}";
+                _toolInvocationState?.MarkAttempted(toolName);
+                var result = await _kernel.InvokeAsync(function, arguments);
+                var value = result.GetValue<object>();
+                _toolInvocationState?.Record(toolName, value);
+                return _toolInvocationState?.SuccessfulResults.TryGetValue(toolName, out var serialized) == true
+                    ? serialized
+                    : null;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Deterministic FitBot tool {Plugin}-{Function} failed.", pluginName, functionName);
+                return null;
+            }
+        }
+
+        private ChatHistory BuildRetryHistory(FitBotChatRequestDto request, string systemPrompt)
+        {
+            var history = new ChatHistory(systemPrompt);
+            foreach (var msg in (request.ConversationHistory ?? new List<FitBotConversationMessageDto>()).TakeLast(6))
+            {
+                if (string.Equals(msg.Role, "user", StringComparison.OrdinalIgnoreCase))
+                    history.AddUserMessage(msg.Content);
+                else
+                    history.AddAssistantMessage(msg.Content);
+            }
+
+            history.AddUserMessage(request.Message);
+            var toolContext = BuildSuccessfulToolContext();
+            if (toolContext is not null)
+                history.AddUserMessage((IsEnglish
+                    ? "Verified tool results already executed successfully for this request:"
+                    : "Daha önce bu istekte başarıyla çalıştırılan doğrulanmış tool sonuçları:") + Environment.NewLine + toolContext);
+            return history;
+        }
+
+        private string? BuildSuccessfulToolContext()
+        {
+            if (_toolInvocationState?.SuccessfulResults.Count is not > 0)
+                return null;
+
+            var builder = new StringBuilder();
+            foreach (var result in _toolInvocationState.SuccessfulResults.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            {
+                builder.AppendLine($"{result.Key}:");
+                builder.AppendLine(result.Value);
+            }
+
+            return builder.ToString();
+        }
+
+        private static string? ExtractExerciseName(string message)
+        {
+            var match = Regex.Match(message, @"(?i)(bench press|squat|deadlift|overhead press|shoulder press|barbell row)");
+            return match.Success ? match.Value : null;
+        }
+
+        // Bilgi tabanı sorgusu kullanıcının GERÇEK sorusundan üretilir (sabit "plato aşma" fallback'i yok). Kişisel sayısal
+        // değerler (kg, tekrar, set, yüzde) ve "verilerime bakarak" gibi kişisel bağlam ifadeleri çıkarılır: knowledge
+        // sorgusu genel kalır, kullanıcı verisi embedding servisine gitmez. Uzunluk sınırı arama servisinde uygulanır.
+        public static string BuildKnowledgeQuery(string? message)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+                return string.Empty;
+
+            var query = Regex.Replace(message,
+                @"(?i)\b(verilerime|verilerimi|kayıtlarıma|kayıtlarımı|son performansıma|performansıma|antrenmanlarıma|ilerlememe|geçmişime)\s+(bakarak|göre|dayanarak)\b",
+                " ");
+            query = Regex.Replace(query,
+                @"(?i)\b(based on|looking at|according to)\s+my\s+(data|history|workouts|progress|performance|records)\b",
+                " ");
+            // Sohbet dolgu ifadeleri arama sinyali taşımaz.
+            query = Regex.Replace(query,
+                @"(?i)\b(söyler misin(iz)?|anlatır mısın(ız)?|açıklar mısın(ız)?|düşünüyorum|acaba|lütfen|bunu|şunu|can you( please)?|could you( please)?|please|tell me)\b",
+                " ");
+            query = Regex.Replace(query, @"\d+\s*[x×]\s*\d+", " ");
+            query = Regex.Replace(query,
+                @"(?i)%?\d+(?:[.,]\d+)?%?(\s*(kg|kilo|lbs?|tekrar|reps?|sets?)\b)?",
+                " ");
+            // Küçük, alan-içi eş anlam genişletmesi: günlük ifade ("takıldım", "stuck") corpus terimine ("plato") eşlenir.
+            if (Regex.IsMatch(query, @"(?i)(takıl|takil|sabit kal)") && !Regex.IsMatch(query, @"(?i)plato"))
+                query += " plato";
+            else if (Regex.IsMatch(query, @"(?i)\b(stuck|stalled)\b") && !Regex.IsMatch(query, @"(?i)plateau"))
+                query += " plateau";
+
+            return FitnessKnowledgeSearchService.Normalize(Regex.Replace(query, @"\s+([?.!,;:])", "$1"));
+        }
+
+        // Kişisel analiz isteğinde HİÇBİR kişisel okuma tool'u başarılı olmadıysa (deterministik kurtarmadan sonra da)
+        // kişisel veriye dayanan bir cevap üretilmez. Genel bilgi tarafında ret YOKTUR: retrieval başarısızsa (unavailable /
+        // no_results) cevap NON-RAG davranışına iner; sayısal grounding yalnızca gerçek passage varken uygulanır ve
+        // kaynaklı görünen (uydurma) atıf satırları ayrıca kaldırılır.
+        private string? BuildMissingToolSafetyReply(string? actionType, string message)
+        {
+            if (!ShouldOfferTools(actionType) || _toolInvocationState is null || !LooksPersonal(message))
+                return null;
+
+            if (_toolInvocationState.HasSuccessfulPersonalResult)
+                return null;
+
+            return IsEnglish
+                ? "I can't give a reliable personal assessment without checking your workout data. Please try again in a moment."
+                : "Kişisel antrenman verilerini incelemeden güvenilir bir kişisel değerlendirme yapamam.";
+        }
+
+        // Kişisel veri İSTEĞİ: birinci tekil şahıs iyelik/eylem ifadeleri. Tek başına "benim", "my" veya "öner" eşleşmez.
+        private static readonly Regex PersonalIntentPattern = new(
+            @"(?i)(verilerim|kayıtlarım|kayitlarim|performansım|performansim|trendim|platom|geçmişim|gecmisim|son yaptığım|ilerlemem|ilerledim|ağırlığım|agirligim|antrenmanlarım|antrenmanlarim|son antrenmanım|planlarım|planlarim|programım|programlarım|takıldığım|takildigim|takıldım|takildim|maksimumum|rekorum" +
+            // Kişisel takılma / kendi antrenman parametreleri ("Squat'taki takılmayı aş…", "dinlenme süremi değiştir…").
+            @"|takılmam|takılmamı|takılmayı|takilmayi|takılmamı|\bsürem(i|e|de|den)?\b|\bsurem(i|e)?\b|setlerimi?|tekrarlarımı?|ağırlıklarımı?|kilomu?\b|dinlenmem|rutinim" +
+            @"|\bmy (data|performance|trends?|plateaus?|progress|history|workouts?|records?|lifts?|max|stats|plans?|planned workouts?|scheduled workouts?|rest( time| periods?)?|sets|reps|routine|program|training|squat|bench( press)?|deadlift)\b" +
+            @"|\bhave i (progressed|improved|plateaued|been)\b|\bam i (progressing|improving|stuck)\b|\bi(?:'m| am) stuck\b|\bhow did i\b)",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        // Genel bilgi tabanının KAPSADIĞI konular (corpus kategorileri). Genel öneri/plan istekleri ("bana antrenman öner")
+        // tek başına bilgi araması gerektirmez; "yol", "öner", "ne yapabilirim" gibi geniş kelimeler kullanılmaz.
+        private static readonly Regex KnowledgeTopicPattern = new(
+            @"(?i)(deload|yük azaltma|progressive overload|aşamalı yüklenme|asamali yuklenme|kademeli (yük|ağırlık|agirlik)|(ağırlı[kğ][ıi]?|agirligi?|yükü?) (ne kadar |nasıl |ne zaman )?artır|toparlan|uyku|ısın|isinma|isinmali|dinlenme|dinlenmeli|setler? aras[ıi]|antrenman s[ıi]kl[ıi][ğg][ıi]|haftada kaç|hipertrofi|kas (kütlesi|kutlesi|büyü|buyu|gelişimi)|aşırı antrenman|asiri antrenman|yorgunluk|tekni[kğ]|ara verdikten|uzun aradan|antrenmana (geri )?dön|plato.{0,40}(aş|kır|çık)|nasıl aş|\baş(mak|abil|arım|ılır|mam)\w*|takıl\w*.{0,60}(nasıl|aş)" +
+            @"|\bdeload|\bprogressive overload\b|\brecovery\b|\bsleep\b|\bwarm.?up|\brest (periods?|intervals?|times?|between sets)\b|\bhow long should i rest\b|\btraining frequency\b|\bhow (often|many days)\b|\bhypertrophy\b|\bmuscle (growth|gain)\b|\bovertraining\b|\bfatigue\b|\btechnique\b|\bproper form\b|\bafter a (long )?break\b|\breturn(ing)? to training\b|\b(break( through)?|get past|overcome|beat) (a |my |the )?plateau|\bplateau.{0,40}\b(how|what|tips|strateg))",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static bool LooksPersonal(string? message) => PersonalIntentPattern.IsMatch(message ?? string.Empty);
+
+        public static bool LooksKnowledgeSeeking(string? message) => KnowledgeTopicPattern.IsMatch(message ?? string.Empty);
+
+        // Kaynak atfı politikası (yalnızca bilgi tabanı sunulduğunda; NON-RAG çıktısı değişmez):
+        //  - modelin dahili işaretlemeleri (【…】) her zaman kaldırılır,
+        //  - hiç passage yoksa tüm kaynak satırları / akademik atıflar kaldırılır,
+        //  - passage varsa yalnızca ilgi skoru yeterli ve cevapla örtüşen passage'ların kaynak metadata'sıyla eşleşen atıflar kalır.
+        private string ApplyCitationPolicy(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
+
+            var cleaned = RagAnswerGrounding.StripInternalMarkup(text);
+            return _ragGroundingContext?.HasRetrievedPassages == true
+                ? RagAnswerGrounding.VerifyCitations(cleaned, _ragGroundingContext.Passages, _citationMinScore)
+                : RagAnswerGrounding.RemoveAllCitations(cleaned);
+        }
 
         // Minimum grounding kuralları: genel bilgi ile kişisel veri ayrı tutulur; bilgi tabanı ACSM sınırını değiştirmez.
         private static string BuildKnowledgeGroundingRules()
@@ -902,91 +1238,44 @@ namespace FitTrackr.API.Services
             return text.Trim();
         }
 
-        private string SanitizeUnsupportedRagNumbers(string text, FitBotContextDto personalContext)
+        private string SanitizeUnsupportedRagNumbers(string text, FitBotContextDto personalContext, string userMessage)
         {
-            if (string.IsNullOrWhiteSpace(text) || _ragGroundingContext?.WasSearchInvoked != true)
+            // Yalnızca GERÇEKTEN passage alındıysa uygulanır. unavailable / no_results / invalid_query bir bilgi kaynağı
+            // bulunmuş gibi değerlendirilmez; bu durumda cevap NON-RAG ile aynı kurallara (ACSM guardrail dahil) tabidir.
+            if (string.IsNullOrWhiteSpace(text) || _ragGroundingContext?.HasRetrievedPassages != true)
                 return text;
 
-            var personalNumbers = ExtractNumericExpressions(JsonSerializer.Serialize(personalContext));
-            var changed = false;
-            var safeSentences = new List<string>();
+            // Kullanıcı hakkında GERÇEK sayılar: sunucu context'i + bu istekte başarılı kişisel tool sonuçları + kullanıcının mesajı.
+            var trusted = ExtractNumericExpressions(JsonSerializer.Serialize(personalContext));
+            trusted.UnionWith(ExtractNumericExpressions(userMessage ?? string.Empty));
+            if (_toolInvocationState is not null)
+                foreach (var (tool, json) in _toolInvocationState.SuccessfulResults)
+                    if (tool != KnowledgeToolName)
+                        trusted.UnionWith(ExtractNumericExpressions(json));
 
-            foreach (var sentence in Regex.Split(text, @"(?<=[.!?])\s+"))
+            var evidence = new NumericGroundingEvidence
             {
-                if (string.IsNullOrWhiteSpace(sentence))
-                    continue;
+                Passages = _ragGroundingContext.Passages,
+                IsPassageNumber = _ragGroundingContext.ContainsNumericExpression,
+                TrustedNumbers = trusted,
+                ExerciseBaselines = AcsmProgressionRule.BuildBaselines(personalContext),
+                English = IsEnglish
+            };
 
-                var sanitized = sentence;
-                var numericMatches = Regex.Matches(sentence, NumericExpressionPattern).Cast<Match>().ToList();
-                var unsupported = numericMatches
-                    .Where(m => !IsAllowedNumber(m.Value, personalNumbers))
-                    .ToList();
+            var result = RagAnswerGrounding.ApplyNumericGrounding(text, evidence, out var changed);
+            if (!changed || !string.IsNullOrWhiteSpace(result))
+                return result;
 
-                if (unsupported.Count == 0 && !IsFixedSchedulePrescription(sentence, numericMatches))
-                {
-                    safeSentences.Add(sentence);
-                    continue;
-                }
-
-                // A retrieved range must not be turned into a fixed prescription when the source explicitly
-                // rejects a fixed schedule. This keeps the semantic caveat in the corpus intact.
-                if (IsFixedSchedulePrescription(sentence, numericMatches))
-                {
-                    safeSentences.Add(IsEnglish
-                        ? "The retrieved source does not recommend a fixed schedule."
-                        : "Retrieved kaynak sabit bir aralık önermiyor.");
-                    changed = true;
-                    continue;
-                }
-
-                foreach (var number in unsupported)
-                    sanitized = sanitized.Replace(number.Value, IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.OrdinalIgnoreCase);
-
-                if (sanitized.Contains(IsEnglish ? "a specific value" : "spesifik bir değer", StringComparison.Ordinal))
-                {
-                    safeSentences.Add(sanitized);
-                    changed = true;
-                }
-            }
-
-            if (!changed)
-                return text;
-
-            var result = string.Join(" ", safeSentences).Trim();
-            var fallback = IsEnglish
-                ? "The retrieved source does not specify the removed numeric detail."
-                : "Retrieved kaynak kaldırılan sayısal ayrıntıyı belirtmiyor.";
-            return string.IsNullOrWhiteSpace(result) ? fallback : $"{result} {fallback}";
-        }
-
-        private const string NumericExpressionPattern =
-            @"(?<![\w])%?\d+(?:[.,]\d+)?(?:\s*[-–‑]\s*%?\d+(?:[.,]\d+)?)?\+?%?(?![\w])";
-
-        private bool IsAllowedNumber(string value, HashSet<string> personalNumbers)
-        {
-            var normalized = RagGroundingContext.NormalizeNumber(value);
-            return personalNumbers.Contains(normalized)
-                || _ragGroundingContext!.ContainsNumericExpression(value);
+            return IsEnglish
+                ? "Focus on recovery, training technique, and how your body responds rather than relying on an unsupported numeric target."
+                : "Desteklenmeyen sayısal hedefler yerine toparlanmaya, antrenman tekniğine ve vücudunun verdiği yanıta odaklanabilirsin.";
         }
 
         private static HashSet<string> ExtractNumericExpressions(string text) =>
-            Regex.Matches(text, NumericExpressionPattern)
+            RagAnswerGrounding.NumericExpression.Matches(text)
                 .Cast<Match>()
                 .Select(m => RagGroundingContext.NormalizeNumber(m.Value))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        private bool IsFixedSchedulePrescription(string sentence, IReadOnlyCollection<Match> numericMatches)
-        {
-            if (numericMatches.Count == 0 || !_ragGroundingContext!.Passages.Any())
-                return false;
-
-            var source = string.Join(" ", _ragGroundingContext.Passages.Select(p => p.Text));
-            var hasScheduleCaveat = Regex.IsMatch(source, @"(?i)(sabit|kesin).{0,40}(aralık|takvim).{0,40}(öner|tavsiye)");
-            var isPrescription = Regex.IsMatch(sentence, IsEnglish
-                ? @"(?i)\b(should|must|recommend|recommended|do)\b"
-                : @"(?i)\b(yapmalısın|uygula|öneriyorum|önerilir|yapılmalı)\b");
-            return hasScheduleCaveat && isPrescription;
-        }
 
         // Türkçe hedefte: bilinen yabancı bağlaç/dolgu kelimelerini güvenli kelime sınırı
         // kontrollü şekilde değiştirir (fitness terimleri tam kelime eşleşmesi olmadığı için etkilenmez).

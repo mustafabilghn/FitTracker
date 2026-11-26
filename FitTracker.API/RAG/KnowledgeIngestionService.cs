@@ -35,14 +35,17 @@ namespace FitTrackr.API.RAG
         private readonly IFitnessEmbeddingService _embeddings;
         private readonly FitnessKnowledgeCollectionProvider _collectionProvider;
         private readonly ILogger<KnowledgeIngestionService> _logger;
+        private readonly IKnowledgeCollectionSchemaInspector? _schemaInspector;
         private readonly SemaphoreSlim _gate = new(1, 1);
 
         public KnowledgeIngestionService(
             IFitnessKnowledgeCorpusSource corpusSource,
             IFitnessEmbeddingService embeddings,
             FitnessKnowledgeCollectionProvider collectionProvider,
-            ILogger<KnowledgeIngestionService> logger)
+            ILogger<KnowledgeIngestionService> logger,
+            IKnowledgeCollectionSchemaInspector? schemaInspector = null)
         {
+            _schemaInspector = schemaInspector;
             _corpusSource = corpusSource;
             _embeddings = embeddings;
             _collectionProvider = collectionProvider;
@@ -69,6 +72,12 @@ namespace FitTrackr.API.RAG
             var corpusHash = FitnessKnowledgeCorpusLoader.ComputeCorpusHash(corpus, fingerprint);
 
             var collection = _collectionProvider.Get();
+
+            // Mevcut koleksiyonun vektör boyutu embedding modeliyle uyuşmuyorsa (model değişti) hiçbir şey yazılmaz.
+            if (_schemaInspector is not null)
+                KnowledgeCollectionSchema.EnsureCompatible(_collectionProvider.CollectionName,
+                    await _schemaInspector.GetVectorDimensionsAsync(_collectionProvider.CollectionName, cancellationToken), _embeddings);
+
             await collection.EnsureCollectionExistsAsync(cancellationToken);
 
             var corpusName = corpus.Corpus;

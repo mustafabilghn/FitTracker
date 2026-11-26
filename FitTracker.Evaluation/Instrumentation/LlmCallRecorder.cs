@@ -42,6 +42,11 @@ public sealed class LlmCallRecord
     public string? RateLimitResetTokens { get; set; }
     public string? RetryAfter { get; set; }
     public string? Error { get; set; }
+
+    // Değerlendirme-içi rate-limit yönetimi (production davranışı değil): beklemeler ve 429 sonrası yeniden gönderimler.
+    public long PreRequestWaitMs { get; set; }
+    public int RateLimitRetries { get; set; }
+    public long RateLimitWaitMs { get; set; }
 }
 
 /// <summary>Bir case boyunca modele yapılan tüm HTTP çağrılarını toplar; güvenlik tavanını uygular.</summary>
@@ -92,21 +97,52 @@ public sealed class LlmRecordingHandler : DelegatingHandler
         var requestBody = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
         ParseRequest(requestBody, record);
 
+        // Sıralı istek + rate-limit başlıklarına göre bekleme (yalnızca değerlendirme). Günlük limit doluysa istek gönderilmez.
+        record.PreRequestWaitMs = (long)(await GroqRateLimitGate.WaitBeforeRequestAsync(cancellationToken)).TotalMilliseconds;
+
         var stopwatch = Stopwatch.StartNew();
         HttpResponseMessage response;
-        try
+        string responseBody;
+        var attempt = 0;
+        while (true)
         {
-            response = await base.SendAsync(request, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            record.LatencyMs = stopwatch.ElapsedMilliseconds;
-            record.Error = Redactor.Clean($"{ex.GetType().Name}: {ex.Message}");
-            throw;
+            var attemptRequest = attempt == 0 ? request : CloneRequest(request, requestBody);
+            try
+            {
+                response = await base.SendAsync(attemptRequest, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                record.LatencyMs = stopwatch.ElapsedMilliseconds;
+                record.Error = Redactor.Clean($"{ex.GetType().Name}: {ex.Message}");
+                throw;
+            }
+
+            GroqRateLimitGate.Observe(response);
+            responseBody = response.Content is null ? string.Empty : await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests)
+                break;
+
+            if (GroqRateLimitGate.IsDailyLimit(responseBody))
+            {
+                GroqRateLimitGate.MarkDailyLimit(Redactor.Clean(responseBody, 300));
+                break; // günlük limit: beklemek anlamsız, koşu durdurulur
+            }
+
+            if (attempt >= GroqRateLimitGate.MaxRetriesPerRequest)
+                break;
+
+            var delay = GroqRateLimitGate.RetryDelay(response);
+            Console.WriteLine($"    (rate-limit: HTTP 429, waiting {delay.TotalSeconds:F1}s then resending same request)");
+            response.Dispose();
+            await Task.Delay(delay, cancellationToken);
+            record.RateLimitRetries++;
+            record.RateLimitWaitMs += (long)delay.TotalMilliseconds;
+            attempt++;
         }
 
-        var responseBody = response.Content is null ? string.Empty : await response.Content.ReadAsStringAsync(cancellationToken);
-        record.LatencyMs = stopwatch.ElapsedMilliseconds;
+        record.LatencyMs = stopwatch.ElapsedMilliseconds - record.RateLimitWaitMs;
         record.StatusCode = (int)response.StatusCode;
         record.RateLimitRemainingTokens = TryHeaderInt(response, "x-ratelimit-remaining-tokens");
         record.RateLimitResetTokens = TryHeader(response, "x-ratelimit-reset-tokens");
@@ -118,6 +154,17 @@ public sealed class LlmRecordingHandler : DelegatingHandler
             record.Error = Redactor.Clean(responseBody);
 
         return response;
+    }
+
+    // 429 sonrası aynı isteği yeniden göndermek için kopya. Header'lar (Authorization dahil) okunmadan/loglanmadan aktarılır.
+    private static HttpRequestMessage CloneRequest(HttpRequestMessage original, string body)
+    {
+        var clone = new HttpRequestMessage(original.Method, original.RequestUri) { Version = original.Version };
+        foreach (var header in original.Headers)
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        var mediaType = original.Content?.Headers.ContentType?.MediaType ?? "application/json";
+        clone.Content = new StringContent(body, System.Text.Encoding.UTF8, mediaType);
+        return clone;
     }
 
     private static void ParseRequest(string body, LlmCallRecord record)

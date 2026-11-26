@@ -23,7 +23,16 @@ public static class CaseRunner
 {
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = false };
 
-    public static async Task<CaseResult> RunAsync(Scenario scenario, string groqApiKey, RepoInfo repo, int maxLlmRequestsPerCase)
+    public static async Task<CaseResult> RunAsync(
+    Scenario scenario,
+    string groqApiKey,
+    RepoInfo repo,
+    int maxLlmRequestsPerCase,
+    Action<
+    IReadOnlyDictionary<string, string>,
+    IReadOnlyDictionary<string, string>,
+    IReadOnlyCollection<string>,
+    IReadOnlyCollection<string>>? captureTrackedToolState = null)
     {
         CultureInfo.CurrentUICulture = new CultureInfo("tr-TR"); // production varsayılan request culture'ı
 
@@ -79,6 +88,46 @@ public static class CaseRunner
             }
             stopwatch.Stop();
 
+            // Snapshot the request-scoped tool state before the scope is disposed.
+            var trackedState =
+                scope.ServiceProvider.GetRequiredService<IFitBotToolInvocationState>();
+
+            var trackedToolNames = new[]
+            {
+    "Workout-GetRecentWorkouts",
+    "Workout-GetWeightTrends",
+    "Workout-GetPlateauExercises",
+    "WorkoutPlan-GetPlannedWorkouts",
+    "Knowledge-SearchFitnessKnowledge"
+};
+
+            captureTrackedToolState?.Invoke(
+    trackedState.SuccessfulResults.ToDictionary(
+        pair => pair.Key,
+        pair => pair.Value,
+        StringComparer.Ordinal),
+    trackedState.ObservedKnowledgeResults.ToDictionary(
+        pair => pair.Key,
+        pair => pair.Value,
+        StringComparer.Ordinal),
+    trackedToolNames
+        .Where(trackedState.WasAttempted)
+        .ToArray(),
+    trackedToolNames
+        .Where(trackedState.HasUnavailableResult)
+        .ToArray());
+
+            // Deterministik backend kurtarması: production state'te denenmiş ama model filtresinden (auto function
+            // invocation) geçmemiş tool'lar backend tarafından çalıştırılmıştır. Görev başarısında "çalıştı" sayılır;
+            // model seçimi metriği (CorrectToolSelection / ModelSelectedRequiredTools) bundan ayrı tutulur.
+            var modelInvoked = host.Tools.Invocations.Select(t => t.Name).ToHashSet(StringComparer.Ordinal);
+            result.BackendRecoveredTools = trackedToolNames
+                .Where(trackedState.WasAttempted)
+                .Where(name => !modelInvoked.Contains(name))
+                .ToList();
+            foreach (var name in result.BackendRecoveredTools)
+                result.BackendRecoveredItemCounts[name] = trackedState.SuccessfulResults.TryGetValue(name, out var json) ? CountItems(json) : null;
+
             // Production'ın request-scoped, authoritative write sonucu (SaveWorkoutPlan çalıştıysa).
             var outcome = scope.ServiceProvider.GetRequiredService<WorkoutPlanSaveOutcome>();
             if (outcome.Result is { } save)
@@ -93,6 +142,19 @@ public static class CaseRunner
         FillTelemetry(result, host);
         Evaluate(result, scenario, insights);
         return result;
+    }
+
+    private static int? CountItems(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.ValueKind == JsonValueKind.Array ? doc.RootElement.GetArrayLength() : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static void FillTelemetry(CaseResult result, EvaluationHost host)
@@ -153,7 +215,17 @@ public static class CaseRunner
 
         // ── Tool seçimi ──
         var called = r.ToolCallsRequestedByModel.Select(t => t.Name).Distinct().ToList();
-        var missing = s.RequiredTools.Except(called).ToList();
+        // Görev için "gerekli tool çalıştı mı": model VEYA backend (deterministik kurtarma). Model seçimi ayrıca ölçülür.
+        var executedForTask = called.Union(r.BackendRecoveredTools).ToList();
+        var missing = s.RequiredTools.Except(executedForTask).ToList();
+        var missingByModel = s.RequiredTools.Except(called).ToList();
+        if (s.RequiredTools.Length > 0)
+        {
+            r.ModelSelectedRequiredTools = missingByModel.Count == 0;
+            checks.Add(new("required_tools_selected_by_model", false, missingByModel.Count == 0,
+                missingByModel.Count == 0 ? "ok" : "backend recovered: " + string.Join(",", missingByModel.Intersect(r.BackendRecoveredTools)) +
+                                                   " | missing: " + string.Join(",", missing)));
+        }
         var forbidden = called.Intersect(s.ForbiddenTools).ToList();
         var unexpected = called.Except(s.RequiredTools).Except(s.AcceptableTools).ToList();
         if (s.RequiredTools.Length > 0)
@@ -210,9 +282,18 @@ public static class CaseRunner
         if (s.ExpectedToolResultItems is { } expectedItems)
         {
             var invocation = r.ToolInvocations.LastOrDefault(t => t.Name == expectedItems.Tool);
-            var ok = invocation is { Succeeded: true } && invocation.ItemCount == expectedItems.Items;
-            checks.Add(new("tool_result_contains_expected_items", true, ok,
-                invocation is null ? $"{expectedItems.Tool} not executed" : $"{expectedItems.Tool}: succeeded={invocation.Succeeded} items={invocation.ItemCount?.ToString() ?? "-"} expected={expectedItems.Items}"));
+            if (invocation is null && r.BackendRecoveredItemCounts.TryGetValue(expectedItems.Tool, out var backendItems))
+            {
+                var backendOk = backendItems == expectedItems.Items;
+                checks.Add(new("tool_result_contains_expected_items", true, backendOk,
+                    $"{expectedItems.Tool} (backend recovery): items={backendItems?.ToString() ?? "-"} expected={expectedItems.Items}"));
+            }
+            else
+            {
+                var ok = invocation is { Succeeded: true } && invocation.ItemCount == expectedItems.Items;
+                checks.Add(new("tool_result_contains_expected_items", true, ok,
+                    invocation is null ? $"{expectedItems.Tool} not executed" : $"{expectedItems.Tool}: succeeded={invocation.Succeeded} items={invocation.ItemCount?.ToString() ?? "-"} expected={expectedItems.Items}"));
+            }
         }
         if (s.MustMentionAllPlannedWorkouts)
         {

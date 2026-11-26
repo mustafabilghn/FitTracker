@@ -91,6 +91,9 @@ builder.Services.AddFitBotWorkoutPlanPlugin();
 // FitBot genel fitness bilgi tabanı (RAG): SearchFitnessKnowledge (lokal Qdrant + Ollama embedding; Rag:Enabled ile açılır)
 builder.Services.AddFitBotKnowledgePlugin(builder.Configuration);
 builder.Services.AddScoped<IAiWorkoutCoachService, AiWorkoutCoachService>();
+// Hafif health endpoint (/health): RAG sorunlarında "Degraded" (HTTP 200) döner, embedding servisine istek atmaz,
+// yanıt gövdesinde iç ayrıntı yoktur.
+builder.Services.AddHealthChecks().AddCheck<FitTrackr.API.RAG.RagHealthCheck>("rag");
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
@@ -174,6 +177,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
 

@@ -33,7 +33,20 @@ namespace FitTrackr.API.RAG
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!_options.Enabled || !(_options.IngestOnStartup ?? _environment.IsDevelopment()))
+            var ingestOnStartup = _options.IngestOnStartup ?? _environment.IsDevelopment();
+            if (_options.Enabled)
+            {
+                // Efektif yapılandırma özeti (secret İÇERMEZ: key'ler yalnızca "set/not set" olarak raporlanır).
+                var qdrantHost = Uri.TryCreate(_options.QdrantEndpoint, UriKind.Absolute, out var q) ? $"{q.Scheme}://{q.Host}" : "invalid";
+                _logger.LogInformation(
+                    "FitBot RAG enabled: provider={Provider} model={Model} collection={Collection} qdrant={QdrantHost} qdrantApiKey={QdrantKeySet} embeddingApiKey={EmbeddingKeySet} topK={TopK} threshold={Threshold} ingestOnStartup={IngestOnStartup}",
+                    _options.EmbeddingProvider, _options.EmbeddingModel, _options.CollectionName, qdrantHost,
+                    string.IsNullOrWhiteSpace(_options.QdrantApiKey) ? "not set" : "set",
+                    string.IsNullOrWhiteSpace(_options.EmbeddingApiKey) ? "not set" : "set",
+                    _options.EffectiveTopK, _options.MinRelevanceScore, ingestOnStartup);
+            }
+
+            if (!_options.Enabled || !ingestOnStartup)
                 return;
 
             await Task.Yield(); // host açılışını bloklama

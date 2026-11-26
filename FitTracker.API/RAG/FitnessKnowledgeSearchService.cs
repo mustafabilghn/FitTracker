@@ -76,8 +76,12 @@ namespace FitTrackr.API.RAG
                 return KnowledgeSearchResult.Of(KnowledgeSearchStatus.InvalidQuery);
 
             if (_availability.IsCoolingDown)
+            {
+                LogTelemetry(KnowledgeSearchStatus.Unavailable, 0, null, 0, coolingDown: true);
                 return KnowledgeSearchResult.Of(KnowledgeSearchStatus.Unavailable);
+            }
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 var vector = await _embeddings.EmbedQueryAsync(normalized, cancellationToken);
@@ -99,7 +103,9 @@ namespace FitTrackr.API.RAG
 
                 _availability.MarkAvailable();
                 var ordered = hits.OrderByDescending(h => h.Score).Take(topK).ToList();
-                return ordered.Count == 0
+                var status = ordered.Count == 0 ? KnowledgeSearchStatus.NoResults : KnowledgeSearchStatus.Ok;
+                LogTelemetry(status, ordered.Count, ordered.Count == 0 ? null : ordered[0].Score, stopwatch.ElapsedMilliseconds, coolingDown: false);
+                return status == KnowledgeSearchStatus.NoResults
                     ? KnowledgeSearchResult.Of(KnowledgeSearchStatus.NoResults)
                     : new KnowledgeSearchResult(KnowledgeSearchStatus.Ok, ordered);
             }
@@ -112,9 +118,16 @@ namespace FitTrackr.API.RAG
                 // Ayrıntı yalnızca sunucu loguna gider; modele/kullanıcıya genel "unavailable" döner.
                 _availability.MarkUnavailable(TimeSpan.FromSeconds(Math.Max(0, _options.UnavailableCooldownSeconds)));
                 _logger.LogWarning(ex, "FitBot knowledge search unavailable ({ErrorType}).", ex.GetType().Name);
+                LogTelemetry(KnowledgeSearchStatus.Unavailable, 0, null, stopwatch.ElapsedMilliseconds, coolingDown: false);
                 return KnowledgeSearchResult.Of(KnowledgeSearchStatus.Unavailable);
             }
         }
+
+        // Temel RAG telemetrisi: durum, sonuç sayısı, en yüksek skor, süre, model. Sorgu metni / kullanıcı verisi LOGLANMAZ.
+        private void LogTelemetry(KnowledgeSearchStatus status, int hits, double? topScore, long elapsedMs, bool coolingDown) =>
+            _logger.LogInformation(
+                "FitBot knowledge search: status={Status} hits={Hits} topScore={TopScore} elapsedMs={ElapsedMs} coolingDown={CoolingDown} model={Model} threshold={Threshold}",
+                status, hits, topScore, elapsedMs, coolingDown, _embeddings.ModelId, _options.MinRelevanceScore);
 
         public static string Normalize(string? query)
         {

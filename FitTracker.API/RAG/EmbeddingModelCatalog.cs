@@ -18,6 +18,9 @@ namespace FitTrackr.API.RAG
             ["nomic-embed-text-v2-moe"] = new("nomic-embed-text-v2-moe", 768, "search_query: ", "search_document: "),
             ["nomic-embed-text"] = new("nomic-embed-text", 768, "search_query: ", "search_document: "),
             ["mxbai-embed-large"] = new("mxbai-embed-large", 1024, "Represent this sentence for searching relevant passages: ", string.Empty),
+            // Hosted (Azure OpenAI). Görev ön eki yoktur. Farklı boyut → yeni koleksiyon + yeniden ingestion gerekir.
+            ["text-embedding-3-small"] = new("text-embedding-3-small", 1536, string.Empty, string.Empty),
+            ["text-embedding-3-large"] = new("text-embedding-3-large", 3072, string.Empty, string.Empty),
         };
 
         /// <summary>

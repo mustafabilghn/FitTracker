@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - master
+  # PR'larda yalnızca build + test çalışır (deploy job'u PR'da atlanır).
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -26,6 +30,10 @@ jobs:
       - name: Build with dotnet
         run: dotnet build FitTracker.API/FitTrackr.API.csproj --configuration Release
 
+      # Testler geçmeden publish/deploy yapılmaz. Qdrant entegrasyon testi CI'da Qdrant olmadığı için SKIP olarak raporlanır.
+      - name: Test
+        run: dotnet test FitTracker.API.Tests/FitTracker.API.Tests.csproj --configuration Release --logger "console;verbosity=normal"
+
       - name: dotnet publish
         run: dotnet publish FitTracker.API/FitTrackr.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
@@ -38,6 +46,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    # Yalnızca master'a push / manuel tetikleme; PR'lar asla deploy edilmez.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     permissions:
       id-token: write
       contents: read
