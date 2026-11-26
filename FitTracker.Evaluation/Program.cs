@@ -98,6 +98,15 @@ for (var i = 0; i < scenarios.Count; i++)
                       $"latency={result.LatencyMs}ms tokens={result.TotalTokens?.ToString(CultureInfo.InvariantCulture) ?? "n/a"}" +
                       (result.Error is null ? "" : $" error={result.Error}"));
 
+    if (FitTracker.Evaluation.Instrumentation.GroqRateLimitGate.DailyLimitReached)
+    {
+        var note = $"STOPPED: Groq daily limit reached after {results.Count}/{scenarios.Count} cases. Results are INCOMPLETE. " +
+                   FitTracker.Evaluation.Instrumentation.GroqRateLimitGate.DailyLimitDetail;
+        Console.WriteLine(note);
+        await File.WriteAllTextAsync(Path.Combine(runDir, "INCOMPLETE_DAILY_LIMIT.txt"), note);
+        break;
+    }
+
     if (i < scenarios.Count - 1)
         await PaceAsync(result, options.MinRemainingTokens, run.PacingWaits);
 }

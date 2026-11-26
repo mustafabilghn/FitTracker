@@ -62,6 +62,15 @@ public sealed class CaseResult
     public IReadOnlyList<ToolCallRequest> ToolCallsRequestedByModel { get; set; } = [];
     public IReadOnlyList<ToolInvocationRecord> ToolInvocations { get; set; } = [];
 
+    /// <summary>Model istemediği hâlde production backend'in (deterministik kurtarma) çalıştırdığı okuma tool'ları.</summary>
+    public IReadOnlyList<string> BackendRecoveredTools { get; set; } = [];
+
+    /// <summary>Backend'in çalıştırdığı tool'ların başarılı sonuçlarındaki öğe sayısı (liste ise).</summary>
+    public Dictionary<string, int?> BackendRecoveredItemCounts { get; set; } = new();
+
+    /// <summary>Gerekli tool'ların hepsini MODEL kendisi seçti mi (backend kurtarmasından bağımsız, model kalitesi metriği).</summary>
+    public bool? ModelSelectedRequiredTools { get; set; }
+
     // Write / DB
     public SaveOutcomeSnapshot? SaveWorkoutPlan { get; set; }
     public DbSnapshot? DbBefore { get; set; }

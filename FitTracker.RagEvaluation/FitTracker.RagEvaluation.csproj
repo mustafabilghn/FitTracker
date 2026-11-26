@@ -26,6 +26,7 @@
     <Compile Include="..\FitTracker.Evaluation\Harness\FixtureBuilder.cs" Link="Shared\Harness\FixtureBuilder.cs" />
     <Compile Include="..\FitTracker.Evaluation\Harness\RepoInfo.cs" Link="Shared\Harness\RepoInfo.cs" />
     <Compile Include="..\FitTracker.Evaluation\Instrumentation\LlmCallRecorder.cs" Link="Shared\Instrumentation\LlmCallRecorder.cs" />
+    <Compile Include="..\FitTracker.Evaluation\Instrumentation\GroqRateLimitGate.cs" Link="Shared\Instrumentation\GroqRateLimitGate.cs" />
     <Compile Include="..\FitTracker.Evaluation\Instrumentation\Redactor.cs" Link="Shared\Instrumentation\Redactor.cs" />
     <Compile Include="..\FitTracker.Evaluation\Instrumentation\ToolInvocationRecorder.cs" Link="Shared\Instrumentation\ToolInvocationRecorder.cs" />
     <Compile Include="..\FitTracker.Evaluation\Scenarios\Scenario.cs" Link="Shared\Scenarios\Scenario.cs" />

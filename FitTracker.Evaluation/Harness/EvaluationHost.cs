@@ -29,7 +29,9 @@ namespace FitTracker.Evaluation.Harness;
 public sealed class EvaluationHost : IAsyncDisposable
 {
     /// <summary>Yeni NON-RAG baseline modeli. Açıkça sabitlenir; eski Llama sonuçlarıyla karıştırılmaz.</summary>
-    public const string Model = "openai/gpt-oss-120b";
+    // FITBOT_EVAL_MODEL ile değiştirilebilir (ör. canlıdaki model ile ölçüm). Gözlenen model her LLM çağrısında ayrıca kaydedilir.
+    public static string Model { get; } =
+        Environment.GetEnvironmentVariable("FITBOT_EVAL_MODEL") is { Length: > 0 } configured ? configured : "openai/gpt-oss-120b";
 
     private readonly SqliteConnection _connection;
 
