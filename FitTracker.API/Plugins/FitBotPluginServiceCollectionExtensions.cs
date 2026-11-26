@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CommunityToolkit.VectorData.Qdrant;
 using FitTrackr.API.RAG;
 using FitTrackr.API.Services;
@@ -78,18 +79,49 @@ namespace FitTrackr.API.Plugins
             if (!options.Enabled)
                 return services;
 
+            // Fail-safe: Rag:Enabled=true ama Qdrant/embedding endpoint'i eksik veya geçersizse (ör. production'da ayar
+            // unutulduysa) hiçbir şey kaydedilmez: tool listesi ve prompt NON-RAG kalır, chat bozulmaz. /health bunu
+            // "Degraded (embedding provider misconfigured)" olarak raporlar.
+            if (!IsAbsoluteHttpUri(options.QdrantEndpoint) || !IsAbsoluteHttpUri(options.EmbeddingEndpoint))
+                return services;
+
             services.AddKernel();
-            services.AddHttpClient(OllamaFitnessEmbeddingService.HttpClientName, (sp, client) =>
+            void ConfigureEmbeddingClient(IServiceProvider sp, System.Net.Http.HttpClient client)
             {
                 var rag = sp.GetRequiredService<IOptions<RagOptions>>().Value;
                 client.BaseAddress = new Uri(rag.EmbeddingEndpoint.TrimEnd('/') + "/");
                 // Zaman aşımı çağrı başına uygulanır (sorgu: Rag:TimeoutSeconds, ingestion: Rag:IngestionTimeoutSeconds).
                 client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
-            });
+            }
 
-            services.TryAddSingleton<IFitnessEmbeddingService, OllamaFitnessEmbeddingService>();
-            services.TryAddKeyedSingleton<VectorStore>(RagServiceKeys.VectorStore, (sp, _) =>
-                CreateQdrantVectorStore(sp.GetRequiredService<IOptions<RagOptions>>().Value));
+            // Embedding sağlayıcısı yapılandırmadan seçilir. Ollama (lokal, nomic) varsayılan ve değişmeden korunur.
+            // Bilinmeyen sağlayıcı uygulamayı düşürmez: RAG kontrollü olarak "unavailable" olur.
+            if (string.Equals(options.EmbeddingProvider, RagOptions.AzureOpenAiProvider, StringComparison.OrdinalIgnoreCase))
+            {
+                services.AddHttpClient(AzureOpenAiFitnessEmbeddingService.HttpClientName, ConfigureEmbeddingClient);
+                services.TryAddSingleton<IFitnessEmbeddingService, AzureOpenAiFitnessEmbeddingService>();
+            }
+            else if (string.IsNullOrWhiteSpace(options.EmbeddingProvider)
+                     || string.Equals(options.EmbeddingProvider, RagOptions.OllamaProvider, StringComparison.OrdinalIgnoreCase))
+            {
+                services.AddHttpClient(OllamaFitnessEmbeddingService.HttpClientName, ConfigureEmbeddingClient);
+                services.TryAddSingleton<IFitnessEmbeddingService, OllamaFitnessEmbeddingService>();
+            }
+            else
+            {
+                services.TryAddSingleton<IFitnessEmbeddingService, MisconfiguredFitnessEmbeddingService>();
+            }
+
+            // Tek QdrantClient: vector store ve koleksiyon şema denetimi (boyut tutarlılığı / health) aynı bağlantıyı kullanır.
+            // Testler kendi VectorStore'unu önceden kaydederse Qdrant hiç oluşturulmaz ve şema denetimi atlanır.
+            if (!services.Any(d => d.ServiceType == typeof(VectorStore) && Equals(d.ServiceKey, RagServiceKeys.VectorStore)))
+            {
+                services.AddKeyedSingleton<QdrantClient>(RagServiceKeys.VectorStore, (sp, _) =>
+                    CreateQdrantClient(sp.GetRequiredService<IOptions<RagOptions>>().Value));
+                services.AddKeyedSingleton<VectorStore>(RagServiceKeys.VectorStore, (sp, key) =>
+                    new QdrantVectorStore(sp.GetRequiredKeyedService<QdrantClient>(key), ownsClient: false));
+                services.TryAddSingleton<IKnowledgeCollectionSchemaInspector, QdrantKnowledgeCollectionSchemaInspector>();
+            }
             services.TryAddSingleton<IFitnessKnowledgeCorpusSource, FitnessKnowledgeCorpusSource>();
             services.TryAddSingleton<KnowledgeAvailability>();
             services.TryAddSingleton<FitnessKnowledgeCollectionProvider>();
@@ -107,16 +139,20 @@ namespace FitTrackr.API.Plugins
         }
 
         // QdrantClient gRPC kullanır; host REST endpoint'inden (Rag:QdrantEndpoint) alınır, port Rag:QdrantGrpcPort'tur.
-        // Bağlantı ilk çağrıda kurulur. API key yok (lokal Docker).
-        private static VectorStore CreateQdrantVectorStore(RagOptions options)
+        // Bağlantı ilk çağrıda kurulur. https endpoint → TLS. Rag:QdrantApiKey verilmişse (Qdrant Cloud) gönderilir;
+        // boşsa key gönderilmez (lokal Docker). Key hiçbir yerde loglanmaz.
+        private static bool IsAbsoluteHttpUri(string? value) =>
+            Uri.TryCreate(value, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
+        internal static QdrantClient CreateQdrantClient(RagOptions options)
         {
             var endpoint = new Uri(options.QdrantEndpoint);
-            var client = new QdrantClient(
+            return new QdrantClient(
                 endpoint.Host,
                 options.QdrantGrpcPort,
                 https: endpoint.Scheme == Uri.UriSchemeHttps,
+                apiKey: string.IsNullOrWhiteSpace(options.QdrantApiKey) ? null : options.QdrantApiKey,
                 grpcTimeout: TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds)));
-            return new QdrantVectorStore(client, ownsClient: true);
         }
     }
 }

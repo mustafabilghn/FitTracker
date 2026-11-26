@@ -183,11 +183,17 @@ Yapılandırma (`appsettings.json` → `Rag`):
 | `CollectionName` | `fittracker_fitness_knowledge` | |
 | `EmbeddingEndpoint` / `EmbeddingModel` | `http://localhost:11434` / `nomic-embed-text-v2-moe` | Boyut (768) merkezi `EmbeddingModelCatalog`'tan; katalogda olmayan model için `EmbeddingDimensions` ver |
 | `TopK` / `MinRelevanceScore` | `3` / `0.35` | En fazla 3 sonuç; eşik altı sonuçlar modele gitmez |
-| `IngestOnStartup` | (boş) | Boşsa yalnızca Development'ta açılışta arka planda ingestion |
+| `IngestOnStartup` | (boş) | Boşsa yalnızca Development'ta açılışta arka planda ingestion. Production'da `true` verilir (artımlı/idempotent) |
+| `EmbeddingProvider` | `Ollama` | `Ollama` (lokal nomic) veya `AzureOpenAI` (ör. `text-embedding-3-small`, 1536 boyut). Bilinmeyen değer API'yi düşürmez; RAG "unavailable" olur |
+| `EmbeddingDeployment` / `EmbeddingApiVersion` | (model adı) / `2024-10-21` | Yalnızca `AzureOpenAI` |
+| `QdrantApiKey` / `EmbeddingApiKey` | (boş) | **Secret** — yalnızca ortam değişkeni / App Settings / Key Vault (`Rag__QdrantApiKey`, `Rag__EmbeddingApiKey`); dosyaya yazma |
+
+`appsettings.Production.json` RAG'i varsayılan olarak **kapatır** (`Rag:Enabled=false`); canlıda yalnızca App Settings'te `Rag__Enabled=true` ve gerçek endpoint'ler verildiğinde açılır. `/health` endpoint'i RAG durumunu (`Healthy`/`Degraded`) embedding servisine istek atmadan ve iç ayrıntı vermeden döndürür. Koleksiyonun vektör boyutu embedding modeliyle uyuşmazsa ingestion hiçbir şey yazmaz ve yeni bir `CollectionName` ister.
 
 - **Corpus:** [`FitTracker.API/RAG/Knowledge/fitness_knowledge.json`](FitTracker.API/RAG/Knowledge/fitness_knowledge.json) — her item bilinçli bir chunk'tır (id, title, text, category, language, authority, sourceName, sourceUrl, sourceVersion). Güncel ACSM 2026 bildirisi `authority: current`, güncellenmiş 2009 önerisi `authority: historical` olarak ayrı tutulur. Metinler kısa parafrazdır.
 - **Ingestion:** Development'ta açılışta otomatik çalışır. Her kaydın içerik + embedding yapılandırması hash'i Qdrant'ta saklanır; corpus değişmediyse yeniden embedding üretilmez, yalnızca değişen item'lar embed edilir, corpus'tan silinenler koleksiyondan da silinir. Embedding modeli/boyutu değişirse yeni bir `CollectionName` kullan.
-- **Erişilemezse:** Qdrant/Ollama kapalıysa uygulama ve Chat endpoint'i normal çalışır; tool modele genel bir `unavailable` sonucu döner (iç ayrıntı sızdırmaz) ve 30 sn boyunca tekrar denenmez.
+- **Erişilemezse:** Qdrant/Ollama kapalıysa uygulama ve Chat endpoint'i normal çalışır; tool modele genel bir `unavailable` sonucu döner (iç ayrıntı sızdırmaz) ve 30 sn boyunca tekrar denenmez. Başarısız retrieval (unavailable / no_results) bir kaynak bulunmuş gibi değerlendirilmez: cevap NON-RAG davranışına iner, sayısal grounding uygulanmaz, yalnızca uydurma "Kaynak:" satırları kaldırılır. ACSM guardrail her durumda uygulanır.
+- **Deterministik tool kurtarma:** Model gerekli okuma tool'unu (kişisel veri veya bilgi tabanı) çağırmazsa sunucu her tool'u en fazla bir kez çalıştırır ve tool'suz tek bir retry yapar. `SaveWorkoutPlan` asla otomatik çalıştırılmaz.
 - **Eşik kalibrasyonu:** Ollama `nomic-embed-text-v2-moe` ve Qdrant ile yapılan smoke ölçümünde `0.30`, `0.35` ve `0.40` karşılaştırıldı. `0.35`, `Deload`, `Progressive overload` ve Bench Press platosu sorgularında doğru ilk chunk'ı korurken Bitcoin/hava durumu gibi alakasız sorgularda sonuç döndürmedi; `0.30` daha fazla düşük skorlu bağlam, `0.40` ise daha dar bağlam üretti. Bu nedenle üretim varsayılanı `0.35` seçildi.
 - **Güvenlik:** RAG yalnızca bilgi kaynağıdır; `SaveWorkoutPlan` doğrulaması ve ACSM ≤%10 guardrail'i bilgi tabanından bağımsız, sunucu tarafında aynen uygulanır.
 

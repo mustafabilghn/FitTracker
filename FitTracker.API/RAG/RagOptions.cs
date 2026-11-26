@@ -4,11 +4,31 @@ namespace FitTrackr.API.RAG
 {
     /// <summary>
     /// FitBot genel fitness bilgi tabanı (RAG) yapılandırması. <c>Rag</c> bölümünden okunur.
-    /// Hiçbir secret içermez: Qdrant ve Ollama lokal, kimlik doğrulamasız servislerdir.
+    /// Lokal geliştirmede (Docker Qdrant + Ollama) secret gerekmez. Production'da <see cref="QdrantApiKey"/> ve
+    /// <see cref="EmbeddingApiKey"/> YALNIZCA ortam değişkeni / App Settings / Key Vault referansı ile verilir;
+    /// appsettings.json'a yazılmaz ve hiçbir yerde loglanmaz.
     /// </summary>
     public sealed class RagOptions
     {
         public const string SectionName = "Rag";
+
+        public const string OllamaProvider = "Ollama";
+        public const string AzureOpenAiProvider = "AzureOpenAI";
+
+        /// <summary>Qdrant API key (Qdrant Cloud / kimlik doğrulamalı Qdrant). Boşsa key gönderilmez (lokal Docker).</summary>
+        public string? QdrantApiKey { get; set; }
+
+        /// <summary>Embedding sağlayıcısı: "Ollama" (varsayılan, lokal) veya "AzureOpenAI".</summary>
+        public string EmbeddingProvider { get; set; } = OllamaProvider;
+
+        /// <summary>Hosted embedding sağlayıcısının API key'i (AzureOpenAI). Ollama için kullanılmaz.</summary>
+        public string? EmbeddingApiKey { get; set; }
+
+        /// <summary>Azure OpenAI deployment adı. Boşsa <see cref="EmbeddingModel"/> kullanılır.</summary>
+        public string? EmbeddingDeployment { get; set; }
+
+        /// <summary>Azure OpenAI REST api-version.</summary>
+        public string EmbeddingApiVersion { get; set; } = "2024-10-21";
 
         /// <summary>Tool'un (SearchFitnessKnowledge) sunulduğu tek seferde döndürülebilecek azami sonuç.</summary>
         public const int MaxTopK = 3;
@@ -39,6 +59,9 @@ namespace FitTrackr.API.RAG
 
         /// <summary>Cosine similarity eşiği: bunun altındaki sonuçlar modele hiç gönderilmez.</summary>
         public double MinRelevanceScore { get; set; } = 0.35;
+
+        /// <summary>Bir passage'ın cevapta KAYNAK olarak gösterilebilmesi için minimum skor (retrieval eşiğinden ayrı).</summary>
+        public double CitationMinScore { get; set; } = RagAnswerGrounding.CitationMinScore;
 
         /// <summary>null: yalnızca Development ortamında açılışta (arka planda) ingestion yapılır.</summary>
         public bool? IngestOnStartup { get; set; }
