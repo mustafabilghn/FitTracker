@@ -144,28 +144,40 @@ public class KnowledgeFunctionCallingTests
     }
 
     [Fact]
-    public async Task PersonalQuestionWithoutPersonalTool_ReturnsSafeResponse()
+    public async Task PersonalQuestionWithoutPersonalTool_IsRecoveredWithDeterministicPersonalTool()
     {
         using var h = ChatHarness.Create();
         h.Llm.EnqueueReply("Maks ağırlık üç hafta boyunca aynı kaldı. %10-15 artırabilirsin.");
+        h.Llm.EnqueueReply("Squat verilerini kontrol ettim; mevcut kişisel kayıtlarına göre değerlendirme yapabilirim.");
 
         var response = await h.ChatAsync(UserA, "Squat performansımı ve trendimi değerlendir.");
 
-        Assert.Equal("Kişisel antrenman verilerini incelemeden güvenilir bir kişisel değerlendirme yapamam.", response.Reply);
+        Assert.Contains("Squat verilerini kontrol ettim", response.Reply);
+        Assert.Equal(2, h.Llm.Requests.Count);
         Assert.Empty(h.Embeddings.Queries);
     }
 
     [Fact]
-    public async Task MixedQuestionWithoutKnowledgeRetrieval_ReturnsSafeResponse()
+    public async Task MixedQuestionWithoutKnowledgeRetrieval_IsRecoveredWithBothDeterministicTools()
     {
         using var h = ChatHarness.Create();
-        h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Squat"}""");
+        h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Bench Press"}""");
         h.Llm.EnqueueReply("Maks ağırlık sabit. %10-15 azalt ve 4 set × 5 tekrar yap.");
+        h.Llm.EnqueueReply("Kişisel trend verilerini ve genel bilgi kaynağını birlikte kontrol ettim.");
 
-        var response = await h.ChatAsync(UserA, "Squat'ta takıldım. Verilerime bakarak bunu nasıl aşabilirim?");
+        var response = await h.ChatAsync(UserA, "Bench Press'te takıldım. Verilerime bakarak bunu nasıl aşabilirim?");
 
-        Assert.Equal("Genel bilgi kaynağını doğrulamadan bu konuda sayısal veya kaynaklı bir öneri veremem.", response.Reply);
-        Assert.Empty(h.Embeddings.Queries);
+        Assert.Contains("birlikte kontrol ettim", response.Reply);
+        // Sorgu kullanıcının gerçek sorusundan üretilir (sabit "plato aşma" yok); kişisel bağlam ifadesi çıkarılır.
+        var query = h.Embeddings.Queries.Single();
+        Assert.Contains("Bench Press", query);
+        Assert.Contains("aşabilirim", query);
+        Assert.Contains("plato", query);
+        Assert.DoesNotContain("Verilerime", query);
+        Assert.Equal(3, h.Llm.Requests.Count);
+        // Model kişisel tool'u zaten çağırdığı için kurtarma kişisel tool'u tekrar çalıştırmadı (tek tool mesajı).
+        Assert.Single(ToolMessages(h.Llm.Requests[1]));
+        Assert.False(Json(h.Llm.Requests[2]).TryGetProperty("tools", out _)); // retry tool'suz: sonsuz döngü yok
     }
 
     [Fact]
@@ -361,6 +373,373 @@ public class KnowledgeFunctionCallingTests
             Assert.DoesNotContain(secret, tool);
     }
 
+
+    [Fact]
+    public async Task KnowledgeRecovery_WhenModelSkipsToolAndBackendIsDown_DegradesToNonRagAnswer_WithoutFabricatedSource()
+    {
+        using var h = ChatHarness.Create();
+
+        // RAG backend'i erişilemez: deterministik kurtarma sırasında hata oluşacak.
+        h.Embeddings.FailWith =
+            new HttpRequestException("localhost:11434; Qdrant localhost:6334 SECRET");
+
+        // Model ilk turda bilgi aracını çağırmadan yanıt üretiyor ve (uydurma) bir kaynak satırı ekliyor.
+        h.Llm.EnqueueReply("Deload, antrenman yükünü azaltmaya yönelik bir yaklaşımdır.\nKaynak: ACSM 2026");
+
+        var response = await h.ChatAsync(UserA, "Deload nedir?");
+
+        // Servis erişilemezken cevap gereksiz yere reddedilmez (NON-RAG davranışı), ama retrieval olmadığı için
+        // kaynaklı görünen atıf satırı kaldırılır.
+        Assert.Equal("Deload, antrenman yükünü azaltmaya yönelik bir yaklaşımdır.", response.Reply);
+
+        // Kurtarma mekanizması RAG sorgusunu kullanıcının gerçek sorusuyla gerçekten denemiş olmalı.
+        Assert.Equal(
+            new[] { "Deload nedir?" },
+            h.Embeddings.Queries.ToArray());
+
+        // İlk model yanıtı dışında başka bir LLM çağrısı yapılmamalı.
+        // Deterministik kurtarma, aracı doğrudan sunucu tarafında çağırır.
+        Assert.Single(h.Llm.Requests);
+
+        // İç altyapı ayrıntıları kullanıcı yanıtına sızmamalı.
+        foreach (var secret in new[]
+        {
+        "11434", "6334", "Qdrant", "SECRET", "localhost"
+    })
+        {
+            Assert.DoesNotContain(secret, response.Reply);
+        }
+    }
+
+
+    // ───────────────────── 15. RAG disabled: normal FitBot behavior is not blocked ─────────────────────
+
+    [Fact]
+    public async Task RagDisabled_KnowledgeTopicQuestion_IsAnsweredNormally_NoRefusal_NoExtraLlmCall()
+    {
+        using var h = ChatHarness.Create(ragEnabled: false);
+        h.Llm.EnqueueReply("Deload, yükün geçici olarak azaltıldığı bir dönemdir. Haftada 3 gün antrenman yapıyorsan yorgunluğu izle.");
+
+        var response = await h.ChatAsync(UserA, "Deload haftası nedir ve ne zaman yapılmalı? Bana bir strateji öner.");
+
+        Assert.Equal("Deload, yükün geçici olarak azaltıldığı bir dönemdir. Haftada 3 gün antrenman yapıyorsan yorgunluğu izle.", response.Reply);
+        Assert.Single(h.Llm.Requests);
+        Assert.Empty(h.Embeddings.Queries);
+    }
+
+    [Fact]
+    public async Task RagDisabled_PersonalQuestionWithoutTool_IsStillRecoveredWithPersonalTool()
+    {
+        using var h = ChatHarness.Create(ragEnabled: false);
+        h.Llm.EnqueueReply("Tahmini özet.");
+        h.Llm.EnqueueReply("Son antrenmanlarında Bench Press 100 kg'a çıktı.");
+
+        var response = await h.ChatAsync(UserA, "Son antrenmanlarımı kısaca özetler misin?");
+
+        Assert.Equal("Son antrenmanlarında Bench Press 100 kg'a çıktı.", response.Reply);
+        Assert.Equal(2, h.Llm.Requests.Count);
+        Assert.Contains("Workout-GetRecentWorkouts", h.Llm.Requests[1]); // doğrulanmış tool sonucu retry'a eklendi
+        Assert.Empty(h.Embeddings.Queries);
+    }
+
+    [Fact]
+    public async Task GenericWorkoutSuggestion_WithOnlyOnerWord_DoesNotForceKnowledgeSearch()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("Squat, Romanian Deadlift ve Lunge içeren bir bacak antrenmanı deneyebilirsin.");
+
+        var response = await h.ChatAsync(UserA, "Bana bir bacak antrenmanı öner ama kaydetme.");
+
+        Assert.Equal("Squat, Romanian Deadlift ve Lunge içeren bir bacak antrenmanı deneyebilirsin.", response.Reply);
+        Assert.Single(h.Llm.Requests);
+        Assert.Empty(h.Embeddings.Queries);
+        Assert.Equal(0, await h.NewWorkoutCountAsync());
+    }
+
+    // ───────────────────── 16. Failed retrieval must not act like a found source ─────────────────────
+
+    [Fact]
+    public async Task KnowledgeUnavailable_AfterModelCalledTool_NumbersAreNotStripped_NoRetry()
+    {
+        using var h = ChatHarness.Create();
+        h.Embeddings.FailWith = new HttpRequestException("connection refused");
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"setler arası dinlenme"}""");
+        h.Llm.EnqueueReply("Setler arasında genelde 2-3 dakika dinlenebilirsin. Formuna dikkat et.");
+
+        var response = await h.ChatAsync(UserA, "Setler arasında ne kadar dinlenmeliyim?");
+
+        Assert.Equal("Setler arasında genelde 2-3 dakika dinlenebilirsin. Formuna dikkat et.", response.Reply);
+        Assert.Contains("\"status\":\"unavailable\"", ToolMessages(h.Llm.Requests[1]).Single());
+        Assert.Equal(2, h.Llm.Requests.Count);          // tool turu + cevap; ek retry yok
+        Assert.Single(h.Embeddings.Queries);            // aynı tool kurtarmada ikinci kez çağrılmadı
+    }
+
+    [Fact]
+    public async Task KnowledgeNoResults_NumbersAreKept_ButFabricatedSourceLineIsRemoved()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"bitcoin fiyatı kripto borsa"}""");
+        h.Llm.EnqueueReply("Isınma için 5-10 dakika hafif kardiyo yapabilirsin.\nKaynak: ACSM 2026");
+
+        var response = await h.ChatAsync(UserA, "Ağır setlerden önce nasıl ısınmalıyım?");
+
+        Assert.Contains("\"status\":\"no_results\"", ToolMessages(h.Llm.Requests[1]).Single());
+        Assert.Equal("Isınma için 5-10 dakika hafif kardiyo yapabilirsin.", response.Reply);
+    }
+
+    [Fact]
+    public async Task SuccessfulRetrieval_KeepsSourceCitation_AndStillAppliesNumericGrounding()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Deload nedir?"}""");
+        h.Llm.EnqueueReply("Deload, yükün geçici olarak azaltıldığı dönemdir. Yükü %37 azalt.\nKaynak: Bell ve ark. 2023");
+
+        var response = await h.ChatAsync(UserA, "Deload nedir?");
+
+        Assert.Contains("Deload, yükün geçici olarak azaltıldığı dönemdir.", response.Reply);
+        Assert.Contains("Kaynak: Bell ve ark. 2023", response.Reply);  // gerçek retrieval vardı: atıf korunur
+        Assert.DoesNotContain("%37", response.Reply);                    // kaynakta olmayan sayı yine kaldırılır
+    }
+
+    // ───────────────────── 17. Deterministic tool recovery ─────────────────────
+
+    [Fact]
+    public async Task KnowledgeRecovery_ModelSkipsTool_ServerSearchesOnceWithRealQuestion_ThenOneToollessRetry()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("Kaynaksız ilk cevap.");
+        h.Llm.EnqueueReply("Deload, yükün planlı olarak geçici azaltıldığı bir dönemdir.");
+
+        var response = await h.ChatAsync(UserA, "Deload haftası nedir?");
+
+        Assert.Equal(new[] { "Deload haftası nedir?" }, h.Embeddings.Queries.ToArray());
+        Assert.Equal(2, h.Llm.Requests.Count);
+        var retry = Json(h.Llm.Requests[1]);
+        Assert.False(retry.TryGetProperty("tools", out _));                 // retry'da tool sunulmaz → döngü yok
+        Assert.Contains(ToolName, h.Llm.Requests[1]);                       // doğrulanmış sonuç bağlam olarak eklendi
+        Assert.Equal("Deload, yükün planlı olarak geçici azaltıldığı bir dönemdir.", response.Reply);
+    }
+
+    [Fact]
+    public async Task KnowledgeRecovery_DoesNotSearchAgain_WhenModelAlreadyCalledKnowledgeTool()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"deload"}""");
+        h.Llm.EnqueueReply("Deload, yükün geçici olarak azaltıldığı dönemdir.");
+
+        await h.ChatAsync(UserA, "Deload haftası nedir?");
+
+        Assert.Equal(new[] { "deload" }, h.Embeddings.Queries.ToArray());
+        Assert.Equal(2, h.Llm.Requests.Count);
+    }
+
+    [Fact]
+    public async Task PersonalRecovery_DoesNotRunSecondPersonalTool_WhenModelAlreadyUsedAnotherPersonalTool()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("p1", "Workout-GetPlateauExercises", "{}");
+        h.Llm.EnqueueReply("Squat değerlendirmesi kişisel verine göre yapıldı.");
+
+        var response = await h.ChatAsync(UserA, "Squat performansımı ve trendimi değerlendir.");
+
+        Assert.Equal("Squat değerlendirmesi kişisel verine göre yapıldı.", response.Reply);
+        Assert.Equal(2, h.Llm.Requests.Count);
+        Assert.Equal(0, h.Llm.PendingResponses);
+    }
+
+    [Fact]
+    public async Task Recovery_NeverInvokesSaveWorkoutPlan()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("Bacak planını kaydettim!");   // model tool çağırmadan yanlış başarı iddia ediyor
+        h.Llm.EnqueueReply("Kişisel verilerine baktım.");
+
+        await h.ChatAsync(UserA, "Son antrenmanlarıma bakarak bir bacak planı oluştur ve kaydet.");
+
+        Assert.Equal(0, await h.NewWorkoutCountAsync());  // kurtarma yalnızca okuma tool'u çalıştırır
+    }
+
+    // ───────────────────── 18. English intent + messages ─────────────────────
+
+    [Fact]
+    public async Task English_PersonalQuestion_WhenPersonalDataUnavailable_RefusesInEnglish()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("ok");
+        await h.ChatAsync(UserA, "selam");   // context cache'e alınır
+        h.BreakDatabase();                   // kişisel tool artık hata döndürür
+
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+        h.Llm.EnqueueToolCall("p1", "Workout-GetRecentWorkouts", "{}");
+        h.Llm.EnqueueReply("You trained a lot last week!");
+
+        var response = await h.ChatAsync(UserA, "Can you summarize my workouts?");
+
+        Assert.Equal("I can't give a reliable personal assessment without checking your workout data. Please try again in a moment.", response.Reply);
+        Assert.DoesNotContain("Kişisel", response.Reply);
+    }
+
+    [Fact]
+    public async Task English_KnowledgeQuestion_TriggersRecoveryWithEnglishQuery_AndIsNotRefused()
+    {
+        using var h = ChatHarness.Create();
+        CultureInfo.CurrentUICulture = new CultureInfo("en-US");
+        h.Llm.EnqueueReply("A deload is a planned short period of reduced training load.");
+
+        var response = await h.ChatAsync(UserA, "What is a deload week and when should I do one?");
+
+        Assert.Equal(new[] { "What is a deload week and when should I do one?" }, h.Embeddings.Queries.ToArray());
+        Assert.StartsWith("A deload is a planned short period of reduced training load.", response.Reply);
+        Assert.DoesNotContain("doğrulamadan", response.Reply);
+    }
+
+    [Theory]
+    [InlineData("Son antrenmanlarımı kısaca özetler misin?", true)]
+    [InlineData("Bench Press ilerlememe göre gelecek hafta ağırlığı ne kadar artırmalıyım?", true)]
+    [InlineData("Kayıtlı antrenman planlarım neler?", true)]
+    [InlineData("Squat'ta takıldığımı düşünüyorum.", true)]
+    [InlineData("How is my progress on bench press?", true)]
+    [InlineData("Have I plateaued on squat?", true)]
+    [InlineData("I'm stuck on squat, what should I do?", true)]
+    [InlineData("Squat'taki takılmayı aşmak için setler arası dinlenme süremi değiştirmeli miyim?", true)]
+    [InlineData("Bench'teki takılmamı nasıl aşarım?", true)]
+    [InlineData("Setlerimi ve tekrarlarımı nasıl düzenlemeliyim?", true)]
+    [InlineData("Should I change my rest time between squat sets?", true)]
+    [InlineData("Are my sets and reps right for hypertrophy?", true)]
+    [InlineData("Setler arası dinlenme süresi ne kadar olmalı?", false)]
+    [InlineData("How long should rest periods be for strength?", false)]
+    [InlineData("Bana bir bacak antrenmanı öner ama kaydetme.", false)]
+    [InlineData("Benim için iyi bir ısınma rutini nedir?", false)]
+    [InlineData("What is progressive overload?", false)]
+    [InlineData("selam", false)]
+    public void LooksPersonal_MatchesOnlyFirstPersonDataRequests(string message, bool expected) =>
+        Assert.Equal(expected, AiWorkoutCoachService.LooksPersonal(message));
+
+    [Theory]
+    [InlineData("Deload haftası nedir ve ne zaman yapılmalı?", true)]
+    [InlineData("Progressive overload nedir, güvenli şekilde nasıl uygulanır?", true)]
+    [InlineData("Güç antrenmanında setler arasında ne kadar dinlenmeliyim?", true)]
+    [InlineData("Squat yaparken dizlerim içe kaçıyor, tekniğimi nasıl düzeltebilirim?", true)]
+    [InlineData("Ağır setlerden önce nasıl ısınmalıyım?", true)]
+    [InlineData("Squat'ta takıldığımı düşünüyorum. Verilerime bakarak bunu nasıl aşabileceğimi söyler misin?", true)]
+    [InlineData("Bench Press ilerlememe göre gelecek hafta ağırlığı ne kadar artırmalıyım?", true)]
+    [InlineData("How long should I rest between sets?", true)]
+    [InlineData("How do I break through a plateau?", true)]
+    [InlineData("What is progressive overload?", true)]
+    [InlineData("Bana bir bacak antrenmanı öner ama kaydetme.", false)]
+    [InlineData("Yolda yürürken ne dinlemeliyim?", false)]
+    [InlineData("Bana bir program hazırlasam nasıl olur?", false)]
+    [InlineData("Yarın için bir push antrenman planı oluştur ve kaydet: Bench Press 3 set x 8 tekrar 100 kg.", false)]
+    [InlineData("Can you summarize my workouts?", false)]
+    [InlineData("selam", false)]
+    public void LooksKnowledgeSeeking_MatchesCorpusTopicsNotGenericWords(string message, bool expected) =>
+        Assert.Equal(expected, AiWorkoutCoachService.LooksKnowledgeSeeking(message));
+
+    [Fact]
+    public void BuildKnowledgeQuery_UsesRealQuestion_StripsPersonalNumbersAndContext()
+    {
+        var query = AiWorkoutCoachService.BuildKnowledgeQuery(
+            "Bench Press'te 100 kg ile 3x5 yapıyorum, %80 yoğunlukta; verilerime bakarak bunu nasıl aşabilirim?");
+
+        Assert.Contains("Bench Press", query);
+        Assert.Contains("nasıl aşabilirim?", query);
+        foreach (var personal in new[] { "100", "kg", "3x5", "%80", "verilerime bakarak" })
+            Assert.DoesNotContain(personal, query);
+
+        Assert.Equal("Güç antrenmanında setler arasında ne kadar dinlenmeliyim?",
+            AiWorkoutCoachService.BuildKnowledgeQuery("Güç antrenmanında setler arasında ne kadar dinlenmeliyim?"));
+        Assert.DoesNotContain("plato", AiWorkoutCoachService.BuildKnowledgeQuery("Ağır setlerden önce nasıl ısınmalıyım?"));
+        Assert.Equal(string.Empty, AiWorkoutCoachService.BuildKnowledgeQuery("   "));
+    }
+
+    // ───────────────────── 20. Grounding end-to-end (retrieval + personal data + ACSM) ─────────────────────
+
+    [Fact]
+    public async Task AcsmValidatedPersonalWeight_IsKept_AfterRetrieval_UnsupportedClaimRemoved()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("p1", "Workout-GetWeightTrends", """{"exerciseName":"Bench Press"}""");
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
+        h.Llm.EnqueueReply("Son Bench Press maksimumun 100 kg.\n\n- **Yük**: Gelecek hafta Bench Press'te 105 kg deneyebilirsin.\n- **Hacim**: Yükü %37 azalt.");
+
+        var response = await h.ChatAsync(UserA, "Bench Press ilerlememe göre gelecek hafta ağırlığı ne kadar artırmalıyım?");
+
+        Assert.Contains("Son Bench Press maksimumun 100 kg.", response.Reply);                         // kişisel veri
+        Assert.Contains("- **Yük**: Gelecek hafta Bench Press'te 105 kg deneyebilirsin.", response.Reply); // ACSM ile doğrulanmış (100 → ≤110)
+        Assert.DoesNotContain("%37", response.Reply);                                                    // kaynaksız iddia
+        Assert.DoesNotContain("**Hacim**", response.Reply);                                              // yarım madde bırakılmaz
+        Assert.False(response.GuardrailTriggered);
+    }
+
+    [Fact]
+    public async Task UnsafeUnsourcedWeight_IsNotPreserved_EvenWithRetrieval()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Bench Press plato aşma"}""");
+        h.Llm.EnqueueReply("Bench Press'te hemen 125 kg dene. Formuna dikkat et.");
+
+        var response = await h.ChatAsync(UserA, "Bench Press platosu için ne yapabilirim?");
+
+        Assert.DoesNotContain("125", response.Reply);
+        Assert.Contains("Formuna dikkat et.", response.Reply);
+    }
+
+    [Fact]
+    public async Task InternalModelMarkup_NeverReachesTheUser()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueToolCall("k1", ToolName, """{"query":"Deload nedir?"}""");
+        h.Llm.EnqueueReply("Deload, yükün geçici olarak azaltıldığı dönemdir【sourceName: Bell et al. (2023)】.");
+
+        var response = await h.ChatAsync(UserA, "Deload nedir?");
+
+        Assert.Equal("Deload, yükün geçici olarak azaltıldığı dönemdir.", response.Reply);
+    }
+
+    [Fact]
+    public async Task PersonalRestPlateauQuestion_ModelSkipsTools_BackendRunsPersonalAndKnowledgeOnce()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("Kaynaksız ilk cevap.");
+        h.Llm.EnqueueReply("Kişisel plato verin ve dinlenme bilgisiyle değerlendirme yapıldı.");
+
+        var response = await h.ChatAsync(UserA, "Squat'taki takılmayı aşmak için setler arası dinlenme süremi değiştirmeli miyim?");
+
+        Assert.Equal(2, h.Llm.Requests.Count);
+        Assert.Contains("Workout-GetPlateauExercises", h.Llm.Requests[1]); // kişisel SQL/tool kanıtı retry'a eklendi
+        Assert.Single(h.Embeddings.Queries);                              // bilgi araması bir kez
+        Assert.Equal("Kişisel plato verin ve dinlenme bilgisiyle değerlendirme yapıldı.", response.Reply);
+    }
+
+    // ───────────────────── 19. Reasoning models: empty content / reasoning effort ─────────────────────
+
+    [Fact]
+    public async Task EmptyModelContent_IsNeverReturnedToUser_DeterministicFallback()
+    {
+        using var h = ChatHarness.Create();
+        h.Llm.EnqueueReply("");   // gpt-oss: reasoning bütçesi bitti (finish_reason=length), içerik boş
+
+        var response = await h.ChatAsync(UserA, "selam");
+
+        Assert.Equal("Bu sefer bir yanıt oluşturamadım. Lütfen sorunu birazdan tekrar sor.", response.Reply);
+        Assert.Single(h.Llm.Requests);
+    }
+
+    [Fact]
+    public async Task ReasoningEffort_IsSentOnlyWhenConfigured()
+    {
+        using var configured = ChatHarness.Create(reasoningEffort: "low");
+        using var standard = ChatHarness.Create();
+        configured.Llm.EnqueueReply("ok");
+        standard.Llm.EnqueueReply("ok");
+
+        await configured.ChatAsync(UserA, "selam");
+        await standard.ChatAsync(UserA, "selam");
+
+        Assert.Equal("low", Json(configured.Llm.Requests.Single()).GetProperty("reasoning_effort").GetString());
+        Assert.False(Json(standard.Llm.Requests.Single()).TryGetProperty("reasoning_effort", out _));
+    }
+
     // ───────────────────── 14. SaveWorkoutPlan guardrail unchanged ─────────────────────
 
     private const string UnsafeLegsPlanJson = """
@@ -467,7 +846,7 @@ public class KnowledgeFunctionCallingTests
         public ScriptedLlm Llm { get; } = new();
         public HashingEmbeddingService Embeddings { get; } = new();
 
-        private ChatHarness(bool ragEnabled)
+        private ChatHarness(bool ragEnabled, string? reasoningEffort)
         {
             CultureInfo.CurrentUICulture = new CultureInfo("tr-TR");
             _connection = new SqliteConnection("DataSource=:memory:");
@@ -480,7 +859,9 @@ public class KnowledgeFunctionCallingTests
                 ["Rag:Enabled"] = ragEnabled ? "true" : "false",
                 ["Rag:CollectionName"] = "chat_test_" + Guid.NewGuid().ToString("N"),
                 ["Rag:MinRelevanceScore"] = "0.2", // deterministik bag-of-words embedding için
-                ["Rag:UnavailableCooldownSeconds"] = "0"
+                ["Rag:CitationMinScore"] = "0.2",   // sahte embedding skorları gerçek cosine ölçeğinde değil; kapı ayrıca birim testlerle sınanır
+                ["Rag:UnavailableCooldownSeconds"] = "0",
+                ["Groq:ReasoningEffort"] = reasoningEffort
             }).Build();
 
             var services = new ServiceCollection();
@@ -516,7 +897,7 @@ public class KnowledgeFunctionCallingTests
                 Provider.GetRequiredService<IKnowledgeIngestionService>().IngestAsync().GetAwaiter().GetResult();
         }
 
-        public static ChatHarness Create(bool ragEnabled = true) => new(ragEnabled);
+        public static ChatHarness Create(bool ragEnabled = true, string? reasoningEffort = null) => new(ragEnabled, reasoningEffort);
 
         private static void Seed(FitTrackrDbContext db, string userId, int daysAgo, params (string Name, double Kg)[] exercises) =>
             db.Workouts.Add(new Workout
@@ -538,6 +919,9 @@ public class KnowledgeFunctionCallingTests
             return await scope.ServiceProvider.GetRequiredService<IAiWorkoutCoachService>()
                 .ChatAsync(userId, new FitBotChatRequestDto { Message = message, ActionType = actionType });
         }
+
+        /// <summary>SQLite in-memory bağlantısını kapatır: sonraki DB erişimleri (kişisel tool'lar) hata verir.</summary>
+        public void BreakDatabase() => _connection.Close();
 
         public async Task<int> NewWorkoutCountAsync()
         {

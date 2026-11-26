@@ -8,6 +8,10 @@ namespace FitTrackr.API.RAG
     public interface IRagGroundingContext
     {
         bool WasSearchInvoked { get; }
+
+        /// <summary>Bu istekte en az bir passage gerçekten alındı mı (status=ok). Grounding yalnızca bu durumda uygulanır.</summary>
+        bool HasRetrievedPassages { get; }
+
         IReadOnlyList<RagGroundingPassage> Passages { get; }
         IReadOnlySet<string> NumericExpressions { get; }
         bool ContainsNumericExpression(string expression);
@@ -19,7 +23,8 @@ namespace FitTrackr.API.RAG
         string Text,
         string SourceName,
         string SourceUrl,
-        string SourceVersion);
+        string SourceVersion,
+        double Score = 0);
 
     public sealed class RagGroundingContext : IRagGroundingContext
     {
@@ -31,6 +36,7 @@ namespace FitTrackr.API.RAG
         private readonly HashSet<string> _numericExpressions = new(StringComparer.OrdinalIgnoreCase);
 
         public bool WasSearchInvoked { get; private set; }
+        public bool HasRetrievedPassages => _passages.Count > 0;
         public IReadOnlyList<RagGroundingPassage> Passages => _passages;
         public IReadOnlySet<string> NumericExpressions => _numericExpressions;
 
@@ -45,7 +51,8 @@ namespace FitTrackr.API.RAG
                     hit.Text,
                     hit.SourceName,
                     hit.SourceUrl,
-                    hit.SourceVersion));
+                    hit.SourceVersion,
+                    hit.Score));
 
                 AddNumbers(hit.Title);
                 AddNumbers(hit.Text);
@@ -66,7 +73,7 @@ namespace FitTrackr.API.RAG
                 _numericExpressions.Add(NormalizeNumber(match.Value));
         }
 
-        internal static string NormalizeNumber(string value) =>
+        public static string NormalizeNumber(string value) =>
             Regex.Replace(value.Trim().Replace(',', '.'), @"\s+", string.Empty)
             .Replace('–', '-')
             .Replace('‑', '-');

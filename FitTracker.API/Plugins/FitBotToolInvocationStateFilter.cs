@@ -9,12 +9,18 @@ public sealed class FitBotToolInvocationStateFilter : IAutoFunctionInvocationFil
     public FitBotToolInvocationStateFilter(IFitBotToolInvocationState state) => _state = state;
 
     public async Task OnAutoFunctionInvocationAsync(
-        AutoFunctionInvocationContext context,
-        Func<AutoFunctionInvocationContext, Task> next)
+    AutoFunctionInvocationContext context,
+    Func<AutoFunctionInvocationContext, Task> next)
     {
+        var toolName =
+            $"{context.Function.PluginName}-{context.Function.Name}";
+
+        _state.MarkAttempted(toolName);
+
         await next(context);
+
         _state.Record(
-            $"{context.Function.PluginName}-{context.Function.Name}",
+            toolName,
             context.Result?.GetValue<object>());
     }
 }
